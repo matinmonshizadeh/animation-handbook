@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Circle Reveal", "name": "Circle Reveal", "description": "Pages grow from any spot you click and shrink back into it. Best for app navigation.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/circle-reveal/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Circle Reveal"}</script>
   <style>
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
+    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--mark:#ffa94d}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
@@ -49,6 +49,54 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
     @media(prefers-reduced-motion:reduce){.tap{display:none}}
+    /* The small site sits in a box, so Compare can lay two of them side by side; in Compare a copy of it, the twin, sits beside it */
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.reach,.cap{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .cap{position:absolute;left:0;top:0;z-index:4;padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .cap.in{width:max-content;max-width:calc(100% - 16px);white-space:normal}
+    .cap.side{top:auto;bottom:10px;left:10px}
+    .cap.second{left:calc(50% + 10px)}
+    /* See inside: a dot at the spot, a dashed line to each corner (the longest bright), an outline on the circle's edge and an arrow for
+       the way back, over the pages dimmed; the next page lies on top, cut to the circle, and the page on show stays outside it */
+    .stage[data-hb-mode="inside"] :is(.reach,.cap.in),.stage[data-hb-mode="compare"] .reach{display:block}
+    .stage[data-hb-mode="inside"] .pc{opacity:.4}
+    .stage[data-hb-mode="inside"] .page.pose,.stage[data-hb-mode="compare"] .page.pose{opacity:1}
+    .reach{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none}
+    .ln{stroke:rgba(255,255,255,.7);stroke-width:1.5;stroke-dasharray:3 5}
+    .ln.far{stroke:var(--mark);stroke-width:2.5;stroke-dasharray:8 4}
+    .dot{fill:var(--mark);stroke:var(--bg);stroke-width:2}
+    .edge,.arw{fill:none;visibility:hidden}
+    .edge{stroke:var(--mark);stroke-width:3}
+    .arw{stroke:#fff;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+    .edge.on,.stage[data-hb-mode="inside"].posed :is(.edge,.arw){visibility:visible}
+    /* Compare: on the left the copy, which changes page at once; on the right the real site, caught part way through its change, with the
+       click that started it held still (a dot in the middle or the corner when Where it starts says so) */
+    .held{display:none;fill:none;stroke:#fff;stroke-width:2;r:15px;opacity:.6}
+    .held.dotty{fill:#fff;r:5px;opacity:.75}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .cap.side{display:block}
+    .stage[data-hb-mode="compare"] .reach :is(.ln,.dot,.edge,.arw){display:none}
+    .stage[data-hb-mode="compare"].posed .held{display:block}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    /* Phones and short windows (a phone held sideways too) leave the page area short: in Compare a page keeps only its eyebrow and
+       heading, and in See inside, where the marks fill the box, only its colors */
+    @media(max-width:600px),(max-height:650px){
+      .stage[data-hb-mode="inside"] .pc,.stage[data-hb-mode="compare"] :is(.pp,.pgrid,.pstat){display:none}
+    }
+    /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .cap.first{bottom:calc(50% + 10px)}
+      .cap.second{left:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -71,15 +119,36 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click anywhere on the page or a page name at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area"></div>
+      </div>
+      <svg class="reach" aria-hidden="true">
+        <svg id="clip"><line class="ln"/><line class="ln"/><line class="ln"/><line class="ln"/><circle class="edge" id="edge"/><path class="arw" id="arw"/><circle class="held" id="held"/></svg>
+        <circle class="dot" id="dot" r="6"/>
+      </svg>
+      <p class="cap in" aria-hidden="true" data-hb-caption>Starts where you click</p>
+      <p class="cap in" aria-hidden="true" data-hb-caption>Must reach the farthest corner</p>
+      <p class="cap in" aria-hidden="true" data-hb-caption>Going back, it shrinks into the spot</p>
+      <p class="cap in" aria-hidden="true" data-hb-caption>Covers the page in about three quarters of a second</p>
+      <p class="cap side first" aria-hidden="true" data-hb-caption>Switches at once</p>
+      <p class="cap side second" aria-hidden="true" data-hb-caption>Circle grows</p>
       <span class="tap" id="tap" aria-hidden="true"></span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the circle grows from the dot until it reaches the farthest corner, the end of a bright line; any smaller and that corner would stay uncovered. Click the page, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Switches at once simply changes page; Circle grows reveals the next page through a circle that widens from one spot. Click the page or a page name, or press Show me.</p>
     </div>
   </section>
 
@@ -163,10 +232,14 @@
     {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
     {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div><div><b>3</b><span>Continents</span></div></div></div>`},
   ];
+  const box=document.getElementById('box'),stage=box.parentElement;
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),tapEl=document.getElementById('tap');
   const slowTog=document.getElementById('slow-tog'),closeTog=document.getElementById('close-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const EASE='cubic-bezier(.4,0,.2,1)';
   let current=0,animating=false,origin='click',dur=750,afterMove=null,wayBack=0,timers=[];
+  // The views: lastFrac is the last click on a page as shares of the page area (Show me's spot until there is one)
+  let mode='normal',lastFrac={x:.7,y:.62},runFrom=null,edgeFar=0;
   const pages=[],navBtns=[];
 
   // Where a click landed, in px from the page area's top-left corner. A click made with the keyboard has no spot (detail 0),
@@ -181,6 +254,16 @@
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',e=>navigate(i,spot(e,b)));nav.appendChild(b);navBtns.push(b);
   });
+
+  // Compare's first half: the same small site as a copy that changes page the moment a change starts. No ids, spans for buttons,
+  // and out of the Tab order and the screen reader's reach.
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  function showTwin(n){twinPages.forEach((el,i)=>el.classList.toggle('active',i===n));twinNav.forEach((b,i)=>b.classList.toggle('active',i===n))}
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -204,13 +287,14 @@
   function rest(el,on){
     el.classList.toggle('active',on);
     el.inert=!on;
+    el.classList.remove('pose');
     el.style.clipPath='';el.style.transition='';el.style.zIndex='';el.style.opacity='';
   }
   // The resting state for page n, at once. A circle or fade still running is cancelled too, and so is the ring.
   function showPage(n){
     pages.forEach((el,i)=>{rest(el,i===n);el.getAnimations().forEach(a=>a.cancel())});
     tapEl.classList.remove('on');
-    updateNav(n);
+    updateNav(n);showTwin(n);
   }
 
   // Ends a change: the demo is idle again, and a Show me run goes on to its next step
@@ -218,20 +302,33 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    idle();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
     animating=false;
     showPage(current);
+    idle();
+  }
+
+  // Where a change starts and how far it must reach, for a click at pt (see spot): the spot (the click, the middle or the bottom-right
+  // corner, as Where it starts says), the page area's size and the four corner distances. The circle ends as big as the farthest.
+  function reach(pt){
+    const w=area.clientWidth,h=area.clientHeight;
+    const x=origin==='center'?w/2:origin==='corner'?w:pt.x,y=origin==='center'?h/2:origin==='corner'?h:pt.y;
+    const ds=[Math.hypot(x,y),Math.hypot(w-x,y),Math.hypot(x,h-y),Math.hypot(w-x,h-y)]; // to the top-left, top-right, bottom-left, bottom-right corner
+    return{w,h,x,y,ds,far:Math.ceil(Math.max(...ds))};
   }
 
   // pt is the click (see spot); the circle starts there, in the middle or in the bottom-right corner, as the setting says
   function navigate(next,pt,then){
     if(next===current||animating)return;
     const prev=current;current=next;updateNav(next);
+    showTwin(next);lift();remember(pt); // the copy changes page at once, and the pose goes
     afterMove=then||null;animating=true;
-    const oldEl=pages[prev],newEl=pages[next];
+    const oldEl=pages[prev],newEl=pages[next],g=reach(pt);
+    if(mode==='inside')mark(g);
     newEl.classList.add('active'); // both pages are on show while the circle changes
     if(!motionOk){
       // Reduced motion: the new page fades in over the old one, nothing grows
@@ -240,17 +337,16 @@
       later(()=>{rest(oldEl,false);rest(newEl,true);finish()},350);
       return;
     }
-    const w=area.clientWidth,h=area.clientHeight;
-    const x=origin==='center'?w/2:origin==='corner'?w:pt.x,y=origin==='center'?h/2:origin==='corner'?h:pt.y;
     // Big enough to reach the farthest corner, so no corner is left uncovered
-    const far=Math.ceil(Math.max(Math.hypot(x,y),Math.hypot(w-x,y),Math.hypot(x,h-y),Math.hypot(w-x,h-y)));
+    const {x,y,far}=g;
     // Going to an earlier page with Closes on: the old page stays on top and shrinks into the spot instead
     const closing=closeTog.checked&&next<prev,top=closing?oldEl:newEl,at=`px at ${x.toFixed(1)}px ${y.toFixed(1)}px)`;
     const d=dur*(slowTog.checked?3:1); // read when the change starts; three times as long in slow motion
     top.style.zIndex='2';top.style.transition='none';top.style.clipPath='circle('+(closing?far:0)+at;
     top.offsetHeight; // commit the starting circle before the change is switched on
-    top.style.transition=`clip-path ${d}ms cubic-bezier(.4,0,.2,1)`;
+    top.style.transition=`clip-path ${d}ms ${EASE}`;
     top.style.clipPath='circle('+(closing?0:far)+at;
+    if(mode==='inside')runEdge(closing,d);
     later(()=>{rest(oldEl,false);rest(newEl,true);finish()},d+50);
   }
 
@@ -260,31 +356,149 @@
       tapEl.style.translate=`${(pt.x+area.offsetLeft).toFixed(1)}px ${(pt.y+area.offsetTop).toFixed(1)}px`;
       tapEl.classList.remove('on');tapEl.offsetWidth;tapEl.classList.add('on');
     }
+    remember(pt);
     wayBack=later(()=>{wayBack=0;navigate(next,pt,then)},motionOk?250:0);
+    draw(); // the pose goes as the click is made
   }
-  // Show me: a click on the page opens the next one, a hold of 1200ms, then a click on the first page's name goes back
+  // Show me: a click on the page opens the next one, a hold of 1200ms, then a click on the first page's name goes back.
+  // A press that interrupts a run (a mode press makes one) starts again from the page that run started at, so it ends where it began.
   function showMe(){
+    if(runFrom!==null)current=runFrom;
     settle();
-    const start=current;
-    pretend({x:area.clientWidth*.7,y:area.clientHeight*.62},(start+1)%PAGES.length,()=>{wayBack=later(()=>pretend(spot(null,navBtns[start]),start),1200)});
+    const start=runFrom=current;
+    pretend({x:area.clientWidth*.7,y:area.clientHeight*.62},(start+1)%PAGES.length,()=>{wayBack=later(()=>pretend(spot(null,navBtns[start]),start,()=>{runFrom=null}),1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){current=0;runFrom=null;lastFrac={x:.7,y:.62};settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A circle already under way finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;runFrom=null;cancel(wayBack);wayBack=0;draw()});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);draw();
     }));
   }
   choices('origin-seg',d=>{origin=d.origin});
   choices('speed-seg',d=>{dur=+d.ms});
+  closeTog.addEventListener('change',draw);
+  slowTog.addEventListener('change',draw);
+
+  // ---- See inside and Compare. The share of the way a change has made at 40% of its time comes from the browser's own curve.
+  const SHARE=(a=>{a.currentTime=400;return a.effect.getComputedTiming().progress})(
+    new Animation(new KeyframeEffect(null,null,{duration:1000,easing:EASE,fill:'both'}),document.timeline));
+  const $=id=>document.getElementById(id);
+  const clip=$('clip'),lines=[...clip.querySelectorAll('.ln')],edge=$('edge'),arw=$('arw'),held=$('held'),dot=$('dot');
+  const caps=[...stage.querySelectorAll('.cap.in')];
+  const num=v=>v.toFixed(1);
+  const set=(el,o)=>{for(const k in o)el.setAttribute(k,num(o[k]))};
+  // The length of a change as a beginner says it: the three speeds, and three times as long in slow motion
+  const WORDS={450:'half a second',750:'three quarters of a second',1200:'a second',1350:'a second and a half',2250:'two and a half seconds',3600:'three and a half seconds'};
+  // A click on a page (not on a page name, which sits above it) is the spot the next change is shown from, kept as shares of the page area
+  function remember(pt){
+    if(pt.y>=0)lastFrac={x:Math.min(1,Math.max(0,pt.x/area.clientWidth)),y:Math.min(1,pt.y/area.clientHeight)};
+  }
+  const restPt=()=>({x:lastFrac.x*area.clientWidth,y:lastFrac.y*area.clientHeight});
+  // Puts a caption as near (cx,cy) as it fits in the page area, clear of what is in hit (the dot, the captions put) and, if there is room,
+  // of the arrow and of the bright line (soft: their rects)
+  function put(el,cx,cy,hit,soft){
+    const w=el.offsetWidth,h=el.offsetHeight,W=area.clientWidth,H=area.clientHeight,G=8;
+    let at=[G,G],best=1e9;
+    for(const rs of [hit.concat(...soft),hit.concat(soft[0]),hit]){
+      for(let y=G;y<=H-G-h;y+=6)for(let x=G;x<=W-G-w;x+=6){
+        if(rs.some(r=>x<r[2]&&x+w>r[0]&&y<r[3]&&y+h>r[1]))continue;
+        const d=Math.hypot(x+w/2-cx,y+h/2-cy);
+        if(d<best){best=d;at=[x,y]}
+      }
+      if(best<1e9)break;
+    }
+    el.style.transform=`translate(${area.offsetLeft+at[0]}px,${area.offsetTop+at[1]}px)`;
+    hit.push([at[0]-6,at[1]-6,at[0]+w+6,at[1]+h+6]);
+  }
+  // The marks, from the numbers a change uses (g, see reach): a dashed line from the spot to each corner, the longest bright; the end
+  // circle; an arrow for the way back, on the circle as the pose holds it; and, in Compare, the click held still
+  function mark(g){
+    const {w,h,x,y,ds,far}=g,m=Math.max(...ds),ax=area.offsetLeft,ay=area.offsetTop,bright=ds.map(v=>v>m-1);
+    set(clip,{x:ax,y:ay,width:w,height:h});
+    lines.forEach((l,i)=>{set(l,{x1:x,y1:y,x2:i%2*w,y2:(i>>1)*h});l.classList.toggle('far',bright[i])});
+    // The dot is kept inside the box (a page name's spot lies above the page area, over the name)
+    const dx=Math.max(6,Math.min(x,w-6)),dy=Math.max(6-ay,Math.min(y,h-6));
+    set(dot,{cx:ax+dx,cy:ay+dy});set(held,{cx:dx,cy:Math.min(y,h-6)});set(edge,{cx:x,cy:y});
+    held.classList.toggle('dotty',origin!=='click');edgeFar=far;
+    if(mode!=='inside')return;
+    // The arrow lies along the way from the circle in the pose to the spot, where the circle has the most room, a little off the bright line if it can
+    const k0=bright.indexOf(true),cx=k0%2*w,cy=(k0>>1)*h,len=Math.hypot(cx-x,cy-y),a0=Math.atan2(cy-y,cx-x);
+    const R=far*SHARE;let th=0,room=-1e9;
+    for(let k=0;k<24;k++){
+      const t=k*Math.PI/12,near=Math.abs(Math.atan2(Math.sin(t-a0),Math.cos(t-a0)))<.25;
+      const r=Math.min(x+R*Math.cos(t),w-x-R*Math.cos(t),y+R*Math.sin(t),h-y-R*Math.sin(t))-(near?50:0);
+      if(r>room){room=r;th=t}
+    }
+    const c=Math.cos(th),s=Math.sin(th),L=Math.min(.4*R,90),P=[x+R*c,y+R*s],Q=[P[0]-L*c,P[1]-L*s];
+    const [tail,tip]=closeTog.checked?[P,Q]:[Q,P],u=Math.atan2(tip[1]-tail[1],tip[0]-tail[0]);
+    const pt=p=>`${num(p[0])} ${num(p[1])}`,head=a=>pt([tip[0]-9*Math.cos(u+a),tip[1]-9*Math.sin(u+a)]);
+    arw.setAttribute('d',`M${pt(tail)}L${pt(tip)}M${head(.5)}L${pt(tip)}L${head(-.5)}`);
+    const soft=[[],[]];
+    for(let i=0;i<=4;i++){const px=tail[0]+(tip[0]-tail[0])*i/4,py=tail[1]+(tip[1]-tail[1])*i/4;soft[0].push([px-8,py-8,px+8,py+8])}
+    for(let d=0;d<=len;d+=8){const px=x+(cx-x)*d/len,py=y+(cy-y)*d/len;soft[1].push([px-6,py-6,px+6,py+6])}
+    const txt=[origin==='click'?'Starts where you click':origin==='center'?'Starts in the middle':'Starts in the corner',
+      'Must reach the farthest corner',
+      closeTog.checked?'Going back, it shrinks into the spot':'Going back, the earlier page grows out of the spot',
+      `${motionOk?'Covers':'Would cover'} the page in about ${WORDS[dur*(slowTog.checked?3:1)]}`];
+    caps.forEach((el,i)=>{if(el.textContent!==txt[i])el.textContent=txt[i]});
+    const hit=[[dx-12,dy-12,dx+12,dy+12]];
+    put(caps[3],0,h,hit,soft);put(caps[0],dx,dy,hit,soft);put(caps[1],cx,cy,hit,soft);put(caps[2],(P[0]+Q[0])/2,(P[1]+Q[1])/2,hit,soft);
+  }
+  // The outline: a circle at the spot that grows to the end size (or shrinks from it) with the length and curve of the clip, in the same step
+  function runEdge(closing,d){
+    edge.style.transition='none';edge.style.r=(closing?edgeFar:0)+'px';edge.classList.add('on');
+    edge.getBoundingClientRect(); // commit the start before the change is switched on
+    edge.style.transition=`r ${d}ms ${EASE}`;edge.style.r=(closing?0:edgeFar)+'px';
+  }
+  function stopEdge(){edge.classList.remove('on');edge.style.transition='none'}
+  // The next page is not shown at rest, so the pose lifts it: visible, inert, cut to the circle at 40% of the change's time
+  function lift(){
+    stage.classList.remove('posed');
+    pages.forEach(el=>{if(el.classList.contains('pose')){el.classList.remove('pose');el.style.clipPath='';el.style.zIndex=''}});
+  }
+  // At rest in a mode the next change stands caught at 40% of its time, from the last click on a page; a change lifts the pose and it
+  // comes back when nothing is pending
+  function pose(){
+    lift();
+    const on=mode!=='normal'&&!animating&&!wayBack;
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    const g=reach(restPt()),el=pages[(current+1)%PAGES.length];
+    el.classList.add('pose');el.inert=true;el.style.zIndex='2';
+    el.style.clipPath=`circle(${(g.far*SHARE).toFixed(1)}px at ${g.x.toFixed(1)}px ${g.y.toFixed(1)}px)`;
+    edge.style.r=`${(edgeFar*SHARE).toFixed(1)}px`;
+  }
+  // The notes keep the markup's words, except under reduced motion (a still while the pose stands)
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const IN=noteIn.textContent,CMP=noteCmp.textContent;
+  function notes(){
+    const still=!animating&&!wayBack,say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+    say(noteIn,motionOk?IN:still
+      ?'Shown still: the circle caught part way from the dot, and the bright line to the farthest corner it must reach.'
+      :'Under reduced motion the page fades in; the dot and lines still show where a circle would start and how far it would reach.');
+    say(noteCmp,motionOk?CMP:still
+      ?'Shown still: Switches at once simply changes page; Circle grows is caught part way, the next page in a circle from its spot.'
+      :'Under reduced motion Circle grows fades the page in; Switches at once still changes page at once.');
+  }
+  function draw(){
+    if(mode!=='normal'&&!animating)mark(reach(restPt()));
+    pose();notes();
+  }
+  function idle(){stopEdge();draw()}
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;draw()});
+  addEventListener('resize',draw);
+  if(document.fonts)document.fonts.ready.then(draw);
   showPage(0);
+  notes();
 </script>
 </body>
 </html>
