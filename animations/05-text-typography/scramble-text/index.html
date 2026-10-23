@@ -30,6 +30,9 @@
     .scramble-text .char.scrambling{color:#5f9a5f}
     /* Each word's letters sit in one box that cannot break, so lines wrap only between words */
     .unit-word{display:inline-block;white-space:nowrap}
+    /* In the two views a line break forced before a word (see breaks()) so both texts wrap at the same words */
+    .nl{display:none}
+    .stage[data-hb-mode="inside"] .nl,.stage[data-hb-mode="compare"] .nl{display:block}
     /* See inside and Compare. The box keeps the height the real text gives it (a hidden copy of the text holds it); the real text moves
        into the view's slot, and the view is laid out inside the box. Their words are plain, on a dark backing. */
     .sz,.mt,.vin,.vcmp{display:none}
@@ -349,6 +352,16 @@
     let size=parseFloat(getComputedStyle(sz).fontSize);
     if(!fits(size)){let lo=10,hi=size;for(let i=0;i<7;i++){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}size=lo}
     out.style.fontSize=copy.style.fontSize=size+'px';
+    breaks(size);
+  }
+  // The real text and Compare's copy break their lines before the words that start a line in the worst-case layout above, so both wrap
+  // at the same words however their letters change
+  function breaks(size){
+    [out,copy].forEach(box=>box.querySelectorAll('.nl').forEach(n=>n.remove()));
+    mt.style.fontSize=size+'px';
+    let prev=null;
+    const starts=[...mt.querySelectorAll('.unit-word')].map(w=>{const top=w.getBoundingClientRect().top,s=prev!==null&&top>prev+2;prev=top;return s});
+    [out,copy].forEach(box=>box.querySelectorAll('.unit-word').forEach((w,i)=>{if(starts[i])w.before(Object.assign(document.createElement('span'),{className:'nl'}))}));
   }
   // Each bar fills as its wait passes (t ms into the play, a wait being unit ms for each letter before it) and is full, white,
   // once its letter has locked
@@ -397,6 +410,7 @@
     place();setName(baseName);
     if(mode==='normal'){
       cancelAnimationFrame(raf);out.style.fontSize='';stage.classList.remove('posed');
+      out.querySelectorAll('.nl').forEach(n=>n.remove());
       // leaving the half-way picture puts every letter back, locked; a play under way goes on
       if(was!=='normal'&&phase==='rest')out.querySelectorAll('.char').forEach(lockChar);
       return;
