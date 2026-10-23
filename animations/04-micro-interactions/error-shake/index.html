@@ -91,7 +91,7 @@
     .stage[data-hb-mode="compare"].posed .card:not(.twin) .field:not(.error):not(.ok) input{transform:translateX(calc(var(--shake-x) * var(--pose-k)))}
     .stage[data-hb-mode="compare"].posed .card:not(.twin) .ghost{display:block;position:absolute;left:0;right:0;border:1.5px dashed rgba(244,244,242,.5);border-radius:7px;pointer-events:none}
     @media(max-width:600px){
-      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,320px);grid-template-rows:auto minmax(0,1fr);align-content:stretch;row-gap:4px;padding:6px 10px}
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,320px);grid-template-rows:auto minmax(0,1fr);align-content:stretch;row-gap:2px;padding:4px 10px}
       .stage[data-hb-mode="compare"] .msg{min-height:28px}
     }
     /* Phones and short boxes (a window up to 640px tall): a compact card, so the trace's words and the half names fit */
@@ -429,27 +429,42 @@
     const w=trace.clientWidth,h=trace.clientHeight,k=swings+1;
     const dist=MAG*parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shake-x'));
     const cx=Math.round(dist*(1-1/k))+6;
-    tSwings.textContent=NUMS[swings]+' swings, each smaller than the last';
-    tBack.textContent='Back where it started after '+words(dur*(slowTog.checked?3:1));
     const fit=(el,x)=>{el.style.maxWidth=(w-x-2)+'px';el.style.left=x+'px'};
     fit(tRests,0);
-    const rw=tRests.offsetWidth,bx=Math.min(Math.max(cx-rw/2,0),w-rw),xr=Math.max(Math.round(cx+dist*(1-2/k)+14),Math.round(bx+rw+8));
-    fit(tRests,bx);fit(tWide,xr);fit(tSwings,xr);fit(tBack,xr);
+    const rw=tRests.offsetWidth,bx=Math.min(Math.max(cx-rw/2,0),w-rw);
+    fit(tRests,bx);fit(tWide,Math.round(bx+rw+8));
     // The trace starts level with the field; its two top labels stand in a row above it, the others in a column beside it
     const y0=Math.max(input.offsetTop-trace.offsetTop,Math.max(tRests.offsetHeight,tWide.offsetHeight)+8),y1=h-4,H=y1-y0;
     tRests.style.top=y0-6-tRests.offsetHeight+'px';
     tWide.style.top=y0-6-tWide.offsetHeight+'px';
-    tBack.style.top=h-tBack.offsetHeight+'px';
-    const hc=tSwings.offsetHeight;
-    tSwings.style.top=Math.min(Math.max(y0+H*2/k-hc/2,y0+6),tBack.offsetTop-hc-6)+'px';
-    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
-    rest.setAttribute('d',`M${cx} ${y0}V${y1}`);
     const pts=[];
     for(let i=0;i<=swings;i++){
       const v0=i?swing(i,swings):0,v1=i<swings?swing(i+1,swings):0;
-      for(let s=i?1:0;s<=8;s++)pts.push(`${(cx+dist*(v0+(v1-v0)*bez(s/8))).toFixed(1)} ${(y0+H*(i+s/8)/k).toFixed(1)}`);
+      for(let s=i?1:0;s<=8;s++)pts.push([cx+dist*(v0+(v1-v0)*bez(s/8)),y0+H*(i+s/8)/k]);
     }
-    zig.setAttribute('d','M'+pts.join('L'));
+    // The two lower labels start clear of the widest swing beside them, so they take more room (fewer lines) where the zig-zag has
+    // narrowed. Shorter words if the pair still does not fit between the top row and the bottom edge, which a narrow trace can bring.
+    const park=(el,at)=>{
+      let x=cx+14,t=0;
+      for(let i=0;i<6;i++){
+        fit(el,x);t=at(el.offsetHeight);
+        const need=Math.round(pts.reduce((m,p)=>p[1]>t-4&&p[1]<t+el.offsetHeight+4?Math.max(m,p[0]):m,cx)+12);
+        if(need<=x)break;
+        x=need;
+      }
+      el.style.top=t+'px';
+    };
+    const lay=short=>{
+      tSwings.textContent=NUMS[swings]+' swings, each smaller'+(short?'':' than the last');
+      tBack.textContent=(short?'Back at rest after ':'Back where it started after ')+words(dur*(slowTog.checked?3:1));
+      park(tBack,hb=>h-hb);
+      park(tSwings,hs=>Math.min(Math.max(y0+H*2/k-hs/2,y0-3),tBack.offsetTop-hs-3));
+      return tSwings.offsetTop>=y0-3;
+    };
+    lay(false)||lay(true);
+    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    rest.setAttribute('d',`M${cx} ${y0}V${y1}`);
+    zig.setAttribute('d','M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L'));
     G={cx,y0,h:H};
     placeDot();
   }
