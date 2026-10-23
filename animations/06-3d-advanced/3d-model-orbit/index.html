@@ -21,11 +21,26 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "3D Model Orbit", "name": "3D Model Orbit", "description": "A lit 3D shape spins, or turns to face your pointer. Best for product views.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/3d-model-orbit/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, 3D Model Orbit"}</script>
   <style>
-    :root{--ui-accent:#3fd6c4}
+    :root{--ui-accent:#3fd6c4;--sun:#ffd35c;--pill:rgba(6,10,16,.92);--ink:#f4f4f2}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:#060a10;touch-action:pan-y}
     canvas{display:block;width:100%;height:100%}
     .msg{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:13px;line-height:1.7;color:rgba(255,255,255,.72)}
+    /* See inside and Compare: plain words and marks over the picture (the picture itself is drawn on the canvas) */
+    .cap,.sunlay{display:none;position:absolute}
+    .cap{padding:3px 8px;border-radius:5px;background:var(--pill);color:var(--ink);font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .sunlay{inset:0;width:100%;height:100%;pointer-events:none}
+    .sunlay *{stroke:var(--sun);stroke-width:2;stroke-linecap:round;fill:none}
+    .sunlay circle{fill:var(--sun)}
+    .sunlay .sline{stroke-width:1.5;stroke-dasharray:3 6}
+    .cap.half{top:6px}
+    .cap.first{left:10px}
+    .cap.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="inside"] .sunlay{display:block}
+    .stage[data-hb-mode="inside"].wired .sunlay,.stage[data-hb-mode="inside"].wired .cap.lit{display:none}
+    .stage[data-hb-mode="compare"] .cap.half{display:block}
+    .stage[data-hb-mode="compare"].stack .cap.second{left:10px;top:calc(50% + 6px)}
+    .stage.no-gl .cap,.stage.no-gl .sunlay{display:none!important}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -48,12 +63,27 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" aria-label="A lit 3D shape turning on a dark background"></canvas>
+      <svg class="sunlay" aria-hidden="true"><line class="sline"/><g class="sung"><circle r="6"/><path d="M0-9v-5M0 9v5M-9 0h-5M9 0h5M-6.4-6.4l-3.5-3.5M6.4 6.4l3.5 3.5M-6.4 6.4l-3.5 3.5M6.4-6.4l3.5-3.5"/></g></svg>
+      <span class="cap in lit sunl" aria-hidden="true" data-hb-caption>Light shines from here</span>
+      <span class="cap in keya" aria-hidden="true" data-hb-caption>White lines: its flat triangles</span>
+      <span class="cap in lit keyb" aria-hidden="true" data-hb-caption>Sides facing the light are brightest</span>
+      <span class="cap half first" aria-hidden="true" data-hb-caption>Flat color</span>
+      <span class="cap half second" aria-hidden="true" data-hb-caption>Lit</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the white lines are the flat triangles the shape is built from. The light shines from the sun mark, so the sides facing it are brightest.</p>
+      <p data-hb-for="compare" hidden>Flat color paints every triangle the same, so the shape looks like a flat cutout. Lit shades each side by how it faces the light, so it reads as solid.</p>
     </div>
   </section>
 
@@ -180,12 +210,13 @@ const FS=`
 precision mediump float;
 varying vec3 vN,vP;
 uniform vec3 uCol,uLight;
+uniform float uDim; // 1 as the page draws it; See inside dims the solid
 uniform bool uWire;
 void main(){
   if(uWire){gl_FragColor=vec4(uCol,1.);return;}
   vec3 L=normalize(uLight-vP),V=normalize(-vP);
   float d=max(dot(vN,L),0.),s=pow(max(dot(reflect(-L,vN),V),0.),48.);
-  gl_FragColor=vec4(.15*uCol+d*uCol+.7*s*vec3(1.),1.);
+  gl_FragColor=vec4((.15*uCol+d*uCol+.7*s*vec3(1.))*uDim,1.);
 }`;
 
 // ─── Mat4 helpers (column-major) ───────────────────────────────────────────
@@ -272,10 +303,14 @@ let raf=null,paused=false,last=null,clock=0,rx=TILT,ry=0;
 let MODE='orbit',SHAPE='cube',WIRE=false,DIST=3,SX=.2,SY=.8,COLOR=[88/255,166/255,255/255];
 let rollSpeed=.2,tumbles=true;
 let mouseNX=0,mouseNY=0;
+// See inside and Compare: what the box shows, the angles it draws, and where the pointer is
+const FOV=Math.PI/4,LIGHT=[2,3,4],CLEAR=[.024,.039,.063,1];
+const POSE_SPIN=[.5,.6],PARK=[.5,-.7]; // the angles the views rest at until the loop or the pointer takes over
+let VIEW='normal',ax=TILT,ay=0,cRx=TILT,cRy=0,spun=0,driven=false,ptrSeen=false,ptrX=0,ptrY=0,BOUND=1;
 
 // A failed shader is otherwise a silent black canvas — say so instead.
 function fail(msg){gl=null;if(raf){cancelAnimationFrame(raf);raf=null;}
-  cvs.style.display='none';
+  cvs.style.display='none';stage.classList.add('no-gl');
   const d=document.createElement('div');d.className='msg';d.textContent=msg;stage.appendChild(d);}
 function sh(t,s){
   const x=gl.createShader(t);gl.shaderSource(x,s);gl.compileShader(x);
@@ -292,7 +327,7 @@ function init(){
   gl.linkProgram(prog);
   if(!gl.getProgramParameter(prog,gl.LINK_STATUS)){console.error(gl.getProgramInfoLog(prog));fail('Shader program failed to link — the log is in the browser console.');return;}
   gl.useProgram(prog);
-  gl.enable(gl.DEPTH_TEST);gl.clearColor(.024,.039,.063,1);
+  gl.enable(gl.DEPTH_TEST);gl.clearColor(...CLEAR);
   posBuf=gl.createBuffer();nrmBuf=gl.createBuffer();idxBuf=gl.createBuffer();lineBuf=gl.createBuffer();
   loadGeometry('cube');
 }
@@ -307,6 +342,7 @@ function loadGeometry(name){
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,geo.idx,gl.STATIC_DRAW);
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lineBuf);gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,new Uint16Array(lines),gl.STATIC_DRAW);
   idxCount=geo.idx.length;lineCount=lines.length;
+  BOUND=0;for(let i=0;i<geo.pos.length;i+=3)BOUND=Math.max(BOUND,Math.hypot(geo.pos[i],geo.pos[i+1],geo.pos[i+2]));
 }
 
 // Backing store in device pixels (capped at 2x) so the render is not upscaled on retina.
@@ -314,6 +350,7 @@ function resize(){
   const d=Math.min(window.devicePixelRatio||1,2);
   W=cvs.width=Math.round(stage.clientWidth*d);H=cvs.height=Math.round(stage.clientHeight*d);
   if(gl)gl.viewport(0,0,W,H);
+  if(VIEW!=='normal')refreshViews();
 }
 
 function setAttr(name,buf,size){
@@ -321,23 +358,59 @@ function setAttr(name,buf,size){
   const loc=gl.getAttribLocation(prog,name);
   gl.enableVertexAttribArray(loc);gl.vertexAttribPointer(loc,size,gl.FLOAT,false,0,0);
 }
-function u(n){return gl.getUniformLocation(prog,n);}
+const ul={};
+function u(n){return ul[n]||(ul[n]=gl.getUniformLocation(prog,n));}
 
-function draw(){
-  gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
-  gl.useProgram(prog);
-  setAttr('aPos',posBuf,3);setAttr('aNorm',nrmBuf,3);
-  const P=persp(Math.PI/4,W/H,.1,20);
-  const T=trans(0,0,-DIST);
-  const M=mul(mul(T,rotY(ry)),rotX(rx));
-  const MVP=mul(P,M);
-  gl.uniformMatrix4fv(u('uMVP'),false,MVP);
+function edges(){gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lineBuf);gl.drawElements(gl.LINES,lineCount,gl.UNSIGNED_SHORT,0);}
+// One shape in a part of the canvas (x, y, w, h in canvas pixels, y from the bottom), turned by a and b. Kind 'lit' is the page as it
+// is; 'flat' paints every triangle one color; 'inside' dims the lit solid and draws the triangles' edges in white over it.
+function shape(x,y,w,h,a,b,kind){
+  gl.viewport(x,y,w,h);
+  const M=mul(mul(trans(0,0,-DIST),rotY(b)),rotX(a));
+  gl.uniformMatrix4fv(u('uMVP'),false,mul(persp(FOV,w/h,.1,20),M));
   gl.uniformMatrix4fv(u('uM'),false,M);
   gl.uniform3fv(u('uCol'),COLOR);
-  gl.uniform3f(u('uLight'),2,3,4);
-  gl.uniform1i(u('uWire'),WIRE?1:0);
-  if(WIRE){gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,lineBuf);gl.drawElements(gl.LINES,lineCount,gl.UNSIGNED_SHORT,0);}
-  else{gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);}
+  gl.uniform3fv(u('uLight'),LIGHT);
+  gl.uniform1f(u('uDim'),kind==='inside'&&!WIRE?.66:1);
+  gl.uniform1i(u('uWire'),WIRE||kind==='flat'?1:0);
+  if(WIRE){edges();return;}
+  // the solid is pushed back a little in See inside, so only the edges in front of it show
+  if(kind==='inside'){gl.enable(gl.POLYGON_OFFSET_FILL);gl.polygonOffset(1,1);}
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER,idxBuf);gl.drawElements(gl.TRIANGLES,idxCount,gl.UNSIGNED_SHORT,0);
+  if(kind!=='inside')return;
+  gl.disable(gl.POLYGON_OFFSET_FILL);
+  gl.uniform1i(u('uWire'),1);gl.uniform3f(u('uCol'),1,1,1);
+  // a line is one canvas pixel wide: on a sharp screen (two pixels to a CSS pixel) it is drawn again one pixel over, so it stays a CSS pixel wide
+  const n=W/stage.clientWidth>=1.5?1:0;
+  for(let i=0;i<=n;i++)for(let j=0;j<=n;j++){gl.viewport(x+i,y+j,w,h);edges();}
+}
+// The angles the views draw: the page's own while the loop runs or after it has turned for a while (spun counts the page's own time
+// it has turned, so a frame or two before a pause on arrival still counts as not yet turned), or once the pointer has moved the
+// shape; before that a posed angle, so three sides show
+function pickAngles(){
+  if(VIEW==='compare'&&MODE==='mouse'&&driven){ax=cRx;ay=cRy;}
+  else if(MODE==='orbit'?!paused||spun>400:driven){ax=rx;ay=ry;}
+  else{const p=MODE==='orbit'?POSE_SPIN:PARK;ax=p[0];ay=p[1];}
+}
+
+function draw(){
+  gl.disable(gl.SCISSOR_TEST);
+  if(VIEW==='compare'){
+    gl.viewport(0,0,W,H);gl.clearColor(.2,.25,.32,1);gl.clear(gl.COLOR_BUFFER_BIT); // the thin divider between the halves
+    gl.clearColor(...CLEAR);
+  }else{gl.viewport(0,0,W,H);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);}
+  gl.useProgram(prog);
+  setAttr('aPos',posBuf,3);setAttr('aNorm',nrmBuf,3);
+  if(VIEW==='normal'){shape(0,0,W,H,rx,ry,'lit');return;}
+  pickAngles();
+  if(VIEW==='inside'){shape(0,0,W,H,ax,ay,'inside');return;}
+  gl.enable(gl.SCISSOR_TEST);
+  for(let k=0;k<2;k++){
+    const h=DEVH[k],c=DEVS[k];
+    gl.scissor(h[0],h[1],h[2],h[3]);gl.clear(gl.COLOR_BUFFER_BIT|gl.DEPTH_BUFFER_BIT);
+    shape(c[0],c[1],c[2],c[3],ax,ay,k?'lit':'flat');
+  }
+  gl.disable(gl.SCISSOR_TEST);
 }
 
 // One step is 1/60 s: the shape turns SY x 0.01 radians in that time, whatever the screen's refresh rate.
@@ -354,8 +427,8 @@ function render(ts){
   const s=Math.min(dt,50)/FRAME*(slowTog.checked?1/3:1);
   last=ts;clock+=s*FRAME;
   if(MODE==='orbit'){
-    ry+=SY*.01*s;rx+=SX*.01*s*(Math.sin(clock*.0003)*.5+.5);
-  }else{rx=mouseNY*1.2;ry=mouseNX*1.5;}
+    ry+=SY*.01*s;rx+=SX*.01*s*(Math.sin(clock*.0003)*.5+.5);spun+=s*FRAME;
+  }else{rx=mouseNY*1.2;ry=mouseNX*1.5;driven=ptrSeen;if(VIEW==='compare'&&ptrSeen)cmpAim();}
   draw();
 }
 function start(){if(raf||!gl)return;last=null;raf=requestAnimationFrame(render);}
@@ -372,12 +445,87 @@ document.addEventListener('hb:pause',e=>{
   else start();
 });
 
+// ─── See inside and Compare ────────────────────────────────────────────────
+const NAME_H=34,SUN_Y=20,SUN_R=14; // the strip that holds a Compare half's name; the sun mark's height and size
+const q=sel=>stage.querySelector(sel),noteEl={},NOTE0={};
+const sunG=q('.sung'),sunLine=q('.sline'),sunLbl=q('.sunl'),keyA=q('.keya'),keyB=q('.keyb');
+document.querySelectorAll('[data-hb-for]').forEach(p=>{noteEl[p.dataset.hbFor]=p;NOTE0[p.dataset.hbFor]=p.textContent;});
+const EDGE_NOTE={inside:'Inside, the lines are the flat triangles the shape is built from. Edges only is on, so you see all of them, front and back, with no light.',
+  compare:'Edges only is on, so Flat color and Lit both draw bare edges with no light. Turn it off in Try it to see them differ.'};
+const NAMES={normal:cvs.getAttribute('aria-label'),
+  inside:'The shape dimmed, with white lines along the flat triangles it is built from and a sun mark where the light comes from',
+  compare:'The same shape twice: painted one flat color, and lit so each side has its own shade',
+  insideEdges:"The shape's edges only: every flat triangle it is built from, front and back",
+  compareEdges:"The same shape's edges twice; with Edges only on, both look alike"};
+let side=true,CX=0,CY=0,KEEP=0;
+const SCENE=[[0,0,0,0],[0,0,0,0]],DEVH=[[0,0,0,0],[0,0,0,0]],DEVS=[[0,0,0,0],[0,0,0,0]];
+
+// Compare: side by side while each half is about as wide as the box is tall, else one above the other. Each half keeps its name in a
+// strip at the top and the shape below it. SCENE holds the shapes' rects in CSS pixels; DEVH and DEVS the halves' and shapes' rects
+// in canvas pixels from the bottom left.
+function dev(x,y,w,h){const fx=W/stage.clientWidth,fy=H/stage.clientHeight;return[Math.round(x*fx),Math.round(H-(y+h)*fy),Math.round(w*fx),Math.round(h*fy)];}
+function layoutViews(){
+  const cw=stage.clientWidth,ch=stage.clientHeight;
+  side=cw/2>=.9*ch;stage.classList.toggle('stack',!side);
+  for(let k=0;k<2;k++){
+    const x=side?k*(cw/2+1):0,y=side?0:k*(ch/2+1),w=side?cw/2-1:cw,h=side?ch:ch/2-1;
+    SCENE[k]=[x,y+NAME_H,w,h-NAME_H];DEVH[k]=dev(x,y,w,h);DEVS[k]=dev(x,y+NAME_H,w,h-NAME_H);
+  }
+}
+// The pointer is read inside the half it is over, so pointing at either shape turns both alike
+function cmpAim(){
+  const k=(side?ptrX>=SCENE[1][0]:ptrY>=SCENE[1][1]-NAME_H)?1:0,c=SCENE[k];
+  cRy=Math.max(-1,Math.min(1,(ptrX-c[0])/c[2]*2-1))*1.5;cRx=Math.max(-1,Math.min(1,(ptrY-c[1])/c[3]*2-1))*1.2;
+}
+// A caption goes at the first of its places where it clears the circle the shape turns inside; with none free it is left out.
+function place(el,spots){
+  el.style.display='';
+  const w=el.offsetWidth,h=el.offsetHeight;
+  for(const f of spots){
+    const [x,y]=f(w,h),nx=Math.max(x,Math.min(CX,x+w)),ny=Math.max(y,Math.min(CY,y+h));
+    if(x<8||x+w>2*CX-8||Math.hypot(nx-CX,ny-CY)<KEEP)continue;
+    el.style.left=x+'px';el.style.top=y+'px';return;
+  }
+  el.style.display='none';
+}
+// See inside: the sun mark sits where the light really comes from (its slant on the screen: up and to the right), near the top edge,
+// and the dashed line runs from it to the shape's outer reach, which grows and shrinks with Distance and the shape.
+function layoutInside(){
+  const cw=stage.clientWidth,ch=stage.clientHeight,L=Math.hypot(LIGHT[0],LIGHT[1]),c=LIGHT[0]/L,sn=LIGHT[1]/L;
+  CX=cw/2;CY=ch/2;
+  const R=CY/Math.tan(FOV/2)*BOUND/Math.sqrt(DIST*DIST-BOUND*BOUND),t=(CY-SUN_Y)/sn,sx=CX+t*c,g=SUN_R+4;
+  KEEP=R*.8; // captions keep out of this circle: the shape reaches past it only at a corner, for a moment
+  sunG.setAttribute('transform','translate('+sx+' '+SUN_Y+')');
+  sunLine.setAttribute('x1',sx-g*c);sunLine.setAttribute('y1',SUN_Y+g*sn);
+  sunLine.setAttribute('x2',CX+R*c);sunLine.setAttribute('y2',CY-R*sn);
+  sunLine.style.display=t-R-g>10?'':'none';
+  place(sunLbl,[(w,h)=>[sx-SUN_R-6-w,SUN_Y-h/2],(w,h)=>[cw-10-w,SUN_Y+SUN_R+6]]);
+  place(keyA,[(w,h)=>[10,ch-10-h]]);
+  place(keyB,[(w,h)=>[10,ch-16-h-keyA.offsetHeight]]);
+}
+// Runs in a mode, and on a resize or a setting while one shows: the canvas's name, the notes' words, the places of the marks
+function refreshViews(){
+  cvs.setAttribute('aria-label',NAMES[VIEW==='normal'?'normal':VIEW+(WIRE?'Edges':'')]);
+  if(VIEW==='normal')return;
+  stage.classList.toggle('wired',WIRE);
+  for(const k in noteEl){const t=WIRE?EDGE_NOTE[k]:NOTE0[k];if(noteEl[k].textContent!==t)noteEl[k].textContent=t;}
+  const a=WIRE?'Lines: its flat triangles':'White lines: its flat triangles';
+  if(keyA.textContent!==a)keyA.textContent=a;
+  layoutViews();
+  if(VIEW==='compare'&&MODE==='mouse'&&driven)cmpAim();
+  if(VIEW==='inside')layoutInside();
+}
+// Registered at the top level, like the pause listener: the view is drawn at once, and the loop carries on as it was
+document.addEventListener('hb:mode',e=>{VIEW=e.detail.mode;refreshViews();if(gl)draw();});
+document.fonts.ready.then(()=>{if(VIEW==='inside')layoutInside();});
+
 init();resize();
 if(gl){draw();start();}
 
 // The pointer is recorded even while paused; it turns the shape only when a frame is drawn.
 function aim(e){
   const r=cvs.getBoundingClientRect();mouseNX=(e.clientX-r.left)/r.width*2-1;mouseNY=(e.clientY-r.top)/r.height*2-1;
+  ptrX=e.clientX-r.left;ptrY=e.clientY-r.top;ptrSeen=true;
 }
 stage.addEventListener('pointermove',aim);
 stage.addEventListener('pointerdown',aim);
@@ -392,18 +540,18 @@ function choices(id,pick){
 }
 const speedSetting=document.getElementById('speed-setting'),tumbleSetting=document.getElementById('tumble-setting');
 function setRoll(){SX=tumbles?rollSpeed:0;}
-choices('shape-seg',d=>{if(!gl||d.shape===SHAPE)return;SHAPE=d.shape;loadGeometry(SHAPE);rx=TILT;ry=0;redraw();});
+choices('shape-seg',d=>{if(!gl||d.shape===SHAPE)return;SHAPE=d.shape;loadGeometry(SHAPE);rx=TILT;ry=0;if(paused){spun=0;driven=false;}refreshViews();redraw();});
 // Speed and Tumbles only matter while it spins
-choices('move-seg',d=>{MODE=d.mode;speedSetting.hidden=tumbleSetting.hidden=MODE!=='orbit';});
+choices('move-seg',d=>{MODE=d.mode;speedSetting.hidden=tumbleSetting.hidden=MODE!=='orbit';if(VIEW!=='normal'){refreshViews();redraw();}});
 choices('speed-seg',d=>{SY=+d.sy;rollSpeed=+d.sx;setRoll();});
 document.getElementById('tumble-tog').addEventListener('change',e=>{tumbles=e.target.checked;setRoll();});
-choices('dist-seg',d=>{DIST=+d.dist;redraw();});
+choices('dist-seg',d=>{DIST=+d.dist;refreshViews();redraw();});
 choices('color-sw',d=>{
   const h=d.color;
   COLOR=[parseInt(h.slice(1,3),16)/255,parseInt(h.slice(3,5),16)/255,parseInt(h.slice(5,7),16)/255];
   redraw();
 });
-document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;redraw();});
+document.getElementById('wire-tog').addEventListener('change',e=>{WIRE=e.target.checked;refreshViews();redraw();});
 </script>
 </body>
 </html>
