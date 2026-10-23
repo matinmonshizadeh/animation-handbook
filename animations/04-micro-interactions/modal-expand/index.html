@@ -24,6 +24,8 @@
     :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--modal-dur:320ms;--modal-ease:cubic-bezier(.34,1.3,.64,1);--start-scale:0.1;--backdrop-dur:200ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#0b0b0d}
+    /* The scene is the buttons and the window; the stage only holds it, so Compare can set two of them side by side */
+    .scene{position:relative;align-self:stretch;flex:1 1 0;min-width:0;display:flex;align-items:center;justify-content:center;overflow:hidden}
     /* Trigger buttons scattered */
     .triggers{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;padding:24px}
     .trigger-row{display:flex;gap:16px;width:100%;justify-content:space-between}
@@ -47,6 +49,47 @@
     .origin-dot.show{opacity:.8}
     @media(max-width:600px),(max-height:500px){.modal-close,.modal-confirm{height:44px}}
     @media(prefers-reduced-motion:reduce){.modal,.modal-backdrop{transition:none!important}.modal.open{transform:scale(1)!important;opacity:1!important}}
+    /* See inside and Compare: nothing of this shows in Normal, and every rule that follows names the stage's mode */
+    .twin,.ol,.band,.half{display:none}
+    .twin .trig-btn,.twin .modal-close,.twin .modal-confirm{display:inline-flex;align-items:center;justify-content:center}
+    .ol{position:absolute;pointer-events:none;z-index:7}
+    .ol-full{border:1.5px dashed rgba(244,244,242,.8);border-radius:10px}
+    .ol-start{border:1.5px solid var(--ui-accent);border-radius:3px;background:rgba(255,157,92,.16)}
+    .rays{inset:0;width:100%;height:100%}
+    .rays path{fill:none;stroke:var(--ui-accent);stroke-opacity:.7;stroke-width:1.25;stroke-dasharray:3 4}
+    .band{position:absolute;left:6px;right:6px;z-index:16;flex-wrap:wrap;align-content:flex-start;justify-content:center;gap:3px 4px;pointer-events:none}
+    .band.top{top:4px;flex-wrap:wrap-reverse}
+    .band.bot{bottom:4px}
+    .cap{padding:2px 8px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);max-width:100%}
+    .cap[hidden]{display:none}
+    .sw{display:inline-block;width:12px;height:9px;margin-right:6px;vertical-align:-1px;border-radius:2px}
+    .sw-start{border:1.5px solid var(--ui-accent)}
+    .sw-full{border:1.5px dashed #f4f4f2;border-radius:3px}
+    .sw-ray{height:0;border-top:1.5px dashed var(--ui-accent);transform:rotate(-30deg)}
+    .sw-grow{border:1.5px solid #8a8a92}
+    .stage[data-hb-mode="inside"] .band{display:flex}
+    .stage[data-hb-mode="inside"] .ol{display:block}
+    /* Compare: on the left a copy whose window grows from its middle, on the right the real scene */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background-color:#2a2a30}
+    .stage[data-hb-mode="compare"] .scene{background:radial-gradient(rgba(255,255,255,.075) 1px,transparent 1.5px) center/24px 24px,#0b0b0d}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .half{display:block;position:absolute;top:6px;z-index:16;pointer-events:none}
+    .half.first{left:6px}
+    .half.second{left:calc(50% + 7px)}
+    .stage[data-hb-mode="compare"].posed .ol-start{display:block;z-index:12;border-color:rgba(255,157,92,.6);background:none}
+    /* A button with keyboard focus stays above the posed window, so its ring shows */
+    .stage[data-hb-mode="compare"].posed .triggers:focus-within{position:relative;z-index:11}
+    /* Phones and short windows: the window drops its sentence, so it fits its half and leaves room for the labels */
+    @media(max-width:600px),(max-height:700px){
+      .stage[data-hb-mode="inside"] .modal-body,.stage[data-hb-mode="compare"] .modal-body,.stage[data-hb-mode="inside"] .more{display:none}
+    }
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .triggers{padding:8px;gap:8px}
+      .stage[data-hb-mode="compare"] .trigger-row{gap:6px}
+      .stage[data-hb-mode="compare"] .trig-btn{padding:0 8px}
+      .stage[data-hb-mode="compare"] .modal{width:min(240px,88%);padding:10px}
+      .stage[data-hb-mode="compare"] .modal-actions{flex-direction:column;gap:6px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -69,34 +112,55 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press any of the five buttons and watch the window grow out of it, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage">
-      <div class="triggers">
-        <div class="trigger-row">
-          <button class="trig-btn" type="button" data-label="Top Left" aria-label="Open from the top left">Open ↗</button>
-          <button class="trig-btn" type="button" data-label="Top Right" aria-label="Open from the top right">Open ↗</button>
+      <div class="scene" id="scene">
+        <div class="triggers">
+          <div class="trigger-row">
+            <button class="trig-btn" type="button" data-label="Top Left" aria-label="Open from the top left">Open ↗</button>
+            <button class="trig-btn" type="button" data-label="Top Right" aria-label="Open from the top right">Open ↗</button>
+          </div>
+          <div class="trigger-row" style="justify-content:center">
+            <button class="trig-btn" type="button" data-label="Center">Open Center</button>
+          </div>
+          <div class="trigger-row">
+            <button class="trig-btn" type="button" data-label="Bottom Left" aria-label="Open from the bottom left">Open ↗</button>
+            <button class="trig-btn" type="button" data-label="Bottom Right" aria-label="Open from the bottom right">Open ↗</button>
+          </div>
         </div>
-        <div class="trigger-row" style="justify-content:center">
-          <button class="trig-btn" type="button" data-label="Center">Open Center</button>
+        <div class="modal-backdrop" id="backdrop" aria-hidden="true"></div>
+        <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" inert>
+          <div class="modal-title" id="modal-title">Confirm action</div>
+          <div class="modal-body">This window grew out of the button you pressed, so it feels connected to where it came from.</div>
+          <div class="modal-actions">
+            <button class="modal-close" id="modal-close" type="button">Cancel</button>
+            <button class="modal-confirm" id="modal-confirm" type="button">Confirm</button>
+          </div>
         </div>
-        <div class="trigger-row">
-          <button class="trig-btn" type="button" data-label="Bottom Left" aria-label="Open from the bottom left">Open ↗</button>
-          <button class="trig-btn" type="button" data-label="Bottom Right" aria-label="Open from the bottom right">Open ↗</button>
-        </div>
+        <div class="origin-dot" id="origin-dot" aria-hidden="true"></div>
       </div>
-      <div class="modal-backdrop" id="backdrop" aria-hidden="true"></div>
-      <div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title" tabindex="-1" inert>
-        <div class="modal-title" id="modal-title">Confirm action</div>
-        <div class="modal-body">This window grew out of the button you pressed, so it feels connected to where it came from.</div>
-        <div class="modal-actions">
-          <button class="modal-close" id="modal-close" type="button">Cancel</button>
-          <button class="modal-confirm" id="modal-confirm" type="button">Confirm</button>
-        </div>
+      <div class="band top" aria-hidden="true">
+        <p class="cap" data-hb-caption><i class="sw sw-start"></i><span></span></p>
+        <p class="cap" data-hb-caption><i class="sw sw-ray"></i>Every corner moves out along a line<span class="more"> from the button</span></p>
       </div>
-      <div class="origin-dot" id="origin-dot" aria-hidden="true"></div>
+      <div class="band bot" aria-hidden="true">
+        <p class="cap" data-hb-caption><i class="sw sw-full"></i>Ends here, full size</p>
+        <p class="cap" data-hb-caption><i class="sw sw-grow"></i><span></span></p>
+      </div>
+      <p class="cap half first" data-hb-caption aria-hidden="true">From the middle</p>
+      <p class="cap half second" data-hb-caption aria-hidden="true">From the button</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the small box is where the window starts, at the button you pressed; every corner grows out along its line to the full window. Press any button, or Show me.</p>
+      <p data-hb-for="compare" hidden>From the middle: the window ignores which button you pressed; From the button: it grows out of the one you pressed and shrinks back into it. Press any button, or Show me.</p>
     </div>
   </section>
 
@@ -185,43 +249,88 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const stage=document.getElementById('stage');
+  const scene=document.getElementById('scene');
   const modal=document.getElementById('modal');
   const backdrop=document.getElementById('backdrop');
   const originDot=document.getElementById('origin-dot');
   const dotTog=document.getElementById('debug-tog');
   const cancelBtn=document.getElementById('modal-close');
+  const slowTog=document.getElementById('slow-tog');
   const btns=[...document.querySelectorAll('.trig-btn')];
+  const byLabel=l=>btns.find(b=>b.dataset.label===l);
   const vars=document.documentElement.style;
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
   let isOpen=false,opener=null,dur=320,tour=0;
+  // What the views are drawn from: the settings, the mode, Normal's own state kept while a mode shows, the growth point
+  let startScale=0.1,ease='cubic-bezier(.34,1.3,.64,1)',mode='normal',kept=null,poseTimer=0,gx=0,gy=0;
+
+  // Compare's first half: a copy of the scene whose window grows from its own middle. It has no ids, no buttons and no dialog
+  // role, is out of the Tab order and hidden from screen readers, and opens and closes with the real one.
+  const twin=scene.cloneNode(true);
+  twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));twin.removeAttribute('id');
+  ['role','aria-label','aria-modal','aria-labelledby','tabindex','data-label'].forEach(a=>twin.querySelectorAll('['+a+']').forEach(e=>e.removeAttribute(a)));
+  twin.querySelectorAll('button').forEach(b=>{const s=document.createElement('span');s.className=b.className;s.textContent=b.textContent;b.replaceWith(s)});
+  scene.before(twin);
+  const tw={modal:twin.querySelector('.modal'),backdrop:twin.querySelector('.modal-backdrop'),dot:twin.querySelector('.origin-dot')};
+  tw.dot.style.left=tw.dot.style.top='50%';
+  // The outlines See inside and Compare draw, and the four lines of See inside
+  const mk=(cls,into)=>{const e=document.createElement('i');e.className='ol '+cls;into.append(e);return e};
+  const startOl=mk('ol-start',scene),twinOl=mk('ol-start',twin),fullOl=mk('ol-full',scene);
+  scene.insertAdjacentHTML('beforeend','<svg class="ol rays" aria-hidden="true"><path/></svg>');
+  const rays=scene.querySelector('.rays path');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const caps=[...document.querySelectorAll('.band .cap')],[capA,capB,capC,capD]=caps;
+  const bandTop=document.querySelector('.band.top'),bandBot=document.querySelector('.band.bot');
+  const isPosed=()=>stage.classList.contains('posed');
+  const say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
 
   function openModal(btn){
-    const sr=stage.getBoundingClientRect();
-    const br=btn.getBoundingClientRect();
-    // The button's centre, relative to the stage
-    const bx=br.left+br.width/2-sr.left;
-    const by=br.top+br.height/2-sr.top;
-    // The same point, relative to the modal's laid-out corner (offsetLeft/Top ignore its scale)
-    modal.style.transformOrigin=`${bx-modal.offsetLeft}px ${by-modal.offsetTop}px`;
-    originDot.style.left=bx+'px';originDot.style.top=by+'px';
-    originDot.classList.toggle('show',dotTog.checked);
+    clearTimeout(poseTimer);poseTimer=0;
+    aim(btn);
     modal.inert=false;
     backdrop.classList.add('visible');modal.classList.add('open');
+    tw.backdrop.classList.add('visible');tw.modal.classList.add('open');
     opener=btn;isOpen=true;
+    sync();refresh();
+  }
+  // The button's center, relative to the scene (to the stage in Normal); the window's growth point is set there, the dot on it
+  function aim(btn){
+    const sr=(mode==='normal'?stage:scene).getBoundingClientRect();
+    const br=btn.getBoundingClientRect();
+    gx=br.left+br.width/2-sr.left;
+    gy=br.top+br.height/2-sr.top;
+    // The same point, relative to the modal's laid-out corner (offsetLeft/Top ignore its scale)
+    modal.style.transformOrigin=`${gx-modal.offsetLeft}px ${gy-modal.offsetTop}px`;
+    originDot.style.left=gx+'px';originDot.style.top=gy+'px';
   }
   function closeModal(){
     backdrop.classList.remove('visible');modal.classList.remove('open');
-    originDot.classList.remove('show');
+    tw.backdrop.classList.remove('visible');tw.modal.classList.remove('open');
     modal.inert=true;isOpen=false;
+    sync();
+  }
+  // The dots show while a window is open (as in Normal) and at rest in See inside and Compare's posed picture, if the switch is on.
+  // Under reduced motion Compare's note says "shown still" only while the posed picture is up.
+  function sync(){
+    const on=dotTog.checked,posed=isPosed();
+    originDot.classList.toggle('show',on&&(isOpen||posed||mode==='inside'));
+    tw.dot.classList.toggle('show',on&&(isOpen||posed));
+    if(!motionOk&&mode==='compare')say(noteCmp,posed?STILL.posed:STILL.lifted);
+    if(!motionOk&&mode==='inside')say(noteIn,isOpen?STILL.open:STILL.inside);
   }
   // The visitor's own way in and out. Keyboard focus goes into the window when it opens and back to the button that opened it
   // when it closes, unless the visitor has moved on to another control in the meantime. Show me calls openModal() and
   // closeModal() alone: a run never moves the focus.
   function dismiss(){
     const a=document.activeElement,mine=a===document.body||modal.contains(a);
-    closeModal();
+    closeModal();repose();
     if(mine&&opener)opener.focus({preventScroll:true});
   }
-  btns.forEach(btn=>btn.addEventListener('click',()=>{openModal(btn);cancelBtn.focus({preventScroll:true})}));
+  btns.forEach(btn=>btn.addEventListener('click',()=>{
+    if(isPosed())toRest();   // a press lifts Compare's posed picture first: the windows are put away without animating
+    openModal(btn);cancelBtn.focus({preventScroll:true});
+  }));
   backdrop.addEventListener('click',dismiss);
   cancelBtn.addEventListener('click',dismiss);
   document.getElementById('modal-confirm').addEventListener('click',dismiss);
@@ -236,7 +345,6 @@
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + (hold||0) ms: Slow motion triples the movement, never the hold.
-  const slowTog=document.getElementById('slow-tog');      // only on pages with Slow motion
   let runTimers=[];
   function later(fn,move,hold){
     const slow=!!(slowTog&&slowTog.checked);
@@ -245,24 +353,27 @@
   }
   function running(){ return runTimers.length>0; }
   function stopRun(){ runTimers.forEach(clearTimeout); runTimers=[]; }
-  // A run starts with the window closed, put there without animating: the transitions are turned off, the window is closed,
-  // a reflow makes it stick, and the transitions come back.
-  function toRest(){
-    const parts=[modal,backdrop,originDot];
+  // Sets things at once: the transitions are turned off, fn runs, a reflow makes it stick, and the transitions come back.
+  function instant(fn){
+    const parts=[modal,backdrop,originDot,tw.modal,tw.backdrop,tw.dot];
     parts.forEach(p=>p.style.setProperty('transition','none','important'));
-    closeModal();
+    fn();
     void stage.offsetWidth;
     parts.forEach(p=>p.style.removeProperty('transition'));
   }
+  // A run starts with the window closed, put there without animating (and Compare's posed picture lifted).
+  function toRest(){instant(()=>{unpose();closeModal()})}
   // Each press of Show me uses the next button in turn, so the window starts from a different point every time: top right,
   // bottom left, the middle, top left, bottom right. The window grows (the movement the wait counts), stays 1.5 s and shrinks back.
+  // In Compare the tour skips the middle, the one button where both halves grow from the same point.
   const tourOrder=['Top Right','Bottom Left','Center','Top Left','Bottom Right'];
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
-    const label=tourOrder[tour++%tourOrder.length];
-    openModal(btns.find(b=>b.dataset.label===label));
-    later(closeModal,dur,1500);
+    let label=tourOrder[tour++%tourOrder.length];
+    if(mode==='compare'&&label==='Center')label=tourOrder[tour++%tourOrder.length];
+    openModal(byLabel(label));
+    later(()=>{closeModal();repose()},dur,1500);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the window stays open.
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
@@ -270,17 +381,108 @@
   // moves the focus, so focus arriving in the stage while one runs is the visitor's: the window must not close under it.
   stage.addEventListener('focusin',e=>{ if(e.isTrusted&&running()) stopRun(); });
 
+  // See inside: the window's full size as a dashed outline, its starting size as a small solid one at the growth point, and four
+  // lines from that point through the small outline's corners to the full one's, all from the window's laid-out box, the measured
+  // growth point and the starting size. The labels sit in two bands above and below the window and buttons.
+  const SIZE={0.05:'a twentieth',0.1:'a tenth',0.3:'a third'};
+  const FEEL={'cubic-bezier(.34,1.3,.64,1)':'a little past full size, then back','ease-out':'slowing to a stop','linear':'at one steady speed'};
+  const SECS={200:['a fifth of a second','just over half a second'],320:['about a third of a second','about a second'],500:['half a second','a second and a half']};
+  const put=(el,x,y,w,h)=>Object.assign(el.style,{left:x+'px',top:y+'px',width:w+'px',height:h+'px'});
+  // The window's full box shrunk toward a point by the starting size: where the window starts
+  const startBox=(el,m,px,py)=>put(el,px+(m.offsetLeft-px)*startScale,py+(m.offsetTop-py)*startScale,m.offsetWidth*startScale,m.offsetHeight*startScale);
+  function drawInside(){
+    const L=modal.offsetLeft,T=modal.offsetTop,W=modal.offsetWidth,H=modal.offsetHeight;
+    put(fullOl,L,T,W,H);startBox(startOl,modal,gx,gy);
+    rays.setAttribute('d',[[L,T],[L+W,T],[L,T+H],[L+W,T+H]].map(([x,y])=>`M${gx} ${gy}L${x} ${y}`).join(''));
+    say(capA.lastChild,`Starts here, ${SIZE[startScale]} of its size`);
+    say(capD.lastChild,`${motionOk?'Grows':'With motion on, it grows'} in ${SECS[dur][slowTog.checked?1:0]}, ${FEEL[ease]}`);
+    const [near,far]=gy<=scene.clientHeight/2?[bandTop,bandBot]:[bandBot,bandTop];
+    if(capA.parentNode!==near){near.append(capA,capB);far.append(capC,capD)}
+    // The near labels line up under (or over) the growth point's side of the box
+    near.style.justifyContent=gx<scene.clientWidth/3?'flex-start':gx>scene.clientWidth*2/3?'flex-end':'center';
+    far.style.justifyContent='center';
+    const tops=btns.map(b=>b.offsetTop),bots=btns.map(b=>b.offsetTop+b.offsetHeight);
+    bandTop.style.height=Math.max(0,Math.min(T,...tops)-8)+'px';
+    bandBot.style.height=Math.max(0,scene.clientHeight-Math.max(T+H,...bots)-8)+'px';
+    // Three labels on phones; if a band is still too short, the least needed go
+    caps.forEach(c=>c.hidden=false);capC.hidden=matchMedia('(max-width:600px),(max-height:500px)').matches;
+    const fits=c=>{const r=c.getBoundingClientRect(),b=c.parentNode.getBoundingClientRect();return c.hidden||r.top>=b.top-1&&r.bottom<=b.bottom+1};
+    for(const c of [capC,capB,capD,capA]){if(caps.every(fits))break;c.hidden=true}
+  }
+
+  // Compare at rest: both windows a tenth of a second into the same press of Top Right, as far grown and faded as Feel and Speed
+  // put them then: paused animations held at that moment (so Slow motion leaves them be), cancelled when a press lifts the picture.
+  // The real window is pulled toward that button, the copy grows from its middle; each half outlines its starting size.
+  let held=[];
+  const hold=(el,keys,ms,easing)=>{const a=el.animate(keys,{duration:ms,easing,fill:'both'});a.pause();a.currentTime=100;held.push(a)};
+  function unpose(){stage.classList.remove('posed');held.forEach(a=>a.cancel());held=[]}
+  function pose(){
+    instant(()=>{
+      unpose();aim(byLabel('Top Right'));
+      [modal,tw.modal].forEach(m=>hold(m,{transform:[`scale(${startScale})`,'scale(1)']},dur,ease));
+      [modal,tw.modal,backdrop,tw.backdrop].forEach(m=>hold(m,{opacity:[0,1]},200,'ease'));
+      stage.classList.add('posed');
+      startBox(startOl,modal,gx,gy);
+      startBox(twinOl,tw.modal,tw.modal.offsetLeft+tw.modal.offsetWidth/2,tw.modal.offsetTop+tw.modal.offsetHeight/2);
+      sync();
+    });
+  }
+  // The picture comes back when the window is closed and no run is pending, once its shrinking has ended
+  function repose(){
+    clearTimeout(poseTimer);poseTimer=0;
+    if(mode!=='compare')return;
+    poseTimer=setTimeout(()=>{poseTimer=0;if(mode==='compare'&&!isOpen&&!running())pose()},motionOk?dur*(slowTog.checked?3:1)+40:0);
+  }
+  // Draws the mode again from the page's own numbers (a setting, a new size of the window, the font arriving)
+  function refresh(){
+    if(mode==='inside'){aim(opener||byLabel('Top Right'));drawInside()}
+    else if(mode==='compare'){if(isPosed())pose();else if(isOpen)aim(opener)}
+  }
+
+  const STILL={
+    inside:'Inside, shown still: the small box is where the window starts, at the button you pressed; with motion on, every corner grows out along its line to the full window.',
+    open:'Inside, with the window open: it shows at full size at once; close it to see the small box at the button you pressed and the lines it would grow along.',
+    posed:'Shown still, a moment after the same press: From the middle is part grown at the center; From the button is part grown out of the button.',
+    lifted:'With reduced motion the window appears at once in both halves, so they look alike; with motion on, From the middle ignores the button you pressed and From the button grows out of it.'
+  };
+  if(!motionOk)say(noteIn,STILL.inside);
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  // Normal's own state is kept while a mode shows: a window the visitor left open (not one a run is playing), the button it came
+  // from and the place in Show me's tour. Pressing Normal puts it back at once, without animating.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    clearTimeout(poseTimer);poseTimer=0;
+    if(mode==='normal'){
+      if(was==='normal')return;
+      const k=kept||{open:false,opener,tour};kept=null;
+      tour=k.tour;
+      if(k.open){stopRun();instant(()=>{unpose();openModal(k.opener)})}
+      else if(!running()&&(isOpen||isPosed()))toRest();
+      // A run (or its closing shrink) still playing goes on in Normal: its growth point and dot move to Normal's box
+      else if(opener)aim(opener);
+      sync();return;
+    }
+    if(was==='normal')kept={open:isOpen&&!running(),opener,tour};
+    if(mode==='inside'&&isPosed())toRest();
+    if(mode==='compare'&&!isOpen&&!running())pose();
+    else refresh();
+    sync();
+  });
+  addEventListener('resize',refresh);
+  document.fonts.ready.then(refresh);
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);refresh();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--modal-dur',d.ms+'ms')});
-  choices('size-seg',d=>{vars.setProperty('--start-scale',d.scale)});
-  choices('feel-seg',d=>{vars.setProperty('--modal-ease',d.ease)});
-  dotTog.addEventListener('change',()=>{originDot.classList.toggle('show',dotTog.checked&&isOpen)});
+  choices('size-seg',d=>{startScale=+d.scale;vars.setProperty('--start-scale',d.scale)});
+  choices('feel-seg',d=>{ease=d.ease;vars.setProperty('--modal-ease',d.ease)});
+  dotTog.addEventListener('change',sync);
+  slowTog.addEventListener('change',refresh);
 </script>
 </body>
 </html>
