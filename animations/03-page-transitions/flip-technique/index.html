@@ -33,17 +33,18 @@
     .page-area{flex:1;position:relative;overflow:hidden;padding:16px}
     /* --rows-h is the height of the grid in the starting order: 230px in three columns, 350px in two (sorted by size it would be 326px),
        so a new order never changes the stage's height; align-content keeps the rows from spreading over extra height */
-    #card-grid{--rows-h:230px;display:grid;gap:10px;transition:none;min-height:var(--rows-h);align-content:start}
-    #card-grid[data-columns="2"]{--rows-h:350px}
+    #card-grid,.gcopy{--rows-h:230px;gap:10px;transition:none;min-height:var(--rows-h);align-content:start}
+    #card-grid{display:grid}
+    #card-grid[data-columns="2"],.gcopy[data-columns="2"]{--rows-h:350px}
     .flip-card{border-radius:8px;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;padding:14px;cursor:default;will-change:transform;position:relative}
     .flip-card.is-small{height:86px}
     .flip-card.is-large{height:110px}
-    #card-grid[data-columns="1"] .flip-card{height:56px}
+    #card-grid[data-columns="1"] .flip-card,.gcopy[data-columns="1"] .flip-card{height:56px}
     /* A laptop window under 651px tall: smaller cards keep the player bar on the first screen. The grid is 162px in three
        columns and 248px in two, the same sums as above with 76px and 60px cards. */
     @media(min-width:601px) and (max-height:650px){
-      #card-grid{--rows-h:162px}
-      #card-grid[data-columns="2"]{--rows-h:248px}
+      #card-grid,.gcopy{--rows-h:162px}
+      #card-grid[data-columns="2"],.gcopy[data-columns="2"]{--rows-h:248px}
       .flip-card.is-small{height:60px}
       .flip-card.is-large{height:76px}
     }
@@ -51,6 +52,38 @@
     .card-name{font-size:12px;font-weight:bold;margin-bottom:2px}
     .card-meta{font-size:10px;opacity:.8}
     @media(prefers-reduced-motion:reduce){.flip-card{transition:none!important}}
+    /* The views' parts are not in the page until a mode shows them: Compare's first grid (the same cards, jumping at once), an unseen grid
+       the old places are measured on, and the layer of marks and captions over the cards */
+    .gcopy{display:none}
+    .gm{position:absolute;left:0;top:0;visibility:hidden}
+    .gcopy .flip-card{will-change:auto}
+    .ov{position:absolute;inset:0;z-index:3;pointer-events:none;display:none}
+    .ov svg{position:absolute;inset:0;width:100%;height:100%}
+    .ov .o{fill:none;stroke:#f4f4f2;stroke-width:1.5;stroke-dasharray:5 4}
+    .ov .a{stroke:var(--ui-accent);stroke-width:2}
+    .ov .ah{fill:var(--ui-accent)}
+    .ov .d{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5}
+    .cap{position:absolute;padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    .cap.half{top:8px;transform:translateX(-50%)}
+    .cap[class*=" k-"]::before{content:"";display:inline-block;margin-right:6px;vertical-align:-1px}
+    .cap.k-o::before{width:10px;height:8px;border:1.5px dashed #f4f4f2;border-radius:2px}
+    .cap.k-a::before{width:12px;height:0;border-top:2px solid var(--ui-accent);vertical-align:3px}
+    .cap.k-d::before{width:8px;height:8px;border-radius:50%;background:#f4f4f2}
+    .stage[data-hb-mode="inside"] .ov,.stage[data-hb-mode="compare"] .ov{display:block}
+    /* Compare: the page area holds two grids, the copy that jumps and the real one that glides, the same rows in both; the real
+       cards stand part way along the glide, each start marked by a faint dashed box */
+    .stage[data-hb-mode="compare"] .page-area{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:32px;
+      background:linear-gradient(rgba(255,255,255,.12),rgba(255,255,255,.12)) 50% 0/1px 100% no-repeat}
+    .stage[data-hb-mode="compare"] .gcopy.cmp{display:grid}
+    .stage[data-hb-mode="compare"] .ov .o{stroke-opacity:.55}
+    @media(max-width:760px){.stage[data-hb-mode="compare"] .flip-card{padding:10px}}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .page-area{padding-inline:8px;column-gap:16px}
+      .stage[data-hb-mode="compare"] #card-grid,.stage[data-hb-mode="compare"] .gcopy{column-gap:6px}
+      .stage[data-hb-mode="compare"] .flip-card{padding:4px}
+      .stage[data-hb-mode="compare"] .card-name,.stage[data-hb-mode="compare"] .card-meta{display:none}
+      .stage[data-hb-mode="compare"] .card-num{font-size:18px;opacity:.6;top:auto;bottom:6px;left:6px;right:auto}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -73,6 +106,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click a button above the cards, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-grow">
       <div class="stage-toolbar">
         <button type="button" class="tb-btn" id="btn-shuffle">Shuffle</button>
@@ -90,6 +128,10 @@
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, dashed boxes show where each card was: it jumped to its new place, was shifted back, then glides along the arrow. Click a button above the cards, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Jumps moves every card to its new place at once; Glides moves each one there smoothly from where it was. Click a button above the cards, or press Show me.</p>
     </div>
   </section>
 
@@ -172,6 +214,15 @@
   const layoutBtns=[...document.querySelectorAll('[data-cols]')];
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let dur=500,ease='cubic-bezier(.2,.7,.3,1)',cols=3,order=[...START],animating=false,afterMove=null,wayBack=0,timers=[];
+  // See inside and Compare. prev holds the order and column count before the last change (none yet: the change Show me ends with is
+  // taken); posed says the real cards stand part way along their glide (Compare at rest).
+  let mode='normal',prev=null,posed=false,rq=0;
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;if(mode==='compare')renderCopy();refresh()});
+  addEventListener('resize',()=>{cancelAnimationFrame(rq);rq=requestAnimationFrame(refresh)});
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still: dashed boxes mark where each card was before the last change, and arrows lead to where it is now.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, part way through a change: Jumps has its cards in place already; Glides has them part way along their glide.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -199,6 +250,7 @@
       el.innerHTML=`<div class="card-num" aria-hidden="true">${String(i+1).padStart(2,'0')}</div><div class="card-name">${c.name}</div><div class="card-meta">${c.meta}</div>`;
       grid.appendChild(el);
     });
+    if(mode==='compare')renderCopy();
   }
   function setLayout(n){layoutBtns.forEach(b=>{const on=+b.dataset.cols===n;b.classList.toggle('active-layout',on);b.setAttribute('aria-pressed',String(on))})}
 
@@ -207,6 +259,7 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    refresh();
   }
   // Stops everything at once: the cards sit in their real places, with no glide left running
   function settle(){
@@ -219,6 +272,7 @@
   // newOrder and newCols are the change (either can be left out); then runs once the glide has ended
   function doFlip(newOrder,newCols,then){
     if(animating)return;
+    lift(); // First reads boxes with their transforms: put Compare's pose away first
     animating=true;afterMove=then||null;
     const d=dur*(slowTog.checked?3:1),curve=ease; // read when the glide starts; three times as long in slow motion
     // FIRST: record where every card is
@@ -227,10 +281,13 @@
     // The grid keeps its height until the glide ends, so a shorter layout does not shrink the stage under cards that start lower
     grid.style.minHeight=gridH+'px';
     // LAST: apply the new layout (the cards jump to their new places)
+    const was={order:[...order],cols};
     if(newCols!==undefined)cols=newCols;
     if(newOrder)order=newOrder;
+    if(was.cols!==cols||was.order.some((v,i)=>v!==order[i]))prev=was;
     renderCards();
     if(!motionOk){grid.style.minHeight='';finish();return}
+    refresh();
     const cards=[...grid.querySelectorAll('.flip-card')];
     const last=cards.map(c=>c.getBoundingClientRect());
     // A card starts its glide from its old top at its new height: make room for the lowest one, and for the new layout's own minimum
@@ -254,6 +311,8 @@
 
   const bySize=o=>[...o].sort((a,b)=>CARDS[b].h-CARDS[a].h);
   const byColor=o=>[...o].sort((a,b)=>CARDS[a].colorRank-CARDS[b].colorRank);
+  // The order Show me sorts into: by size, or by color when the cards are already in that order
+  const sortedFor=o=>{const s=bySize(o);return s.every((v,i)=>v===o[i])?byColor(o):s};
   document.getElementById('btn-shuffle').addEventListener('click',()=>{
     const o=[...order];for(let i=o.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[o[i],o[j]]=[o[j],o[i]];}doFlip(o);
   });
@@ -266,33 +325,149 @@
   }));
 
   // Show me: sort by size (by color when the cards are already in that order), hold 1200ms, then glide back to the order they had
+  // runStart keeps the order a run began with while it is pending, so a second press (or a mode press) still ends where the first began
+  let runStart=null;
   function showMe(){
     settle();
-    const before=[...order];
-    let sorted=bySize(before);
-    if(sorted.every((v,i)=>v===before[i]))sorted=byColor(before);
-    doFlip(sorted,undefined,()=>{wayBack=later(()=>{wayBack=0;doFlip(before)},1200)});
+    const before=runStart||[...order],sorted=sortedFor(before);
+    runStart=before;
+    doFlip(sorted,undefined,()=>{wayBack=later(()=>{wayBack=0;doFlip(before,undefined,()=>{runStart=null})},1200)});
   }
   function reset(){
     settle();
-    order=[...START];cols=3;
-    renderCards();setLayout(3);
+    order=[...START];cols=3;prev=null;runStart=null;
+    renderCards();setLayout(3);refresh();
   }
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A glide already under way finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;runStart=null});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);refresh();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
+
+  // ---- See inside and Compare ----
+  const area=grid.parentElement;
+  // Compare's first grid, an unseen grid for measuring, and the layer of marks: none of them takes part until a mode shows it
+  const [cp,gm,ov]=['gcopy cmp','gcopy gm','ov'].map(c=>{
+    const e=document.createElement('div');e.className=c;e.inert=true;e.setAttribute('aria-hidden','true');return e;
+  });
+  grid.before(cp);area.append(gm,ov);
+  // The share of a glide done at time t (0 to 1) with the Feel now chosen, from the browser's own easing
+  const clock=document.createElement('i').animate({opacity:[0,1]},{duration:1000,fill:'both'});clock.pause();
+  function easeAt(t){clock.effect.updateTiming({easing:ease});clock.currentTime=t*1000;return clock.effect.getComputedTiming().progress}
+  const words=ms=>ms<400?'about a third of a second':ms<700?'half a second':ms<1000?'nearly a second':ms<2000?'a second and a half':'about two and a half seconds';
+  const hit=(a,b)=>a.x<b.x+b.w&&b.x<a.x+a.w&&a.y<b.y+b.h&&b.y<a.y+a.h;
+  slowTog.addEventListener('change',refresh);
+  document.fonts.ready.then(refresh);
+
+  // Compare's first grid: the real cards without their ids, in the same order and columns, rebuilt only when those change
+  function renderCopy(){
+    const key=order.join()+cols;
+    if(cp.dataset.key===key)return;
+    cp.dataset.key=key;cp.dataset.columns=cols;cp.style.gridTemplateColumns=grid.style.gridTemplateColumns;
+    cp.replaceChildren(...[...grid.children].map(c=>{const k=c.cloneNode(true);k.removeAttribute('id');k.style.transform=k.style.transition='';return k}));
+  }
+  function lift(){
+    if(!posed)return;
+    posed=false;
+    [...grid.children].forEach(c=>{c.style.transform='';c.style.transition=''});
+  }
+  // Where each card (by number) stood when the grid held order o in n columns, as a box in the page area. It is read on gm, an unseen
+  // grid shown for this one read, so the real cards never move.
+  function measure(o,n){
+    gm.dataset.columns=n;gm.style.gridTemplateColumns=`repeat(${n},1fr)`;gm.style.width=grid.offsetWidth+'px';
+    gm.replaceChildren(...o.map(i=>{const c=document.createElement('div');c.className='flip-card '+(CARDS[i].h===2?'is-large':'is-small');return c}));
+    gm.style.display='grid';
+    const r={};
+    o.forEach((i,k)=>{const c=gm.children[k];r[i]={x:grid.offsetLeft+c.offsetLeft,y:grid.offsetTop+c.offsetTop,w:c.offsetWidth,h:c.offsetHeight}});
+    gm.style.display='';
+    return r;
+  }
+  // The last change, card by card: the box before it, the box now, and the shift between their top-left corners (what the glide covers)
+  function moves(){
+    const from=prev||{order:sortedFor(order),cols},was=measure(from.order,from.cols);
+    return [...grid.children].map(c=>{
+      const i=+c.id.slice(2),w=was[i],n={x:c.offsetLeft,y:c.offsetTop,w:c.offsetWidth,h:c.offsetHeight};
+      return{c,i,w,n,dx:n.x-w.x,dy:n.y-w.y};
+    });
+  }
+  // Draws what the mode shows from the page's own state; at rest in Compare the real cards are posed a fifth of the way into the change
+  function refresh(){
+    lift();
+    if(mode==='normal')return;
+    const mv=moves();
+    if(mode==='compare'&&!animating&&!wayBack){
+      const k=1-easeAt(.2);
+      mv.forEach(m=>{m.c.style.transition='none';m.c.style.transform=`translate(${(-k*m.dx).toFixed(1)}px,${(-k*m.dy).toFixed(1)}px)`});
+      posed=true;
+    }
+    draw(mv);
+  }
+  function draw(mv){
+    const inside=mode==='inside',W=area.clientWidth,H=area.clientHeight,phone=matchMedia('(max-width:600px),(max-height:500px)').matches;
+    const f=n=>n.toFixed(1),hard=[],soft=[];
+    let svg='',far=null,caps=[['half','Jumps','left:25%'],['half','Glides','left:75%']];
+    // In a list the arrows all run straight up and down, so each starts a different way across its wide box
+    const wide=cols===1||(prev||{cols}).cols===1;
+    mv.forEach(({c,i,w,n,dx,dy})=>{
+      svg+=`<rect class="o" x="${f(w.x+.75)}" y="${f(w.y+.75)}" width="${f(w.w-1.5)}" height="${f(w.h-1.5)}" rx="8"/>`;
+      if(!inside)return;
+      soft.push({x:w.x,y:w.y,w:w.w,h:2},{x:w.x,y:w.y+w.h-2,w:w.w,h:2},{x:w.x,y:w.y,w:2,h:w.h},{x:w.x+w.w-2,y:w.y,w:2,h:w.h});
+      const cr=c.getBoundingClientRect();
+      c.querySelectorAll('.card-name,.card-meta').forEach(e=>{
+        const r=document.createRange();r.selectNodeContents(e);
+        const b=r.getBoundingClientRect();
+        hard.push({x:n.x+b.left-cr.left,y:n.y+b.top-cr.top,w:b.width,h:b.height});
+      });
+      const len=Math.hypot(dx,dy);
+      if(len<14)return;
+      // The arrow is the glide: it starts inside the old box, ends inside the new one, and is as long as the shift
+      const sx=w.x+Math.min(w.w,n.w)*(wide?(i+1)/7:.5),sy=w.y+Math.min(w.h,n.h)/2,ux=dx/len,uy=dy/len,ex=sx+dx,ey=sy+dy;
+      svg+=`<line class="a" x1="${f(sx)}" y1="${f(sy)}" x2="${f(ex-8*ux)}" y2="${f(ey-8*uy)}"/>`+
+        `<polygon class="ah" points="${[ex,ey,ex-10*ux+5*uy,ey-10*uy-5*ux,ex-10*ux-5*uy,ey-10*uy+5*ux].map(f)}"/>`;
+      for(let t=0;t<len;t+=8)soft.push({x:sx+ux*t,y:sy+uy*t,w:1,h:1});
+      if(!far||len>far.len)far={len,sx,sy,dx,dy};
+    });
+    if(inside){
+      const glide=dur*(slowTog.checked?3:1);
+      caps=[['k-o','Dashed: where each card was']];
+      if(!phone||!motionOk)caps.push(['k-a',motionOk?"Arrows: each card's glide":'Arrows: from where it was to where it is now']);
+      if(motionOk){
+        caps.push(['k-d','Dots: each tenth of the glide'],['',`Each glide takes ${words(glide)}`]);
+        // A dot for each tenth of the time on the arrow of the card that moves furthest
+        for(let k=1;far&&k<=10;k++){
+          const p=easeAt(k/10),x=far.sx+far.dx*p,y=far.sy+far.dy*p;
+          svg+=`<circle class="d" cx="${f(x)}" cy="${f(y)}" r="3.5"/>`;
+          soft.push({x:x-4,y:y-4,w:8,h:8});
+        }
+      }
+    }
+    ov.innerHTML=`<svg aria-hidden="true">${svg}</svg>`+caps.map(([c,t,st])=>`<div class="cap ${c}"${st?` style="${st}"`:''} data-hb-caption>${t}</div>`).join('');
+    if(!inside)return;
+    // Each caption goes to the first spot (top left first) that covers no card name and no other caption, and crosses the fewest marks
+    ov.querySelectorAll('.cap').forEach(el=>{
+      const cw=el.offsetWidth,ch=el.offsetHeight;
+      let best=1e9,bx=4,by=4;
+      scan:for(let y=4;y<=H-ch-4;y+=6)for(let x=4;x<=W-cw-4;x+=8){
+        const r={x:x-5,y:y-5,w:cw+10,h:ch+10};
+        let p=0;
+        for(const o of hard)if(hit(r,o))p+=100;
+        for(const o of soft)if(hit(r,o))p++;
+        if(p<best){best=p;bx=x;by=y;if(!p)break scan}
+      }
+      el.style.left=bx+'px';el.style.top=by+'px';
+      hard.push({x:bx,y:by,w:cw,h:ch});
+    });
+  }
   renderCards();
 </script>
 </body>
