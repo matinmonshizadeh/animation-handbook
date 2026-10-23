@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff9d5c;--ui-border:rgba(255,255,255,.09);--ui-muted:#8a8a92;--prog-dur:2000ms;--prog-color:#58a6ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px;background:#0b0b0d}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px;background:#0b0b0d}
     /* Bar: the fill is as wide as the track and slides in from the left; the track clips the part still outside */
     .prog-section{width:100%;max-width:320px}
     .prog-label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted);display:flex;justify-content:space-between;margin-bottom:8px}
@@ -41,6 +41,44 @@
     .steps{display:flex;gap:4px;align-items:center}
     .step{flex:1;height:6px;background:var(--ui-border);border-radius:3px;transition:background 200ms ease}
     .step.done{background:var(--prog-color)}
+    /* See inside and Compare. The displays sit in .shows, which takes no part in the layout in Normal. See inside: them at the left
+       (above the graph on phones, where the steps go) and a graph of how full it is over time. Compare: them twice, side by side. */
+    .shows{display:contents}
+    .graph,.twin,.side,.when,.cap-sum{display:none}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap;text-wrap-style:balance}
+    .twin .step{transition:none}
+    .stage[data-hb-mode="inside"] .shows:not(.twin),.stage[data-hb-mode="compare"] .shows{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+    .stage[data-hb-mode="inside"] .prog-circle,.stage[data-hb-mode="compare"] .prog-circle{width:64px;height:64px}
+    .stage[data-hb-mode="inside"] .prog-circle svg,.stage[data-hb-mode="compare"] .prog-circle svg{width:100%;height:100%}
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.6fr);grid-template-rows:minmax(0,1fr) auto;
+      align-items:center;gap:8px clamp(12px,3vw,32px);padding:clamp(12px,2.5vw,24px)}
+    .stage[data-hb-mode="inside"] .shows{grid-area:1/1}
+    .stage[data-hb-mode="inside"] .graph{display:block;grid-area:1/2/3;position:relative;align-self:stretch;min-height:0}
+    .stage[data-hb-mode="inside"] .cap-sum{display:block;position:static;grid-area:2/1;max-width:100%;white-space:normal;text-wrap:balance;text-align:center}
+    .graph svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .graph path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .g-axis,.g-top{stroke:rgba(244,244,242,.5);stroke-width:1.5}
+    .g-fifths{stroke:rgba(244,244,242,.14);stroke-width:1}
+    .g-top{stroke-dasharray:5 5}
+    .g-curve{stroke:var(--prog-color);stroke-width:3}
+    .g-dot{fill:#f4f4f2;stroke:var(--prog-color);stroke-width:2}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:1fr auto auto 1fr;
+      align-items:center;gap:0 clamp(12px,3vw,32px);padding:44px clamp(8px,2vw,24px) 12px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .twin{grid-area:2/1}
+    .stage[data-hb-mode="compare"] .shows:not(.twin){grid-area:2/2}
+    .stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .when{display:block}
+    .side{top:12px;left:clamp(8px,2vw,24px)}
+    .side.second{left:calc(50% + clamp(8px,2vw,24px))}
+    .when{position:static;grid-area:3/2;justify-self:center;margin-top:8px;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .prog-fill.indet{animation-play-state:paused;animation-delay:calc(var(--prog-dur)*-.45)}
+    @media(max-width:600px),(max-height:500px){
+      .stage[data-hb-mode="inside"] .prog-section:last-child,.stage[data-hb-mode="compare"] .prog-section:last-child{display:none}
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);padding:12px}
+      .stage[data-hb-mode="inside"] .shows:not(.twin){flex-direction:row;justify-content:center;gap:14px;width:100%}
+      .stage[data-hb-mode="inside"] .graph{grid-area:3/1}
+    }
     @media(prefers-reduced-motion:reduce){.prog-fill.indet{animation:none!important;width:100%!important;transform:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -64,29 +102,50 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" role="img" aria-label="Progress filling to 100%">
-      <div class="prog-section">
-        <div class="prog-label"><span>Bar</span><span id="pct-label">0%</span></div>
-        <div class="prog-track"><div class="prog-fill" id="linear-fill"></div></div>
-      </div>
-      <div class="prog-circle">
-        <svg width="80" height="80" viewBox="0 0 80 80">
-          <circle class="prog-ring" cx="40" cy="40" r="32"/>
-          <circle class="prog-arc" id="prog-arc" cx="40" cy="40" r="32"/>
-        </svg>
-        <div class="prog-pct" id="circ-pct">0%</div>
-      </div>
-      <div class="prog-section">
-        <div class="prog-label"><span>Steps</span><span id="step-label">0 / 5</span></div>
-        <div class="steps" id="steps">
-          <div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div>
+      <div class="shows">
+        <div class="prog-section">
+          <div class="prog-label"><span>Bar</span><span id="pct-label">0%</span></div>
+          <div class="prog-track"><div class="prog-fill" id="linear-fill"></div></div>
+        </div>
+        <div class="prog-circle">
+          <svg width="80" height="80" viewBox="0 0 80 80">
+            <circle class="prog-ring" cx="40" cy="40" r="32"/>
+            <circle class="prog-arc" id="prog-arc" cx="40" cy="40" r="32"/>
+          </svg>
+          <div class="prog-pct" id="circ-pct">0%</div>
+        </div>
+        <div class="prog-section">
+          <div class="prog-label"><span>Steps</span><span id="step-label">0 / 5</span></div>
+          <div class="steps" id="steps">
+            <div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div><div class="step"></div>
+          </div>
         </div>
       </div>
+      <div class="graph" aria-hidden="true">
+        <svg><path class="g-fifths"/><path class="g-top"/><path class="g-axis"/><path class="g-curve"/><circle class="g-dot" r="6"/></svg>
+        <span class="lbl cap-top" data-hb-caption>Fills to all of it</span>
+        <span class="lbl cap-time" data-hb-caption>About two seconds</span>
+        <span class="lbl cap-line" data-hb-caption>Fast at first, slowing near the end</span>
+      </div>
+      <p class="lbl cap-sum" aria-hidden="true" data-hb-caption>One number fills the bar, the ring and the steps</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Empty until done</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Fills over time</p>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>Half a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>The graph shows how full it gets over time, in the shape the Feel gives it; the dot rides the line as the bar, the ring and the steps fill.</p>
+      <p data-hb-for="compare" hidden>Empty until done: nothing shows how far it has got until the end; Fills over time: you see how much is done, and with Loop off it rests half a second in.</p>
     </div>
   </section>
 
@@ -201,6 +260,10 @@
   const CIRC=201;
   const EASE={'ease-out':t=>1-(1-t)**3,'linear':t=>t,'ease-in-out':t=>t<.5?4*t*t*t:1-(-2*t+2)**3/2};
   let dur=2000,target=100,ease=EASE['ease-out'],animRaf=null,timers=[];
+  const real={fill:linearFill,arc,bar:pctLabel,pct:circPct,steps,count:stepLabel};
+  // The hold between plays, Compare's rest pose (half a second into a play), the dot's radius and the graph line's samples
+  const HOLD=1200,POSE_MS=500,R=6,N=60;
+  let mode='normal',feel='ease-out',shown=0,curT=1,busy=false,posed=false;
 
   // Slow motion triples the fill and the slide, never the hold or the steps' colour change.
   function speed(){return slowTog.checked?dur*3:dur}
@@ -215,16 +278,17 @@
   }
 
   // The bar is a full-width fill slid in from the left, so progress moves it with transform.
-  function setProgress(p){
+  function draw(d,p){
     const pct=Math.round(p);
-    linearFill.style.transform='translateX('+(p-100)+'%)';
-    arc.style.strokeDashoffset=CIRC*(1-p/100);
-    pctLabel.textContent=pct+'%';
-    circPct.textContent=pct+'%';
+    d.fill.style.transform='translateX('+(p-100)+'%)';
+    d.arc.style.strokeDashoffset=CIRC*(1-p/100);
+    d.bar.textContent=pct+'%';
+    d.pct.textContent=pct+'%';
     const doneSteps=Math.ceil(p/100*5);
-    steps.forEach((s,i)=>s.classList.toggle('done',i<doneSteps));
-    stepLabel.textContent=doneSteps+' / 5';
+    d.steps.forEach((s,i)=>s.classList.toggle('done',i<doneSteps));
+    d.count.textContent=doneSteps+' / 5';
   }
+  function setProgress(p){shown=p;draw(real,p)}
   // Ends any slide and puts all three displays at p at once: 0 to start a fill, the result under reduced motion.
   // The steps skip their colour change for it, so a replay never shows them fading out or back in.
   function resetDisplays(p){
@@ -240,30 +304,166 @@
   }
 
   // One play fills the bar, the ring and the steps to the target. With Sliding bar on, the bar also slides for twice
-  // the Speed before it shows its fill. While Loop is on, the displays hold 1200ms after the last movement ends
+  // the Speed before it shows its fill. While Loop is on, the displays hold 1200ms (HOLD) after the last movement ends
   // (the slide when there is one); Loop is checked then, so switching it off leaves them filled.
   function cycle(){
     cancelAnimationFrame(animRaf);animRaf=null;
-    const move=speed();
+    const move=speed(),rm=reduceMotion.matches,slide=indetTog.checked,end=slide?move*2:move;
     vars.setProperty('--prog-dur',move+'ms');
-    resetDisplays(reduceMotion.matches?target:0);
-    stage.setAttribute('aria-label','Progress filling to '+target+'%');
-    const slide=indetTog.checked;
-    if(slide)startIndet(move*2);
-    if(reduceMotion.matches)return;
+    posed=false;stage.classList.remove('posed'); // a play lifts Compare's pose
+    busy=!rm;curT=rm?1:0;
+    resetDisplays(rm?target:0);
+    stage.setAttribute('aria-label',name());
+    if(slide)startIndet(end);
+    twinSync();notes();dotAt();
+    later(settle,rm?1600:end+HOLD);
+    if(rm)return;
+    later(()=>{busy=false;twinSync()},end);
     const start=performance.now();
     function tick(now){
       const t=Math.min(Math.max((now-start)/move,0),1);
-      setProgress(target*ease(t));
+      curT=t;setProgress(target*ease(t));dotAt();
       animRaf=t<1?requestAnimationFrame(tick):null;
     }
     animRaf=requestAnimationFrame(tick);
     later(()=>{
       if(!loopTog.checked||reduceMotion.matches)return;
       cycle();
-    },(slide?move*2:move)+1200);
+    },end+HOLD);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
+
+  // See inside and Compare. Compare's first half is a copy of the displays (no ids, out of reach of the keyboard and screen readers)
+  // that stays empty while a play runs and shows the end when it is done. The second half is the page's own displays.
+  const twinBox=stage.querySelector('.shows').cloneNode(true);
+  twinBox.classList.add('twin');twinBox.inert=true;twinBox.setAttribute('aria-hidden','true');
+  twinBox.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+  stage.querySelector('.shows').before(twinBox);
+  const twinLabels=twinBox.querySelectorAll('.prog-label span:last-child');
+  const twin={fill:twinBox.querySelector('.prog-fill'),arc:twinBox.querySelector('.prog-arc'),bar:twinLabels[0],pct:twinBox.querySelector('.prog-pct'),
+    steps:[...twinBox.querySelectorAll('.step')],count:twinLabels[1]};
+  const graph=stage.querySelector('.graph'),gs=graph.querySelector('svg'),dot=gs.querySelector('.g-dot');
+  const capTop=graph.querySelector('.cap-top'),capTime=graph.querySelector('.cap-time'),capLine=graph.querySelector('.cap-line'),capSum=stage.querySelector('.cap-sum');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const WORDS={inside:noteIn.textContent,compare:noteCmp.textContent};
+  const STILL={inside:'The graph shows how full it would get over time, shown still. With reduced motion on, the bar, the ring and the steps show the end at once.',
+    posed:'Shown still, half a second in: Empty until done shows nothing yet; Fills over time is part way. With reduced motion on, Replay jumps both straight to the end.',
+    lifted:'Both show the end at once because reduced motion is on; then Empty until done is empty again and Fills over time returns to half a second in.'};
+  const PHONE=matchMedia('(max-width:600px),(max-height:500px)');
+  const TARGETS={50:'half',75:'three quarters',100:'all of it'};
+  const FEELS={'ease-out':'Fast at first, slowing near the end','ease-in-out':'Slow, then fast, then slow',linear:'One steady pace'};
+  let G={x0:0,x1:0,yb:0,h:0};
+  function put(el,t){if(el.textContent!==t)el.textContent=t}
+  function timeWords(ms){return ms<=1500?'About a second':ms<=2500?'About two seconds':ms<=3500?'About three seconds':ms<=4500?'About four seconds':ms<=6500?'About six seconds':'About ten seconds'}
+  function name(){
+    const n='Progress filling to '+target+'%';
+    return mode==='inside'?n+', beside a graph of how full it is over time':mode==='compare'?'Progress shown twice: empty until done, beside filling to '+target+'% over time':n;
+  }
+  // Written only when its words change, so the live region is not read again. Under reduced motion the notes say what the stills show.
+  function notes(){
+    const rm=reduceMotion.matches,ph=PHONE.matches,all='the bar, the ring and the steps';
+    const fill=indetTog.checked?(ph?'the ring fills while the bar slides':'the ring and the steps fill while the bar slides'):(ph?'the bar and the ring fill':all+' fill');
+    put(noteIn,rm?STILL.inside.replace(all,ph?'the bar and the ring':all):WORDS.inside.replace(all+' fill',fill));
+    put(noteCmp,rm?(posed?STILL.posed:STILL.lifted):WORDS.compare);
+  }
+  // The copy is empty while the play runs or Compare is posed, and shows the end once the play is done
+  function twinSync(){
+    if(mode!=='compare')return;
+    twin.steps.forEach(s=>{s.style.transition='none'});
+    draw(twin,posed||busy?0:target);
+  }
+  // Compare at rest: half a second into a play, by progress (it never changes with Slow motion). The page's own displays are set
+  // through its own setProgress; with the sliding bar on, its short piece is held part way along.
+  function pose(on){
+    posed=on;stage.classList.toggle('posed',on);
+    if(on){
+      resetDisplays(target*ease(Math.min(1,POSE_MS/dur)));
+      if(indetTog.checked&&!reduceMotion.matches)linearFill.classList.add('indet');
+    }
+    twinSync();notes();
+  }
+  function settle(){if(mode==='compare'&&!loopTog.checked)pose(true)}
+  // The dot: across with the time since the play began, up with the value the page has set (at rest, where the line ends)
+  function dotAt(){
+    if(mode!=='inside')return;
+    dot.style.transform='translate('+(G.x0+(G.x1-G.x0)*curT)+'px,'+(G.yb-G.h*(busy?shown:target)/100)+'px)';
+  }
+  // The graph, drawn in the box's own pixels: the line is the Feel's own ease sampled across the Speed, the top line is where Fills to
+  // stops, and a faint line crosses at each fifth, where a step lights. Its words keep their size; the line's words take the spot
+  // farthest from the line (the dot rides it, so the dot counts too), in one row or two. Words are measured at the box's left edge,
+  // never at their last place, where the room left there would make them wrap.
+  function drawGraph(){
+    const W=graph.clientWidth,H=graph.clientHeight,ph=PHONE.matches;
+    if(!W||!H)return;
+    put(capTop,'Fills to '+TARGETS[target]);put(capTime,timeWords(speed()));put(capLine,FEELS[feel]);
+    put(capSum,indetTog.checked?(ph?'The bar slides first; the ring fills':'The bar slides first; the ring and steps fill'):(ph?'One number fills the bar and the ring':'One number fills the bar, the ring and the steps'));
+    const place=(el,l,t)=>{el.style.left=l+'px';el.style.top=t+'px'};
+    [capTop,capTime,capLine].forEach(c=>place(c,0,0));
+    capLine.style.whiteSpace='';capLine.style.width='';
+    const ch=capTop.offsetHeight,tw=capTop.offsetWidth,mw=capTime.offsetWidth,nat=capLine.offsetWidth,row=capLine.offsetHeight;
+    const x0=10,x1=W-R-2,yt=ch+R+4,yb=H-ch-10,h=yb-yt,yT=yb-h*target/100,pts=[],dense=[];
+    G={x0,x1,yb,h};
+    for(let i=0;i<=N;i++)pts.push([x0+(x1-x0)*i/N,yb-h*target*ease(i/N)/100]);
+    const at=(n,d)=>gs.querySelector('.g-'+n).setAttribute('d',d);
+    gs.setAttribute('viewBox','0 0 '+W+' '+H);
+    at('curve','M'+pts.map(p=>p[0].toFixed(1)+' '+p[1].toFixed(1)).join('L'));
+    at('axis','M'+x0+' '+(yt-4)+'V'+yb+'H'+(W-3)+'M'+(W-9)+' '+(yb-4)+'L'+(W-3)+' '+yb+'L'+(W-9)+' '+(yb+4));
+    at('top','M'+x0+' '+yT+'H'+x1);
+    at('fifths',[20,40,60,80].filter(v=>v<target).map(v=>'M'+x0+' '+(yb-h*v/100)+'H'+x1).join(''));
+    place(capTop,x0+4,yT-ch-4);place(capTime,(x0+x1-mw)/2,yb+8);
+    pts.forEach((p,i)=>{const q=pts[i+1]||p,k=Math.max(1,Math.ceil(Math.hypot(q[0]-p[0],q[1]-p[1])/5));
+      for(let j=0;j<k;j++)dense.push([p[0]+(q[0]-p[0])*j/k,p[1]+(q[1]-p[1])*j/k])});
+    // What a caption keeps clear of: the top line and the two other words
+    const boxes=[[x0-2,yT-3,x1-x0+4,6],[x0,yT-ch-8,tw+8,ch+8],[(x0+x1-mw)/2-4,yb+4,mw+8,ch+8]];
+    const CLEAR=16;
+    // Searched from the lower right upward in steps of 3; the first spot with the most room (up to CLEAR from the line) wins
+    const spot=(w,hh,t0,t1)=>{
+      let best=null;
+      for(let t=t0;t>=t1&&!(best&&best.c>=CLEAR);t-=3)for(let l=x1-4-w;l>=x0+6&&!(best&&best.c>=CLEAR);l-=3){
+        if(boxes.some(([bx,by,bw,bh])=>l<bx+bw&&l+w>bx&&t<by+bh&&t+hh>by))continue;
+        let c=CLEAR;
+        for(const [x,y] of dense){c=Math.min(c,Math.hypot(Math.max(l-x,0,x-l-w),Math.max(t-y,0,y-t-hh)));if(best&&c<=best.c)break}
+        if(!best||c>best.c)best={c,l,t,w,h:hh,rows:1};
+      }
+      return best;
+    };
+    const wrapTo=w=>{capLine.style.whiteSpace=w?'normal':'';capLine.style.width=w?w+'px':''};
+    let pick=spot(nat,row,yb-8-row,2);
+    if(!pick||pick.c<R+6){
+      // Two rows: the narrowest width that needs only two, then the width of its longer row
+      let w=Math.ceil(nat*.5);
+      for(wrapTo(w);capLine.offsetHeight>row*1.9&&w<nat;wrapTo(w+=6));
+      const rg=document.createRange();rg.selectNodeContents(capLine);
+      w=Math.ceil(Math.max(...[...rg.getClientRects()].map(q=>q.width)))+15;wrapTo(w);
+      const two=capLine.offsetHeight<row*1.9?spot(capLine.offsetWidth,capLine.offsetHeight,yb-8-capLine.offsetHeight,2):null;
+      if(two&&(!pick||two.c>pick.c)){pick=two;pick.rows=2;pick.w=w}
+    }
+    // Under the axis, beside the time words, only when no spot above it keeps off the line
+    if(!pick||pick.c<R+3){const off=spot(nat,row,yb+5,yb+5);if(off&&(!pick||off.c>pick.c))pick=off}
+    if(!pick)pick={l:Math.max(2,x1-nat-4),t:yb-8-row,rows:1};
+    wrapTo(pick.rows===2?pick.w:0);
+    place(capLine,pick.l,pick.t);
+    dotAt();
+  }
+  // Draws the current mode for the settings as they now are (also while at rest, and after a resize)
+  function refresh(){
+    if(mode==='normal')return;
+    if(mode==='inside')drawGraph();
+    if(mode==='compare'&&posed)pose(true);
+    twinSync();notes();
+  }
+  // The mode switch draws the mode at once (the shared script then presses Replay, not under reduced motion). Leaving Compare's rest
+  // pose puts the displays back at the end; leaving it in the middle of a play changes nothing.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(was==='compare'&&mode!=='compare'&&posed){pose(false);resetDisplays(target)}
+    if(mode==='compare')pose(!loopTog.checked&&!busy);
+    stage.setAttribute('aria-label',name());
+    refresh();
+  });
+  new ResizeObserver(refresh).observe(graph);
+  document.fonts.ready.then(refresh);
+  loopTog.addEventListener('change',refresh);slowTog.addEventListener('change',refresh);indetTog.addEventListener('change',refresh);
 
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
@@ -272,14 +472,16 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('target-seg',d=>{target=+d.pct});
   choices('speed-seg',d=>{dur=+d.ms});
-  choices('feel-seg',d=>{ease=EASE[d.ease]||EASE['ease-out']});
+  choices('feel-seg',d=>{feel=EASE[d.ease]?d.ease:'ease-out';ease=EASE[feel]});
   choices('color-sw',d=>{vars.setProperty('--prog-color',d.c)});
   vars.setProperty('--prog-dur',speed()+'ms');
   if(reduceMotion.matches)resetDisplays(target); // reduced motion: the first picture is the finished one
+  notes();
 </script>
 </body>
 </html>
