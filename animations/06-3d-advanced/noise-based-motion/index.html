@@ -73,8 +73,8 @@
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
     </div>
     <div class="hb-mode-notes" aria-live="polite">
-      <p data-hb-for="inside" hidden>Inside, the gray is the noise: a value that changes gradually from place to place. Each dot leans by the value under it, so neighbors lean alike.</p>
-      <p data-hb-for="compare" hidden>Plain random hands each dot a fresh random number, so neighbors point every which way, like static. Smooth noise changes gradually from place to place, so neighbors lean alike.</p>
+      <p data-hb-for="inside" hidden>Inside, the gray is the noise: a value that changes gradually from place to place. Each dot leans by the gray under its ring: the lighter the gray, the farther around it turns.</p>
+      <p data-hb-for="compare" hidden>Plain random scatters the faint dots behind each dot (where it just was), since each new lean ignores the last. Smooth noise changes gradually, so they trail in a smooth curve.</p>
     </div>
   </section>
 
@@ -221,9 +221,9 @@ let MODE='grid',SCALE=.008,SPD=.5,AMP=12,SPACE=48,COLOR='#58a6ff';
 // the noise mostly has, so both halves push about as far.
 let VIEW='normal',roll=0,ra=0;
 const phone=matchMedia('(max-width:600px),(max-height:500px)');
-const TOP=44,REROLL=100,RANGE=.7;
-function rnd(a,b){
-  let h=Math.imul(a+1,374761393)^Math.imul(b+1,668265263)^Math.imul(roll+1,1274126177);
+const TOP=44,REROLL=100,RANGE=.7,TRAIL=4;
+function rnd(a,b,rl=roll){
+  let h=Math.imul(a+1,374761393)^Math.imul(b+1,668265263)^Math.imul(rl+1,1274126177);
   h=Math.imul(h^(h>>>13),1103515245);h^=h>>>16;
   return ((h>>>0)/2147483648-1)*RANGE;
 }
@@ -242,17 +242,25 @@ function resize(){
 // The dots sit SPACE pixels apart, so a narrow phone stage draws fewer of them than a wide one.
 // ox, oy, w, h: the part of the canvas it fills (all of it in Normal); rand: a fixed random number in place of the noise.
 // In a view the dots are a little larger and their lines bolder, so a lean reads in a still; See inside also rings each home.
-// Compare centers the grid in its half.
+// Compare centers the grid in its half and draws TRAIL faint dots behind each dot, fading with age: where its tip was one to four
+// re-rolls ago. The random half reads the last rolls' numbers; the noise half reads the noise that many re-rolls of time earlier
+// (counted in the noise's own time, so the pose is the same in Slow motion).
 function drawGrid(ox=0,oy=0,w=W,h=H,rand=false){
   const step=SPACE,view=VIEW!=='normal';
   const ex=VIEW==='compare'?(w%step)/2:0,ey=VIEW==='compare'?(h%step)/2:0;
   const r=parseInt(COLOR.slice(1,3),16),g=parseInt(COLOR.slice(3,5),16),b=parseInt(COLOR.slice(5,7),16);
+  const trail=VIEW==='compare',gap=SPD*.01*REROLL/FRAME;
   for(let x=ex+step/2,i=0;x<w;x+=step,i++){
     for(let y=ey+step/2,j=0;y<h;y+=step,j++){
       const n=rand?rnd(i,j):simplex2(x*SCALE,y*SCALE+t);
       const dx=Math.cos(n*Math.PI*2)*AMP;
       const dy=Math.sin(n*Math.PI*2)*AMP;
       const op=.4+Math.abs(n)*.5;
+      if(trail)for(let k=TRAIL;k>0;k--){
+        const m=rand?rnd(i,j,roll-k):simplex2(x*SCALE,y*SCALE+t-k*gap);
+        ctx.fillStyle=`rgba(${r},${g},${b},${(.72-k*.12).toFixed(2)})`;
+        ctx.beginPath();ctx.arc(ox+x+Math.cos(m*Math.PI*2)*AMP,oy+y+Math.sin(m*Math.PI*2)*AMP,1.7,0,Math.PI*2);ctx.fill();
+      }
       ctx.fillStyle=`rgba(${r},${g},${b},${op.toFixed(2)})`;
       ctx.beginPath();ctx.arc(ox+x+dx,oy+y+dy,view?2.2:1.5,0,Math.PI*2);ctx.fill();
       ctx.strokeStyle=`rgba(${r},${g},${b},${(op*(view?.85:.4)).toFixed(2)})`;
@@ -269,11 +277,13 @@ function drawGrid(ox=0,oy=0,w=W,h=H,rand=false){
 const edgeN=a=>simplex2(Math.cos(a)*SCALE*RING+t,Math.sin(a)*SCALE*RING)*AMP;
 function drawBlob(ox=0,oy=0,w=W,h=H,rand=false){
   const cx=ox+w/2,cy=oy+h/2;const R=Math.min(w,h)*.28;
+  // A Compare half on a phone is narrow: every push shrinks alike so the largest Wobble (twice 20) stays inside it
+  const k=VIEW==='compare'?Math.min(1,(Math.min(w,h)*.22-4)/40):1;
   const r=parseInt(COLOR.slice(1,3),16),g=parseInt(COLOR.slice(3,5),16),b=parseInt(COLOR.slice(5,7),16);
   ctx.beginPath();
   for(let i=0;i<=VERTS;i++){
     const a=(i/VERTS)*Math.PI*2;
-    const n=rand?rnd(i%VERTS,0)*AMP:edgeN(a);
+    const n=(rand?rnd(i%VERTS,0)*AMP:edgeN(a))*k;
     const r2=R+n*2;
     const px=cx+Math.cos(a)*r2,py=cy+Math.sin(a)*r2;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
@@ -285,7 +295,7 @@ function drawBlob(ox=0,oy=0,w=W,h=H,rand=false){
   ctx.beginPath();
   for(let i=0;i<=VERTS;i++){
     const a=(i/VERTS)*Math.PI*2;
-    const n=(rand?rnd(i%VERTS,1):simplex2(Math.cos(a)*SCALE*RING_IN+t*.7,Math.sin(a)*SCALE*RING_IN))*AMP*.5;
+    const n=(rand?rnd(i%VERTS,1):simplex2(Math.cos(a)*SCALE*RING_IN+t*.7,Math.sin(a)*SCALE*RING_IN))*AMP*.5*k;
     const r2=R*.5+n*1.5;
     const px=cx+Math.cos(a)*r2,py=cy+Math.sin(a)*r2;
     i===0?ctx.moveTo(px,py):ctx.lineTo(px,py);
@@ -376,7 +386,7 @@ const WORDS={
   grid:{what:'Gray: the noise, a smooth pattern',how:'Each dot leans by the gray under it',
     inside:hbFor('inside').textContent,compare:hbFor('compare').textContent,
     ain:'Dots swaying over a gray map of the noise: each dot leans by the value under it',
-    acmp:'Two fields of dots: one moved by plain random numbers that keep changing, one by smooth noise'},
+    acmp:'Two fields of dots: one moved by plain random numbers that keep changing, one by smooth noise, each with faint dots where it just was'},
   blob:{what:'Dashed: a plain circle',how:'Arrows: noise pushes the edge out or in',
     inside:'Inside, the dashed line is a plain circle. The noise, read around it, pushes each part of the edge out or in by the arrow’s length; neighbors push alike, so the edge forms smooth waves.',
     compare:'Plain random pushes each part of the edge by its own random number, so the edge is jagged. Smooth noise changes gradually around the edge, so it forms smooth waves.',
