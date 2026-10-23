@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff9d5c;--ui-muted:#8a8a92;--bg:#0b0b0d;--star:clamp(44px,11vw,60px);--pop:1.35;--fill-dur:180ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,4vh,32px);padding:clamp(16px,4vw,40px);background:var(--bg)}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(18px,4vh,32px);padding:clamp(16px,4vw,40px);background:var(--bg)}
     /* Rating control */
     .rate{--gap:clamp(4px,1.5vw,12px);display:inline-flex;flex-wrap:wrap;justify-content:center;max-width:100%;gap:var(--gap);outline:none;touch-action:none}
     /* the row draws its own focus look, so it also hides the site ring (.stage keeps this above body.hb :focus-visible). The outline stays, transparent, for forced-colors mode, which removes box-shadow. */
@@ -41,6 +41,47 @@
     /* More than five stars that cannot share one row wrap into two equal rows, not nine and one. Ten stars fit one row from 846px wide, or 864px with classic scrollbars, so the two rows hold up to 870px */
     @media(max-width:870px){.rate.many{max-width:calc(5*var(--star) + 4*var(--gap) + 1px)}}
     @media(prefers-reduced-motion:reduce){.star{transition:none}.star.pop{animation:none}}
+    /* See inside and Compare: two panes (no box in Normal) hold the real row and the copy; all that is drawn sits in .views, which lets the pointer through */
+    .pane{display:contents}
+    .pane.twin,.views,.picks,.popo,.mark{display:none}
+    .twin .star{transition:none;will-change:auto}
+    .views{position:absolute;inset:0;pointer-events:none}
+    .pick,.popo{position:absolute;border:2px dashed rgba(244,244,242,.6);border-radius:8px}
+    .pick.mid::after{content:"";position:absolute;left:50%;top:0;bottom:0;margin-left:-1px;border-left:2px dashed rgba(244,244,242,.6)}
+    .popo{border-color:var(--ui-accent);border-radius:12px}
+    .mark{position:absolute;width:12px;height:8px;background:#f4f4f2;clip-path:polygon(50% 0,0 100%,100% 100%)}.mark.dn{clip-path:polygon(0 0,100% 0,50% 100%)}
+    .lbl{position:absolute;display:none;width:max-content;max-width:min(290px,calc(100% - 10px));padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .cmp-l{top:10px;left:12px;white-space:nowrap}
+    @media(max-width:340px){.lbl{font-size:12px}}
+    /* each See inside label starts with a small copy of the mark it names */
+    .lbl[data-k]::before{content:"";display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px;border:1.5px dashed rgba(244,244,242,.75);border-radius:3px}
+    .lbl[data-k="pop"]::before{border-color:var(--ui-accent)}
+    .lbl[data-k="chosen"]::before,.lbl[data-k="prev"]::before{border:0;background:#f4f4f2;clip-path:polygon(50% 0,0 100%,100% 100%)}
+    .lbl[data-k="prev"]::before{clip-path:polygon(0 0,0 86%,33% 66%,57% 100%,77% 94%,53% 60%,100% 60%)}
+    .cmp-div{position:absolute;display:none;left:50%;top:0;bottom:0;width:1px;background:rgba(244,244,242,.2)}
+    .lay{position:absolute;inset:0}
+    .ptr{position:absolute;left:0;top:0;display:none;fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round;overflow:visible}
+    .ptr.on{display:block}
+    @media(prefers-reduced-motion:no-preference){.glide .ptr{transition:transform .11s linear}}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"] .picks,.stage[data-hb-mode="inside"] .popo,.stage[data-hb-mode="inside"] .mark{display:block}
+    .stage[data-hb-mode="inside"]{gap:clamp(44px,10vh,58px)}
+    .stage[data-hb-mode="inside"] .in-l,.stage[data-hb-mode="compare"] .cmp-l,.stage[data-hb-mode="compare"] .cmp-div{display:block}
+    /* Compare: the copy first (left, or on top where they stack), each pane's row below its name; phone star size below 871px, Ten stars wrap five and five */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr;align-items:stretch;padding:0;gap:0}
+    .stage[data-hb-mode="compare"] .pane{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(8px,2.4vh,20px);min-width:0;min-height:0;padding:38px 12px 10px}
+    .stage[data-hb-mode="compare"] .twin{order:-1}.stage[data-hb-mode="compare"] .second{left:calc(50% + 12px)}
+    .stage[data-hb-mode="compare"] .rate.many{max-width:calc(5*var(--star) + 4*var(--gap) + 1px)}
+    .stage[data-hb-mode="compare"] .lay-a{clip-path:inset(0 50% 0 0)}.stage[data-hb-mode="compare"] .lay-b{clip-path:inset(0 0 0 50%)}
+    /* two rows in a short or stacked half: the number moves up onto the name's line */
+    .stage[data-hb-mode="compare"].tight .rate.many + .value{position:absolute;top:8px;right:12px;font-size:20px}
+    @media(max-width:870px){.stage[data-hb-mode="compare"]{--star:44px}.stage[data-hb-mode="inside"] .rate.many{--star:44px}}
+    @media(max-width:660px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:1fr;grid-template-rows:1fr 1fr}
+      .stage[data-hb-mode="compare"] .cmp-div{left:0;right:0;top:50%;bottom:auto;width:auto;height:1px}
+      .stage[data-hb-mode="compare"] .second{left:12px;top:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .lay-a{clip-path:inset(0 0 50% 0)}.stage[data-hb-mode="compare"] .lay-b{clip-path:inset(50% 0 0 0)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -63,14 +104,44 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Point along the stars and click or tap one to choose, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="rate" id="rate" role="slider" tabindex="0" aria-label="Rating"
-           aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-valuetext="3 out of 5"></div>
-      <div class="value"><span id="val">3.0</span><small> / <span id="max">5</span></small></div>
+      <div class="pane">
+        <div class="rate" id="rate" role="slider" tabindex="0" aria-label="Rating"
+             aria-valuemin="0" aria-valuemax="5" aria-valuenow="3" aria-valuetext="3 out of 5"></div>
+        <div class="value"><span id="val">3.0</span><small> / <span id="max">5</span></small></div>
+      </div>
+      <div class="pane twin" aria-hidden="true" inert>
+        <div class="rate"></div>
+        <div class="value"><span>3.0</span><small> / <span>5</span></small></div>
+      </div>
+      <div class="views" aria-hidden="true">
+        <div class="cmp-div"></div>
+        <div class="picks"></div>
+        <div class="popo"></div>
+        <div class="mark"></div>
+        <span class="lbl in-l" data-k="prev" data-hb-caption>Pointing here previews 4</span>
+        <span class="lbl in-l" data-k="chosen" data-hb-caption>Chosen: 3, shown again when you leave</span>
+        <span class="lbl in-l" data-k="pop" data-hb-caption>Pops a third bigger when chosen</span>
+        <span class="lbl in-l" data-k="pick" data-hb-caption>Each dashed box picks one star</span>
+        <span class="lbl cmp-l" data-hb-caption>Click only</span>
+        <span class="lbl cmp-l second" data-hb-caption>Previews and pops</span>
+        <!-- the pretend pointer and, in Compare, its ghost over the copy: after the labels, so no label hides them -->
+        <div class="lay lay-a"><svg class="ptr" id="ghost" width="15" height="22" viewBox="0 0 15 22"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg></div>
+        <div class="lay lay-b"><svg class="ptr" id="pretend" width="15" height="22" viewBox="0 0 15 22"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg></div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each dashed box is the spot that picks a star: pointing previews the rating, clicking chooses it and the chosen star pops. Point along the stars, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Click only: nothing shows until you click; Previews and pops: the stars fill up to the pointer first, and the chosen one pops. Point along the stars, or press Show me.</p>
     </div>
   </section>
 
@@ -165,6 +236,14 @@
   const vars=document.documentElement.style;
   const starSvg=`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="${STAR}"/></svg>`;
   let count=5,rating=3,step=1,runTimers=[];
+  // See inside and Compare: the parts drawn over the stage, the copy of the row, and what the pretend pointer is doing
+  const views=stage.querySelector('.views'),picks=views.querySelector('.picks'),popo=views.querySelector('.popo'),mark=views.querySelector('.mark');
+  const twinRow=stage.querySelector('.twin .rate'),twinVal=stage.querySelector('.twin .value span'),twinMax=stage.querySelector('.twin small span');
+  const valueBox=stage.querySelector('.value'),ghost=document.getElementById('ghost'),pretend=document.getElementById('pretend');
+  const lbl={};views.querySelectorAll('.in-l').forEach(el=>lbl[el.dataset.k]=el);
+  const RM=matchMedia('(prefers-reduced-motion: reduce)'),stackedMQ=matchMedia('(max-width:660px)');
+  // aim: the value the pretend pointer points at (null: none); inRow: a real pointer or finger is on the row; keyed: the keys changed the rating
+  let mode='normal',aim=null,inRow=false,keyed=false,rp=null,lastKey='';
 
   function build(){
     rate.innerHTML='';
@@ -175,6 +254,8 @@
       rate.appendChild(s);
     }
     rate.classList.toggle('many',count>5);
+    twinRow.innerHTML=rate.innerHTML;twinRow.classList.toggle('many',count>5);twinMax.textContent=count;
+    picks.innerHTML='<i class="pick"></i>'.repeat(count);
     rate.setAttribute('aria-valuemax',count);
     maxEl.textContent=count;
     if(rating>count)rating=count;
@@ -197,6 +278,7 @@
       const star=rate.querySelector('.star[data-i="'+(Math.ceil(rating)-1)+'"]');
       if(star){star.classList.remove('pop');void star.offsetWidth;star.classList.add('pop')}
     }
+    if(mode!=='normal'){if(mode==='compare')syncTwin();draw()}
   }
   // Map a pointer position within a star to a rating value.
   function valueAt(star,clientX){
@@ -236,7 +318,7 @@
     runTimers.push(id);
   }
   function running(){return runTimers.length>0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];render(rating)}
+  function stopRun(keep){runTimers.forEach(clearTimeout);runTimers=[];render(rating);aim=null;if(!keep)settle()}
   // A run starts at the resting rating of 3, put there without animating: the fill transitions are turned off, the stars are
   // filled, a reflow makes it stick, and the transitions come back.
   function toRest(){
@@ -249,13 +331,13 @@
   // An invisible pointer sweeps along the row, one star every 120ms, and comes back one star; that star is chosen and pops
   // (420ms), and 1200ms later the rating goes back to 3. The run never moves the focus. Each step reads the current settings.
   document.getElementById('btn-demo').addEventListener('click',()=>{
-    stopRun();
+    stopRun(true);aim=null;
     toRest();
     const n=count;
-    for(let i=0;i<n;i++)later(()=>render(i+1),i*120);
-    later(()=>render(count-1),n*120);
-    later(()=>{rating=step===0.5?count-0.5:count-1;commit(true)},(n+1)*120);
-    later(()=>{rating=3;commit(false)},(n+1)*120+420,1200);
+    for(let i=0;i<n;i++)later(()=>{render(i+1);look(i+1)},i*120);
+    later(()=>{render(count-1);look(count-1)},n*120);
+    later(()=>{rating=step===0.5?count-0.5:count-1;commit(true);look(rating)},(n+1)*120);
+    later(()=>{rating=3;aim=null;commit(false);settle()},(n+1)*120+420,1200);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage, or moved a pointer over it (the row's own hover preview
   // would fight the sweep): the run stops and the stars show the chosen rating.
@@ -267,6 +349,7 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('pop-seg',d=>vars.setProperty('--pop',d.pop));
@@ -276,7 +359,110 @@
     step=e.target.checked?0.5:1;
     if(!e.target.checked)rating=Math.round(rating);
     commit(false);
+    refresh();
   });
+
+  // ---- See inside and Compare ----
+  // The mode switch: the shared script marks the stage, then sends this. Each view is drawn at once; Normal gets its own picture back.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;lastKey='';
+    if(mode==='compare')syncTwin();
+    if(mode==='normal'){aim=null;if(idle())snap(()=>render(rating))}else snap(settle);
+  });
+  function idle(){return!inRow&&!keyed&&!running()}
+  function snap(fn){const stars=[...rate.children];stars.forEach(s=>s.style.setProperty('transition','none','important'));fn();void rate.offsetWidth;stars.forEach(s=>s.style.removeProperty('transition'))}
+  // Resting picture: a pretend pointer over the fourth star (the second with three) and the row previewing up to it by render() only, never the rating. It lifts for a pointer, a key or Show me.
+  function poseValue(){const c=[count>3?4:2,2,count].map(n=>n-(step===.5?.5:0));return c.find(v=>v!==rating)}
+  function settle(){if(mode==='normal')return;if(idle()){aim=poseValue();render(aim)}draw()}
+  function refresh(){lastKey='';settle()}
+  function look(v){if(mode!=='normal'&&v>0){aim=v;draw()}}
+  function syncTwin(){
+    twinRow.querySelectorAll('.star').forEach((st,i)=>{st.classList.toggle('full',rating>=i+1);st.classList.toggle('half-on',rating>=i+.5&&rating<i+1)});
+    twinVal.textContent=rating.toFixed(1);
+  }
+  function track(e){inRow=true;aim=null;if(mode==='normal')return;const r=rate.getBoundingClientRect();rp={x:e.clientX-r.left,y:e.clientY-r.top};draw()}
+  ['pointerenter','pointerdown','pointermove'].forEach(t=>rate.addEventListener(t,track));
+  rate.addEventListener('pointerleave',()=>{inRow=false;rp=null;settle()});
+  rate.addEventListener('keydown',e=>{if(e.defaultPrevented){keyed=true;aim=null;draw()}});
+  rate.addEventListener('blur',()=>{keyed=false;settle()});
+  slowTog.addEventListener('change',refresh);
+  addEventListener('resize',refresh);
+  document.fonts.ready.then(refresh);
+
+  const fmt=v=>v%1?(Math.floor(v)||'')+'½':String(v);
+  const shown=()=>rate.querySelectorAll('.star.full').length+(rate.querySelector('.star.half-on')?.5:0);
+  const cssNum=n=>parseFloat(getComputedStyle(stage).getPropertyValue(n));
+  // where an element is, from the stage's padding box; the stars from their layout boxes, which the pop's scale never moves
+  function boxOf(el){const s=stage.getBoundingClientRect(),r=el.getBoundingClientRect();return{x:r.left-s.left-stage.clientLeft,y:r.top-s.top-stage.clientTop,w:r.width,h:r.height}}
+  function starsOf(row){const b=boxOf(row);return[...row.children].map(c=>({x:b.x+c.offsetLeft-row.offsetLeft,y:b.y+c.offsetTop-row.offsetTop,w:c.offsetWidth,h:c.offsetHeight}))}
+  function ptr(el,p){const was=el.classList.contains('on');el.classList.toggle('on',!!p);if(!p)return;el.style.transition=was?'':'none';el.style.transform=`translate(${p.x}px,${p.y}px)`;if(!was){void el.getBoundingClientRect();el.style.transition=''}}
+  const hit=(a,b)=>a.x<b.x+b.w+3&&b.x<a.x+a.w+3&&a.y<b.y+b.h+3&&b.y<a.y+a.h+3;
+  // The nearest spot beside R that the label can have inside the box without touching anything taken
+  function spot(el,R,taken){
+    const W=stage.clientWidth,H=stage.clientHeight;
+    const scan=()=>{
+      const w=el.offsetWidth,h=el.offsetHeight;
+      let best={low:1e9};
+      for(let y=5;y<=Math.max(5,H-h-5);y+=4)for(let x=5;x<=Math.max(5,W-w-5);x+=8){
+        const c={x,y,w,h},near=Math.hypot(Math.max(R.x-x-w,x-R.x-R.w,0),Math.max(R.y-y-h,y-R.y-R.h,0));
+        const low=taken.reduce((n,t)=>n+hit(c,t),0)*1e4+near+Math.hypot(x+w/2-R.x-R.w/2,y+h/2-R.y-R.h/2)/100;
+        if(low<best.low)best={...c,low};
+      }
+      return best;
+    };
+    // a label with no free place on one line is tried on two
+    el.style.maxWidth='';let best=scan();
+    if(best.low>=1e4){el.style.maxWidth='190px';const two=scan();if(two.low<best.low)best=two;else el.style.maxWidth=''}
+    el.style.left=best.x+'px';el.style.top=best.y+'px';taken.push(best);return best.low;
+  }
+  function words(){const ms=cssNum('--fill-dur')*(slowTog.checked?3:1);return ms<145?'a tenth of a second':ms<240?'a fifth of a second':ms<420?'a third of a second':ms<750?'half a second':'a second'}
+  function at(fr,v){const f=fr[Math.ceil(v)-1];return{x:f.x+f.w*(v%1?.25:.5),y:f.y+f.h/2}}
+  // Draws the mode for what is happening now (nothing in Normal)
+  function draw(){
+    if(mode==='normal')return;
+    stage.classList.toggle('tight',mode==='compare'&&(stackedMQ.matches||stage.clientHeight<300));
+    views.classList.toggle('glide',running());
+    const fr=starsOf(rate),rb=boxOf(rate),q=aim!==null?at(fr,aim):null;
+    const P=inRow&&rp?rp:q&&{x:q.x-rb.x,y:q.y-rb.y};   // the pointer in the row's own frame
+    const tip=q&&!inRow&&{x:rb.x+P.x,y:rb.y+P.y};
+    ptr(pretend,tip);
+    if(mode==='compare'){const tb=boxOf(twinRow);ptr(ghost,P&&{x:tb.x+P.x,y:tb.y+P.y});return}
+    ptr(ghost,null);
+    inside(fr,rb);
+  }
+  function inside(fr,rb){
+    const W=stage.clientWidth,H=stage.clientHeight,rm=RM.matches,pop=cssNum('--pop'),half=step===.5,sh=shown(),pointing=aim!==null||inRow;
+    const key=[sh,rating,aim,inRow,count,step,pop,rm,words(),W,H,rb.x,rb.y,rb.w,fr[0].w].join();
+    if(key===lastKey)return;
+    lastKey=key;
+    [...picks.children].forEach((el,i)=>{Object.assign(el.style,{left:fr[i].x+'px',top:fr[i].y+'px',width:fr[i].w+'px',height:fr[i].h+'px'});el.classList.toggle('mid',half)});
+    const taken=[...fr,boxOf(valueBox)],all={x:rb.x,y:rb.y,w:rb.w,h:rb.h},f=fr[Math.ceil(rating)-1],chosen=rating>0&&!!f;
+    const show=(k,on,txt)=>{lbl[k].style.display=on?'':'none';if(on&&lbl[k].textContent!==txt)lbl[k].textContent=txt;return on};
+    popo.style.display=chosen&&!rm?'':'none';mark.style.display=chosen?'':'none';
+    let o,m;
+    if(chosen){
+      const ov=rm?0:(pop-1)*f.h/2,upper=new Set(fr.map(c=>Math.round(c.y))).size>1&&fr.every(c=>c.y>=f.y-1);
+      o={x:f.x-ov,y:f.y-ov,w:f.w+2*ov,h:f.h+2*ov};
+      m={x:f.x+f.w/2-6,y:upper?o.y-11:o.y+o.h+3,w:12,h:8};
+      Object.assign(popo.style,{left:o.x+'px',top:o.y+'px',width:o.w+'px',height:o.h+'px'});
+      Object.assign(mark.style,{left:m.x+'px',top:m.y+'px'});mark.classList.toggle('dn',upper);
+      taken.push(m);if(!rm)taken.push(o);
+    }
+    const on={chosen:show('chosen',chosen,`Chosen: ${fmt(rating)}, shown again when you leave`),
+      pop:show('pop',chosen&&!rm,`Pops ${pop<1.25?'a little bigger':pop<1.5?'a third bigger':'over half again as big'} when chosen`),
+      pick:show('pick',true,half?"Each box's left half picks half a star":'Each dashed box picks one star'),
+      prev:show('prev',pointing&&sh>0,`Pointing here previews ${fmt(sh)}: stars fill to it${rm?' at once':', each in about '+words()}`)};
+    const part={chosen:m,pop:o,pick:all,prev:fr[Math.ceil(sh)-1]};
+    const put=keys=>{const t=[...taken];return Math.max(0,...keys.filter(k=>on[k]).map(k=>spot(lbl[k],part[k],t)))};
+    // the labels that do not follow the pointer go first, so they stay put while it moves; where its label then has no place close to its star, it goes first
+    if(put(['chosen','pop','pick','prev'])>=50)put(['prev','chosen','pop','pick']);
+  }
+  // The notes in the markup are for motion; under reduced motion the pop is left out of both
+  const notes=[document.querySelector('[data-hb-for="inside"]'),document.querySelector('[data-hb-for="compare"]')];
+  const NOTES=notes.map(n=>n.textContent),NOTES_RM=['Inside, each dashed box is the spot that picks a star: pointing previews the rating and clicking chooses it. Point along the stars, or press Show me.',
+    'Click only: nothing shows until you click; Previews and pops: the stars fill up to the pointer first, and with motion on the chosen one pops. Point along the stars.'];
+  function writeNotes(){notes.forEach((n,i)=>{const t=(RM.matches?NOTES_RM:NOTES)[i];if(n.textContent!==t)n.textContent=t})}
+  writeNotes();RM.addEventListener('change',()=>{writeNotes();refresh()});
   build();
 </script>
 </body>
