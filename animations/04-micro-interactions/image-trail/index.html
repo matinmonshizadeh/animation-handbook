@@ -262,9 +262,9 @@
   // W,H: the box the trail lives in (the stage; in Compare its half); last: where the last picture dropped (null between strokes);
   // ptr: the stroke's latest point; mode: normal, inside or compare; side: the half the pointer is in (Compare)
   let mode='normal',W=0,H=0,gapK=.2,stay=800,sizeK=.34,leave='shrink',tilt=true,last=null,z=0,hovering=false,touchId=null,runTimers=[],runFrame=0;
-  let ptr=null,posed=false,fresh=true,nudge=false,trace='',dots=[],side='R',lay=true,shownDots=null,shownN=-1;
+  let ptr=null,posed=false,fresh=true,nudge=false,trace='',dots=[],side='R',lay=true,shownDots=null,shownN=-1,tb=[0,0];
 
-  function measure(){const b=mode==='compare'?trail:stage;W=b.clientWidth;H=b.clientHeight;stage.style.setProperty('--w',Math.round(sizeK*Math.min(W,H))+'px')}
+  function measure(){const b=mode==='compare'?trail:stage;W=b.clientWidth;H=b.clientHeight;tb=[trail.offsetLeft,trail.offsetTop];stage.style.setProperty('--w',Math.round(sizeK*Math.min(W,H))+'px')}
   // A frame centered on x,y, turned by r degrees and scaled by s
   const at=(x,y,s,r)=>`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%) rotate(${r.toFixed(1)}deg) scale(${s})`;
   // Pictures fade out where they are: one under reduced motion, and every one still out when reduced motion is switched on (its
@@ -290,13 +290,13 @@
     const el=S.pool[S.next];
     if(!S.eager&&el._a&&el._a.playState==='running')return false;
     S.next=(S.next+1)%S.cap();
-    el.getAnimations().forEach(a=>a.cancel());el._pose=false;
+    el.getAnimations().forEach(a=>a.cancel());el._pose=false;el._dx=el._dy=0;el.style.translate='';
     S.pic=S.pic%8+1;el.className='pic k'+S.pic;el.querySelector('use').setAttribute('href','#it'+S.pic);
     el.style.zIndex=++z;
     if(reduce.matches){if(S.live&&S.live!==el)fadeOut(S.live);S.live=el}
     el._a=el.animate(keyframes(x,y,from,tilt?Math.random()*16-8:0,reduce.matches),{duration:stay+LEAVE});
     el._a.playbackRate=slowTog.checked?1/3:1;el._a.onfinish=el._a.oncancel=settle;
-    if(S===real&&mode==='inside'){dots.push({x,y});if(dots.length>40)dots=dots.slice(1)}
+    if(S===real&&mode==='inside'){dots.push({x,y});if(dots.length>40)dots=dots.slice(1);lay=true}   // the labels find their places again at each drop
     return true;
   }
   // Every pointer, finger and Show me position comes through here: a picture drops once the pointer is the gap (How often a picture
@@ -322,7 +322,7 @@
     if(mode!=='compare'){side='R';return{x,y}}
     const f=trail.offsetLeft?x<trail.offsetLeft:y<trail.offsetTop-sc.offsetTop,o=f?sc:trail;
     if((f?'L':'R')!==side){side=f?'L':'R';end()}
-    return{x:x-o.offsetLeft,y:y-o.offsetTop};
+    return{x:x-o.offsetLeft,y:Math.max(0,y-o.offsetTop)};   // over a half's name: the top of its scene, so its ghost never covers the other half's name
   }
 
   // Show me: one run at a time. Its sweep is drawn frame by frame (runFrame); its timers (reduced motion only) go through later().
@@ -406,7 +406,7 @@
   const DEF={},STILL={inside:'Inside, shown still: each dot is where a picture dropped, and the next drops only when the pointer leaves the ring around the last one.',
       compare:'Shown still: Every move has piled pictures up on each small move; Spaced out has dropped one only every set distance.'},
     LIVE={inside:'Inside, each dot is where a picture appeared. Your device is set to reduce motion, so one shows at a time, where you point.',
-      compare:'Your device is set to reduce motion, so both halves show one picture at a time, where you point.'};
+      compare:'Your device is set to reduce motion, so Every move and Spaced out both show one picture at a time, where you point.'};
   document.querySelectorAll('[data-hb-for]').forEach(p=>DEF[p.dataset.hbFor]=p.textContent);
   function note(){   // written only when its words change: the box is read aloud each time
     if(mode==='normal')return;
@@ -435,7 +435,7 @@
   }
   // A frame held part way through its life, so a still shows what the page's own keyframes make at that moment
   function pin(S,i,d,r,age){
-    const el=S.pool[i];el.getAnimations().forEach(a=>a.cancel());
+    const el=S.pool[i];el.getAnimations().forEach(a=>a.cancel());el._dx=el._dy=0;el.style.translate='';
     el.className='pic k'+d.pic;el.querySelector('use').setAttribute('href','#it'+d.pic);el.style.zIndex=++z;
     const a=el.animate(keyframes(d.x,d.y,d.from,r,false),{duration:stay+LEAVE});a.pause();a.currentTime=age;el._pose=true;
   }
@@ -450,13 +450,16 @@
     if(mode==='inside'){
       const g=gapK*Math.min(W,H),ds=p.drops.slice(-40);
       paint({trace:pathOf(0,p.i),ahead:pathOf(p.i,STEPS),dots:ds,ring:p.last,ptr:p.q});
-      words();place(ds,p.last,g,p.q,shown.find(d=>p.t-d.t<life));lay=false;
+      const old=shown.findIndex(d=>p.t-d.t<life);
+      words();place(ds,p.last,g,p.q,old<0?null:real.pool[old]);lay=false;
     }else paint({dots:[],ptr:p.q});
   }
+  // The picture of the real trail that has been out longest (frames are reused in turn, so it is the next one to be reused)
+  function oldest(){for(let k=0;k<real.cap();k++){const el=real.pool[(real.next+k)%real.cap()];if(el._a&&el._a.playState==='running'&&!el._pose)return el}}
   function liveView(){
     if(posed){clearPose();posed=false;note()}
     paint({trace,dots,ring:last&&!reduce.matches?last:null,ptr:last?ptr:null});
-    if(mode==='inside'&&(words()||lay)){place(dots,last,gapK*Math.min(W,H),ptr,dots[0]);lay=false}
+    if(mode==='inside'&&(words()||lay)){place(dots,last,gapK*Math.min(W,H),ptr,oldest());lay=false}
   }
   // The route taken so far (each stroke is a new piece), then the view
   function see(){
@@ -491,16 +494,18 @@
     return changed;
   }
   // Puts each label where it covers no other label, the ring's edge, the pointer or a dot, as near what it names as it can
-  function place(ds,ring,g,p,old){
-    const taken=[],marks=[...ds.map(q=>[q.x-8,q.y-8,16,16,60]),...(p?[[p.x-4,p.y-4,22,30,400]]:[])],c0=ring||{x:W/2,y:H/2},
+  function place(ds,ring,g,p,old){   // old: the oldest picture still out; the label that names it is placed first and sits beside it, never over it
+    const tr=trail.getBoundingClientRect(),ob=old&&old.getBoundingClientRect(),taken=[],c0=ring||{x:W/2,y:H/2},
+      marks=[...ds.map(q=>[q.x-8,q.y-8,16,16,60]),...(p?[[p.x-4,p.y-4,22,30,400]]:[])],
       hit=(x,y,w,h,[a,b,c,e])=>x<a+c&&a<x+w&&y<b+e&&b<y+h;
-    [[Lr,{x:c0.x,y:c0.y-g},1.5],[Ld,ds[ds.length>>1]||c0],[Ls,old||c0],[Ln,c0]].forEach(([el,a,k=.5])=>{
+    [[Ls,ob?{x:ob.left-tr.left+ob.width/2,y:ob.top-tr.top+ob.height/2}:c0,.5,ob?[[ob.left-tr.left-4,ob.top-tr.top-4,ob.width+8,ob.height+8,1000]]:[]],
+      [Lr,{x:c0.x,y:c0.y-g},1.5],[Ld,ds[ds.length>>1]||c0],[Ln,c0]].forEach(([el,a,k=.5,own=[]])=>{
       if(el.style.display==='none')return;
       const w=el.offsetWidth,h=el.offsetHeight;let best,low=Infinity;
       for(let j=0;j<=12;j++)for(let i=0;i<=10;i++){
         const x=6+i/10*(W-w-12),y=6+j/12*(H-h-12);let c=Math.hypot(x+w/2-a.x,y+h/2-a.y)*k;
         taken.forEach(o=>{if(hit(x,y,w,h,o))c+=1e4});
-        marks.forEach(m=>{if(hit(x,y,w,h,m))c+=m[4]});
+        marks.concat(own).forEach(m=>{if(hit(x,y,w,h,m))c+=m[4]});
         if(ring){const nx=Math.max(x,Math.min(ring.x,x+w)),ny=Math.max(y,Math.min(ring.y,y+h)),
           far=Math.max(...[[x,y],[x+w,y],[x,y+h],[x+w,y+h]].map(([u,v])=>Math.hypot(u-ring.x,v-ring.y)));
           if(Math.hypot(nx-ring.x,ny-ring.y)<=g&&far>=g)c+=400}   // across the ring's edge
@@ -513,7 +518,8 @@
   // which plays it; nudge lets that untrusted press through even while the mouse rests on the hero.
   document.addEventListener('hb:mode',e=>{
     mode=e.detail.mode;nudge=true;Promise.resolve().then(()=>nudge=false);
-    real.next%=real.cap();end();kx=ky=null;lay=true;measure();
+    real.next%=real.cap();end();kx=ky=null;lay=true;const was=tb;measure();   // the pictures still out stay where they are when the trail's box moves into or out of Compare's second half
+    real.pool.forEach(el=>{if(el.getAnimations().some(a=>a.playState==='running')){el._dx=(el._dx||0)+was[0]-tb[0];el._dy=(el._dy||0)+was[1]-tb[1];el.style.translate=el._dx+'px '+el._dy+'px'}});
     if(mode==='normal'){clearPose();posed=false;dots=[];trace=''}else redraw();
   });
   document.fonts.ready.then(()=>{lay=true;redraw()});
