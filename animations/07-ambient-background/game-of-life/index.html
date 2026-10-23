@@ -26,6 +26,18 @@
     .stage{position:relative;overflow:hidden;background:radial-gradient(ellipse at 50% 45%,#0e1214,#07090b 75%)}
     /* the cells are drawn with a pen: a finger on the stage draws instead of scrolling the page */
     canvas{display:block;width:100%;height:100%;touch-action:none;cursor:crosshair}
+    /* See inside and Compare: plain words over the picture (the marks and the loupe are drawn on the canvas) */
+    .lbl{display:none;position:absolute;padding:3px 9px;border-radius:999px;background:rgba(5,6,10,.9);color:#f4f4f2;font:600 12px/16px var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .ins,.stage[data-hb-mode="compare"] .side{display:block}
+    .key{left:10px;bottom:10px;max-width:calc(100% - 20px);padding:6px 10px;border-radius:12px;white-space:normal}
+    .key>span{display:flex;align-items:center;gap:7px;padding:1px 0}
+    .key b{font-weight:inherit}
+    .zoom{right:10px;top:10px;padding:4px 10px;border-radius:12px;text-align:right}
+    .zoom span{display:block}
+    .mk{flex:none;width:12px;height:12px;border-radius:2px;background:var(--cell,#5fe0a8)}
+    .mk.die{background:linear-gradient(45deg,transparent 40%,#06080a 40% 60%,transparent 60%),linear-gradient(-45deg,transparent 40%,#06080a 40% 60%,transparent 60%),var(--cell,#5fe0a8)}
+    .mk.born{background:none;border:1px solid #fff}
+    .mk.rate{background:none;border:2px solid #f4f4f2;border-top-color:transparent;border-radius:50%}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -48,13 +60,26 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Click, drag or touch it to draw new cells, or press Reset to start again.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <div class="lbl ins key" aria-hidden="true" data-hb-caption><span><i class="mk"></i>Lives on: two or three live neighbors</span><span><i class="mk die"></i>Dies next: fewer than two, or more than three</span><span><i class="mk born"></i>Born next: an empty cell with exactly three</span><span><i class="mk rate"></i><b id="rate">About 10 steps a second</b></span></div>
+      <p class="lbl ins zoom" aria-hidden="true" data-hb-caption><span>Zoomed in: three live neighbors, </span><span>so it is born next</span></p>
+      <p class="lbl side" aria-hidden="true" data-hb-caption>By chance</p>
+      <p class="lbl side" aria-hidden="true" data-hb-caption>By the rules</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each mark shows a cell's next step: an empty cell with exactly three live neighbors is born, a live one with two or three lives on, and every other cell dies.</p>
+      <p data-hb-for="compare" hidden>In By chance, each cell lives or dies at random, so the grid only twinkles. In By the rules, each cell counts its neighbors, so shapes grow, move and settle.</p>
     </div>
   </section>
 
@@ -159,14 +184,23 @@
   const cvs=document.getElementById('cvs'),ctx=cvs.getContext('2d');
   const stage=document.querySelector('.stage');
   const slowTog=document.getElementById('slow-tog');
+  const keyEl=document.querySelector('.key'),rate=document.getElementById('rate'),zoom=document.querySelector('.zoom'),zl=zoom.children;
+  const sides=document.querySelectorAll('.side'),noteC=document.querySelector('[data-hb-for="compare"]');
+  const reduce=matchMedia('(prefers-reduced-motion: reduce)');
   const COLORS={mint:'95,224,168',amber:'255,197,90',sky:'106,180,255',pink:'255,128,160'};
   const phone=matchMedia('(max-width:600px),(max-height:500px)'); // phones and short screens draw cells at least 8px wide
   const M=16; // hidden cells all round the view, where gliders fly off and settle out of sight
   const PATTERNS={gun:'24bo$22bobo$12b2o6b2o12b2o$11bo3bo4b2o12b2o$2o8bo5bo3b2o$2o8bo3bob2o4bobo$10bo5bo7bo$11bo3bo$12b2o!',acorn:'bo5b$3bo3b$2o2b3o!'};
   const AHEAD={random:20,gun:120,acorn:60}; // generations run before the first picture, so it already looks alive
-  let W=0,H=0,raf=null,lastT=null,acc=0;
+  let W=0,H=0,raf=null,lastT=null,acc=0,paused=false;
   let GENS=10,CELL=9,PATTERN='random',COL='mint',TRAILS=true,GRID=false;
   let cs=9,C=0,R=0,S=0,ox=0,oy=0,cells=null,next=null,glow=null,ring=[],stuck=0,pen=null;
+  // See inside and Compare: rnd is Normal's random numbers (Compare's come from a seeded generator); home is Normal's world while
+  // Compare shows (null once a setting, Reset or a resize made it out of date); fx, fy is the cell the loupe follows
+  const NAME=32; // room above each half of Compare for its name
+  const WORDS=['no','one','two','three','four','five','six','seven','eight'];
+  const real=()=>Math.random(),cand=[null,null],cd=[1e9,1e9];
+  let mode='normal',rnd=real,home=null,halves=null,penHalf=null,fx=0,fy=0,pickNow=true,emptyT=0,capH=0,outs=[];
 
   // Patterns in run-length code: b is a dead cell, o a live one, $ ends a row, and a number repeats what follows it
   function rle(s){const out=[];let x=0,y=0,n='';
@@ -175,16 +209,18 @@
   // The world: the C × R cells in view, M hidden cells on every side, and one more ring of cells that stay dead, so every
   // cell has eight neighbors to count. at(x, y) is where the cell x across and y down in view sits in the arrays.
   const at=(x,y)=>(M+1+y)*S+M+1+x;
-  function grid(){
+  function grid(w=W,h=H){
     cs=phone.matches?Math.max(CELL,8):CELL;
-    C=Math.ceil(W/cs);R=Math.ceil(H/cs);ox=Math.floor((W-C*cs)/2);oy=Math.floor((H-R*cs)/2);
+    C=Math.ceil(w/cs);R=Math.ceil(h/cs);ox=Math.floor((w-C*cs)/2);oy=Math.floor((h-R*cs)/2);
     S=C+2*M+2;const n=S*(R+2*M+2);
     cells=new Uint8Array(n);next=new Uint8Array(n);glow=new Float32Array(n);
   }
+  // Brings 3 in 10 of the cells in view to life, wherever they are
+  function scatter(){for(let y=0;y<R;y++)for(let x=0;x<C;x++)if(rnd()<.3)cells[at(x,y)]=1;}
   // A fresh world for the start pattern. soft (a world that settled starting again) lets the old cells fade out as it begins.
   function seed(soft){
     const old=soft&&TRAILS?cells.slice():null;cells.fill(0);
-    if(PATTERN==='random'){for(let y=0;y<R;y++)for(let x=0;x<C;x++)if(Math.random()<.3)cells[at(x,y)]=1;}
+    if(PATTERN==='random')scatter();
     else{ // the gun sits at the top, placed so its stream of gliders crosses the middle; the acorn sits in the middle
       const gun=PATTERN==='gun',y0=gun?1:Math.round(R/2)-1;
       const x0=!gun?Math.round(C/2)-3:C>=38?Math.max(1,Math.min(C-37,Math.round(C/2-24-(R-10)/2))):Math.round((C-36)/2);
@@ -193,7 +229,7 @@
     for(let i=0;i<AHEAD[PATTERN];i++)step();
     glow.fill(0);
     if(old)for(let i=0;i<old.length;i++)if(old[i]&&!cells[i])glow[i]=1;
-    ring=[];stuck=0;acc=0;
+    ring=[];stuck=0;acc=0;pickNow=true;
   }
   // One generation: a dead cell with exactly three live neighbors is born, a live one with two or three lives on, and every
   // other cell dies. A cell that dies starts to glow (its trail). A world that repeats itself within 15 generations has settled.
@@ -212,8 +248,7 @@
   function fadeBy(ms){const k=Math.pow(.5,ms/120);for(let i=0;i<glow.length;i++)if(glow[i])glow[i]=glow[i]<.03?0:glow[i]*k;}
   // The whole picture: grid lines if chosen, the fading trails in three steps of brightness, then the living cells. Cells of
   // one brightness go into one path, so a frame is a handful of fills however many cells there are.
-  function draw(){
-    ctx.clearRect(0,0,W,H);
+  function paint(){
     if(GRID){const p=new Path2D();
       for(let x=0;x<=C;x++){p.moveTo(ox+x*cs+.5,0);p.lineTo(ox+x*cs+.5,H);}for(let y=0;y<=R;y++){p.moveTo(0,oy+y*cs+.5);p.lineTo(W,oy+y*cs+.5);}
       ctx.strokeStyle='rgba(255,255,255,.07)';ctx.lineWidth=1;ctx.stroke(p);}
@@ -226,6 +261,116 @@
     if(TRAILS)[.42,.24,.1].forEach((a,k)=>{ctx.globalAlpha=a;ctx.fill(dim[k]);});
     ctx.globalAlpha=1;ctx.fill(live);
   }
+  // Draws the world on show: Normal's (with See inside's marks over it) or each half of Compare's inside its clip
+  function draw(dms=0){
+    ctx.clearRect(0,0,W,H);
+    if(mode!=='compare'){paint();if(mode==='inside')inspect(dms);return;}
+    ctx.strokeStyle='rgba(255,255,255,.14)';ctx.lineWidth=1;
+    for(const h of halves){
+      use(h);ctx.save();ctx.translate(h.x0,h.y0);ctx.beginPath();ctx.rect(0,0,h.w,h.h);ctx.clip();paint();ctx.restore();
+      ctx.strokeRect(h.x0+.5,h.y0+.5,h.w-1,h.h-1);
+    }
+  }
+  // A world is the arrays and counters above (C to stuck): use(w) points them at world w, put(w) keeps what a call changed in it
+  const use=w=>({C,R,S,ox,oy,cells,next,glow,ring,stuck}=w);
+  const put=w=>{w.cells=cells;w.next=next;w.ring=ring;w.stuck=stuck;};
+  const mem=()=>({C,R,S,ox,oy,cells,next,glow,ring,stuck});
+  const prng=a=>()=>{a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};
+  // By chance: every cell has a one-in-eight chance to take a new state, alive 3 times in 10, whatever its neighbors
+  function twinkle(){
+    for(let y=0;y<R;y++)for(let x=0,i=at(0,y);x<C;x++,i++)if(rnd()<.125){const v=rnd()<.3?1:0;if(cells[i]&&!v)glow[i]=1;cells[i]=v;}
+  }
+  // Compare: two worlds of one size, each below its name (side by side from 600px wide, else stacked), their random numbers from
+  // one seeded generator started again here, so the stills are the same on every visit
+  function deal(){
+    const wide=W>=600,hw=wide?Math.floor(W/2):W,hh=(wide?H:Math.floor(H/2))-NAME;
+    rnd=prng(2023);
+    halves=[0,1].map(k=>{
+      grid(hw,hh);if(k)seed();else scatter();
+      const top=!wide&&k?H-hh-NAME:0;
+      return{...mem(),rules:k,w:hw,h:hh,top,x0:wide&&k?W-hw:0,y0:top+NAME};
+    });
+  }
+  // n generations and ms of the world's time in the world on show (both halves in Compare, from the page's one accumulator)
+  const ONE=[null];
+  function advance(n,ms){
+    for(const w of mode==='compare'?halves:ONE){
+      if(w)use(w);
+      for(let i=0;i<n;i++)if(w&&!w.rules)twinkle();else step();
+      if(stuck>=40&&(!w||w.rules))seed(true); // only a world with rules can settle
+      fadeBy(ms);
+      if(w)put(w);
+    }
+  }
+  const LOUPE=()=>phone.matches?75:90;
+  // Where the words sit: Compare's half names; in See inside the loupe caption's height and the two places the followed cell keeps out of
+  function place(){
+    if(mode==='compare')sides.forEach((el,k)=>{el.style.left=halves[k].x0+10+'px';el.style.top=halves[k].top+6+'px';});
+    if(mode!=='inside')return;
+    capH=zoom.offsetHeight;
+    outs=[[keyEl.offsetLeft,keyEl.offsetTop,keyEl.offsetLeft+keyEl.offsetWidth,keyEl.offsetTop+keyEl.offsetHeight],[Math.min(zoom.offsetLeft,W-10-LOUPE()),0,W,16+capH+LOUPE()]];
+  }
+  const clear=(x,y)=>outs.every(o=>ox+(x+2)*cs+3<o[0]||ox+(x-1)*cs-3>o[2]||oy+(y+2)*cs+3<o[1]||oy+(y-1)*cs-3>o[3]);
+  // See inside: neighbors counted as step() counts them (hidden ones too); a white outline marks a cell born next, a cross one that dies
+  function inspect(dms){
+    const born=new Path2D(),dies=new Path2D(),mx=(C-1)/2,my=(R-1)/2;
+    for(let y=0;y<R;y++)for(let x=0,i=at(0,y);x<C;x++,i++){
+      const n=cells[i-S-1]+cells[i-S]+cells[i-S+1]+cells[i-1]+cells[i+1]+cells[i+S-1]+cells[i+S]+cells[i+S+1];
+      const k=cells[i]?(n<2||n>3?1:-1):(n===3?0:-1),px=ox+x*cs,py=oy+y*cs;
+      if(k<0)continue;
+      if(k){dies.moveTo(px+2,py+2);dies.lineTo(px+cs-2,py+cs-2);dies.moveTo(px+cs-2,py+2);dies.lineTo(px+2,py+cs-2);}
+      else born.rect(px+.5,py+.5,cs-1,cs-1);
+      if(pickNow){const d=(x-mx)**2+(y-my)**2;if(d<cd[k]&&clear(x,y)){cd[k]=d;cand[k]=[x,y];}}
+    }
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.95)';ctx.stroke(born);
+    ctx.lineWidth=cs<9?1:2;ctx.strokeStyle='#06080a';ctx.stroke(dies);
+    if(pickNow){ // the cell nearest the middle that is born next, else one that dies next, else the middle one
+      const c=cand[0]||cand[1]||[Math.round(mx),Math.round(my)];
+      fx=c[0];fy=c[1];pickNow=false;emptyT=0;cand[0]=cand[1]=null;cd[0]=cd[1]=1e9;
+    }
+    loupe(dms);
+  }
+  // The loupe (top right): the followed cell and its neighbors three times bigger, joined to a white square round them on the map.
+  // A block empty for half a second of the world's time (dms: 0 while paused) picks a new cell
+  function loupe(dms){
+    const L=LOUPE(),u=L/3,lx=W-10-L,ly=16+capH,bs=3*cs,bx=ox+(fx-1)*cs,by=oy+(fy-1)*cs,col=COLORS[COL],cl=(v,a,b)=>Math.min(Math.max(v,a),b);
+    let n=0,any=0,num=0;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){const v=cells[at(fx+dx,fy+dy)];any+=v;if(dx||dy)n+=v;}
+    const alive=cells[at(fx,fy)],dies=alive&&(n<2||n>3),born=!alive&&n===3;
+    const t0=`Zoomed in: ${WORDS[n]} live ${n===1?'neighbor':'neighbors'}, `,t1='so it '+(alive?(dies?'dies next':'lives on'):(born?'is born next':'stays empty'));
+    if(zl[0].textContent!==t0)zl[0].textContent=t0;
+    if(zl[1].textContent!==t1)zl[1].textContent=t1;
+    emptyT=any?0:emptyT+dms;if(emptyT>=500)pickNow=true;
+    ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.strokeRect(bx-1,by-1,bs+2,bs+2);
+    ctx.beginPath();ctx.moveTo(cl(lx+L/2,bx,bx+bs),cl(ly+L/2,by,by+bs));ctx.lineTo(cl(bx+bs/2,lx,lx+L),cl(by+bs/2,ly,ly+L));
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.6)';ctx.stroke();
+    ctx.fillStyle='#07090c';ctx.fillRect(lx,ly,L,L);
+    ctx.beginPath();for(let k=1;k<3;k++){ctx.moveTo(lx+k*u+.5,ly);ctx.lineTo(lx+k*u+.5,ly+L);ctx.moveTo(lx,ly+k*u+.5);ctx.lineTo(lx+L,ly+k*u+.5);}
+    ctx.strokeStyle='rgba(255,255,255,.28)';ctx.stroke();
+    ctx.textAlign='center';ctx.textBaseline='middle';ctx.font=`700 ${Math.round(u*.55)}px "Schibsted Grotesk",sans-serif`;
+    for(let dy=-1;dy<=1;dy++)for(let dx=-1;dx<=1;dx++){
+      const cx=lx+(dx+1)*u,cy=ly+(dy+1)*u;
+      if(!cells[at(fx+dx,fy+dy)])continue;
+      ctx.fillStyle=`rgb(${col})`;ctx.fillRect(cx+1,cy+1,u-2,u-2);
+      if(dx||dy){ctx.fillStyle='#06080a';ctx.fillText(++num,cx+u/2,cy+u/2+1);}
+    }
+    const cx=lx+u,cy=ly+u;
+    if(born){ctx.fillStyle=`rgba(${col},.45)`;ctx.fillRect(cx+1,cy+1,u-2,u-2);}
+    if(dies){ctx.lineWidth=3;ctx.strokeStyle='#06080a';ctx.beginPath();ctx.moveTo(cx+5,cy+5);ctx.lineTo(cx+u-5,cy+u-5);ctx.moveTo(cx+u-5,cy+5);ctx.lineTo(cx+5,cy+u-5);ctx.stroke();}
+    ctx.lineWidth=2;ctx.strokeStyle='#fff';ctx.strokeRect(cx+1,cy+1,u-2,u-2);
+    ctx.lineWidth=1;ctx.strokeStyle='rgba(255,255,255,.6)';ctx.strokeRect(lx+.5,ly+.5,L-1,L-1);
+  }
+  // The key's marks take the cells' color, and its last line the generations a second (Speed, a third as many in slow motion)
+  function legend(){
+    const n=Math.max(1,Math.round(GENS/(slowTog.checked?3:1))),t=`About ${n} step${n===1?'':'s'} a second`;
+    if(rate.textContent!==t)rate.textContent=t;
+    keyEl.style.setProperty('--cell',`rgb(${COLORS[COL]})`);
+    place();
+  }
+  // Under reduced motion, while the loop is paused, the Compare note says it is a still; Play brings the moving words back
+  const MOVING=noteC.textContent,STILL="Shown still: By chance lets each cell live or die at random, so it stays plain noise. By the rules counts each cell's neighbors, so clumps and small shapes form.";
+  function note(){const t=reduce.matches&&paused?STILL:MOVING;if(noteC.textContent!==t)noteC.textContent=t;}
+
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one picture per
   // 16 ms. The world's time grows by the time since the last picture (never more than 50 ms, so a background tab does not
   // leap), or a third of it in slow motion, and a generation is due for every 1/Speed of a second of it; the first frame
@@ -235,18 +380,32 @@
     if(lastT!==null&&ts-lastT<16)return;
     const dt=lastT===null?0:Math.min(ts-lastT,50),ms=dt*(slowTog.checked?1/3:1),every=1000/GENS;
     lastT=ts;acc+=ms;
-    for(let n=0;acc>=every&&n<3;n++){step();acc-=every;}
+    let n=0;while(acc>=every&&n<3){n++;acc-=every;}
     acc=Math.min(acc,every);
-    if(stuck>=40)seed(true);
-    fadeBy(ms);draw();
+    advance(n,ms);draw(ms);
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
 
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
   // loop on arrival, which this listener must catch. The world on screen stays as it is while paused.
   document.addEventListener('hb:pause',e=>{
-    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    paused=e.detail.paused;
+    if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
+    note();
+  });
+  // The mode switch draws the mode at once. Compare puts Normal's world aside (its accumulator's carry too) and deals its two;
+  // leaving it brings Normal's back, or seeds a fresh one when a setting, Reset or a resize made the kept one out of date.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='compare'&&was!=='compare'){home={...mem(),acc};deal();}
+    else if(was==='compare'&&mode!=='compare'){
+      rnd=real;halves=null;
+      if(home){use(home);acc=home.acc;}else{grid();seed();}
+      home=null;
+    }
+    if(mode==='inside'&&was!=='inside')pickNow=true;
+    place();draw();
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no time
   document.addEventListener('visibilitychange',()=>{lastT=null;});
@@ -259,42 +418,66 @@
     W=w;H=h;
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
-    grid();seed();draw();
+    rebuild(true);
+  }
+  // A new world for the mode on show; in Compare both halves are dealt again and Normal's kept world is dropped
+  function rebuild(regrid){
+    if(mode==='compare'){home=null;deal();}
+    else{if(regrid)grid();seed();}
+    place();draw();
   }
 
   // Drawing: a press or a finger brings the cell under it to life, and a stroke draws every cell on the straight line from
   // the last one, so a quick stroke leaves no gaps. Pointer Events cover mouse, touch and pen; capture keeps the stroke going
   // when it leaves the stage. The picture is drawn at once, so drawing works while paused too.
-  function cellAt(e){const r=cvs.getBoundingClientRect();return [Math.floor((e.clientX-r.left-ox)/cs),Math.floor((e.clientY-r.top-oy)/cs)];}
+  // In Compare a stroke counts its cells from the half it began in and draws the same cells in both halves.
+  function cellAt(e){const r=cvs.getBoundingClientRect(),h=penHalf||{x0:0,y0:0};return [Math.floor((e.clientX-r.left-h.x0-ox)/cs),Math.floor((e.clientY-r.top-h.y0-oy)/cs)];}
   function ink(e){
     const [x,y]=cellAt(e),[px,py]=pen||[x,y],n=Math.max(Math.abs(x-px),Math.abs(y-py),1);
-    for(let k=0;k<=n;k++){const cx=Math.round(px+(x-px)*k/n),cy=Math.round(py+(y-py)*k/n);if(cx>=0&&cy>=0&&cx<C&&cy<R)cells[at(cx,cy)]=1;}
-    pen=[x,y];ring=[];stuck=0;draw();
+    for(const w of mode==='compare'?halves:ONE){
+      if(w)use(w);
+      for(let k=0;k<=n;k++){const cx=Math.round(px+(x-px)*k/n),cy=Math.round(py+(y-py)*k/n);if(cx>=0&&cy>=0&&cx<C&&cy<R)cells[at(cx,cy)]=1;}
+      ring=[];stuck=0;
+      if(w)put(w);
+    }
+    pen=[x,y];pickNow=true;draw();
   }
-  cvs.addEventListener('pointerdown',e=>{if(!e.isPrimary||e.button!==0)return;pen=null;try{cvs.setPointerCapture(e.pointerId);}catch(_){}ink(e);});
+  cvs.addEventListener('pointerdown',e=>{
+    if(!e.isPrimary||e.button!==0)return;
+    pen=penHalf=null;
+    if(mode==='compare'){
+      const r=cvs.getBoundingClientRect(),px=e.clientX-r.left,py=e.clientY-r.top;
+      penHalf=halves.find(h=>px>=h.x0&&px<h.x0+h.w&&py>=h.top&&py<h.y0+h.h);
+      if(!penHalf)return;
+    }
+    try{cvs.setPointerCapture(e.pointerId);}catch(_){}ink(e);
+  });
   cvs.addEventListener('pointermove',e=>{if(pen&&e.isPrimary)ink(e);});
-  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,e=>{if(e.isPrimary)pen=null;}));
+  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>cvs.addEventListener(t,e=>{if(e.isPrimary)pen=penHalf=null;}));
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       if(b.classList.contains('on'))return; // pressing the choice already made does nothing
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pickNow=true;pick(b.dataset);
     }));
   }
   // A setting that changes the picture draws it at once, so the change shows while the loop is paused; Cell size and Start
   // pattern start a fresh world. Speed changes no picture: the world carries on from where it is, at the new pace.
-  choices('speed-seg',d=>{GENS=+d.gens;});
-  choices('size-seg',d=>{CELL=+d.px;grid();seed();draw();});
-  choices('pattern-seg',d=>{PATTERN=d.pattern;seed();draw();});
-  choices('color-sw',d=>{COL=d.col;draw();});
-  document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;draw();});
-  document.getElementById('grid-tog').addEventListener('change',e=>{GRID=e.target.checked;draw();});
-  document.getElementById('btn-reset').addEventListener('click',()=>{seed();draw();});
+  choices('speed-seg',d=>{GENS=+d.gens;legend();});
+  choices('size-seg',d=>{CELL=+d.px;rebuild(true);});
+  choices('pattern-seg',d=>{PATTERN=d.pattern;rebuild();});
+  choices('color-sw',d=>{COL=d.col;legend();draw();});
+  slowTog.addEventListener('change',legend);
+  document.getElementById('trail-tog').addEventListener('change',e=>{TRAILS=e.target.checked;pickNow=true;draw();});
+  document.getElementById('grid-tog').addEventListener('change',e=>{GRID=e.target.checked;pickNow=true;draw();});
+  document.getElementById('btn-reset').addEventListener('click',()=>rebuild());
+  legend();note();
   resize();
+  document.fonts.ready.then(()=>{if(mode!=='normal'){place();draw();}});
   window.addEventListener('resize',resize);
   // A window that crosses the phone size can change the cell size, even when the stage keeps its size
-  phone.addEventListener('change',()=>{if((phone.matches?Math.max(CELL,8):CELL)!==cs){grid();seed();draw();}});
+  phone.addEventListener('change',()=>{if((phone.matches?Math.max(CELL,8):CELL)!==cs)rebuild(true);});
   start();
 </script>
 </body>
