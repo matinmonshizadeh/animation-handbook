@@ -58,6 +58,35 @@
       .prod:nth-child(3){display:none}
     }
     @media(prefers-reduced-motion:reduce){.add{transition:none}}
+    /* See inside and Compare. These extra parts are hidden in Normal; each mode shows its own. */
+    .prod{position:relative}
+    .plan,.ins,.twin,.side,.ghost,.pz{display:none}
+    /* The flying copy passes over the marks and the labels, never under them */
+    .plan,.ins{position:absolute;left:0;top:0;width:100%;height:100%;z-index:4;pointer-events:none}
+    .cap{position:absolute;padding:2px 7px;border-radius:5px;background:rgba(17,17,20,.92);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* Marks are light with a dark edge under them, so they read on the dark shop and on the bright pictures alike */
+    .pl-u,.pl-w{fill:none;stroke-linejoin:round}
+    .pl-u{stroke:#0b0b0d;stroke-opacity:.6;stroke-width:3.6}
+    .pl-w{stroke:#f4f4f2;stroke-width:1.5;stroke-dasharray:5 4}
+    .pl-d{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.3}
+    /* A ghost fingertip: it rests on the middle of the button, light enough to leave the words readable */
+    .ghost{position:absolute;left:50%;bottom:9px;z-index:2;width:26px;height:26px;margin-left:-13px;border-radius:50%;background:rgba(255,255,255,.34);
+      border:2px solid rgba(255,255,255,.85);box-shadow:0 0 0 1.5px rgba(11,11,13,.4);pointer-events:none}
+    .twin .add{display:grid;place-items:center}
+    .stage[data-hb-mode="inside"] .plan,.stage[data-hb-mode="inside"] .ins,
+    .stage[data-hb-mode="compare"].posed .plan,.stage[data-hb-mode="compare"].posed .pz,.stage[data-hb-mode="compare"].posed .ghost{display:block}
+    /* Compare: two shops side by side, each under its name. On the left a copy that only counts; on the right the real shop. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto auto minmax(0,1fr)}
+    .stage[data-hb-mode="compare"] .twin{display:flex;flex-direction:column;grid-column:1;grid-row:1/4;min-width:0;min-height:0;border-right:2px solid #2a2a30}
+    .stage[data-hb-mode="compare"] .side{display:block;position:relative;z-index:7;margin:7px 0 0 8px;align-self:flex-start;justify-self:start}
+    .stage[data-hb-mode="compare"] .side.second{grid-column:2;grid-row:1}
+    .stage[data-hb-mode="compare"] .bar{position:relative;z-index:6;grid-column:2;grid-row:2;padding:6px 10px 0}
+    .stage[data-hb-mode="compare"] .products{grid-column:2;grid-row:3;max-width:none;padding:8px 10px 12px;gap:8px}
+    .stage[data-hb-mode="compare"] .prod:nth-child(3){display:none}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .products{grid-template-columns:minmax(0,1fr)}
+      .stage[data-hb-mode="compare"] .prod:nth-child(2){display:none}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -80,6 +109,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap Add to cart (Reset brings the count back), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="bar">
         <span class="brand">Shop</span>
@@ -89,25 +123,33 @@
         <div class="prod">
           <div class="pic p1" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 15v-3a8 8 0 0 1 16 0v3"/><rect x="3" y="14" width="4.5" height="7" rx="1.5"/><rect x="16.5" y="14" width="4.5" height="7" rx="1.5"/></svg></div>
           <p class="row"><span class="name">Headphones</span><span class="price">$89</span></p>
-          <button class="add" type="button" aria-label="Add Headphones to cart">Add to cart</button>
+          <button class="add" type="button" aria-label="Add to cart: Headphones">Add to cart</button>
+          <span class="ghost" aria-hidden="true"></span>
         </div>
         <div class="prod">
           <div class="pic p2" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2.5"/><path d="M8.5 7 10 4.5h4L15.5 7"/><circle cx="12" cy="13.5" r="3.5"/></svg></div>
           <p class="row"><span class="name">Camera</span><span class="price">$249</span></p>
-          <button class="add" type="button" aria-label="Add Camera to cart">Add to cart</button>
+          <button class="add" type="button" aria-label="Add to cart: Camera">Add to cart</button>
         </div>
         <div class="prod">
           <div class="pic p3" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 9h12v6a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3.5v2.5M12 3.5v2.5"/></svg></div>
           <p class="row"><span class="name">Mug</span><span class="price">$14</span></p>
-          <button class="add" type="button" aria-label="Add Mug to cart">Add to cart</button>
+          <button class="add" type="button" aria-label="Add to cart: Mug">Add to cart</button>
         </div>
       </div>
       <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+      <svg class="plan" aria-hidden="true" focusable="false"></svg>
+      <div class="ins" aria-hidden="true"><span class="cap" data-hb-caption>Bumps as it lands</span><span class="cap" data-hb-caption>Rises, then drops in</span><span class="cap" data-hb-caption>Shrinks to the cart's size</span><span class="cap" data-hb-caption>A dot every tenth of a second</span><span class="cap" data-hb-caption>Sideways at an even pace</span></div>
+      <p class="cap side second" aria-hidden="true" data-hb-caption>Flies to cart</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed line is the picture's path into the cart, a dot for every tenth of a second, and the outlines show it shrinking. Press Add to cart or Show me.</p>
+      <p data-hb-for="compare" hidden>Count only: pressing Add to cart just changes the number; Flies to cart: a copy of the picture flies into the cart, then the number changes. Press Add to cart, or Show me.</p>
     </div>
   </section>
 
@@ -182,13 +224,33 @@
 <script>
   const stage=document.querySelector('.stage'),cart=document.getElementById('cart'),cartIcon=cart.querySelector('svg'),
         badge=document.getElementById('badge'),countEl=document.getElementById('count'),statusEl=document.getElementById('status'),
-        slowTog=document.getElementById('slow-tog'),reduce=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const prods=[...stage.querySelectorAll('.prod')];
+        slowTog=document.getElementById('slow-tog'),reduce=window.matchMedia('(prefers-reduced-motion: reduce)'),
+        phone=window.matchMedia('(max-width:600px),(max-height:500px)');
+  const prods=[...stage.querySelectorAll('.prod')],brand=stage.querySelector('.brand');
   const OUT='cubic-bezier(.333,.667,.667,1)',IN='cubic-bezier(.333,0,.667,.333)';   // the two halves of a thrown arc
   const REST=2;
-  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[],awaiting=false;
+  let count=REST,dur=700,arc=true,bump=true,flights=[],bumps=[],runTimers=[],awaiting=false,mode='normal',planProd=prods[0],posed=false,shown='';
 
-  function show(){countEl.textContent=count>99?'99+':String(count)}
+  // Compare's first half: the same small shop, counting at the press. A copy with no ids and no buttons, out of the Tab order
+  // and hidden from screen readers. Its number goes up the moment Add to cart is pressed: no flight, no bump.
+  const twin=document.createElement('div');
+  twin.className='twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML='<p class="cap side first" data-hb-caption>Count only</p>';
+  twin.append(stage.querySelector('.bar').cloneNode(true),stage.querySelector('.products').cloneNode(true));
+  twin.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  twin.querySelectorAll('button').forEach(b=>{const s=document.createElement('span');s.className=b.className;s.textContent=b.textContent;b.replaceWith(s)});
+  stage.prepend(twin);
+  const tCount=twin.querySelector('.badge span'),tAdd=twin.querySelector('.add');
+  // The copy of the picture that Compare holds a quarter of a second into its flight
+  const pz=document.createElement('div'),pzCopy=prods[0].querySelector('.pic').cloneNode(true);
+  pz.className='fly pz';pz.setAttribute('aria-hidden','true');pzCopy.classList.add('copy');pz.append(pzCopy);stage.append(pz);
+  const svg=stage.querySelector('.plan'),[cBump,cTop,cShrink,cDots,cEven]=stage.querySelectorAll('.ins .cap');
+  const nIn=document.querySelector('[data-hb-for="inside"]'),nCo=document.querySelector('[data-hb-for="compare"]');
+
+  const fmt=n=>n>99?'99+':String(n);
+  function show(){countEl.textContent=fmt(count);paintTwin()}
+  // Count only counts a press at once, copies in the air included; at rest in Compare it is one ahead, as if a press had just been made
+  function paintTwin(){tCount.textContent=fmt(count+flights.length+(posed?1:0))}
   // The copy has landed: the count goes up, and the cart and its badge bump (Cart bumps). Under reduced motion nothing flew,
   // and the new number fades in instead.
   function land(name,quiet){
@@ -199,39 +261,57 @@
     bumps.forEach(a=>a.cancel());
     bumps=[cart.animate([{transform:'none'},{transform:'scale(1.22) rotate(-7deg)',offset:.35},{transform:'scale(.94) rotate(3deg)',offset:.7},{transform:'none'}],{duration:450,easing:'ease-out'}),
       badge.animate([{transform:'none'},{transform:'scale(1.45)',offset:.4},{transform:'none'}],{duration:450,easing:'ease-out'})];
+    Promise.all(bumps.map(a=>a.finished)).then(draw,()=>{});
+  }
+  // The flight's numbers for a product, measured now: its picture (x0, y0 in the stage), the cart (dx, dy away), the copy's sizes and, for an arc, its top and when it is reached
+  function planOf(prod,a=arc){
+    const pic=prod.querySelector('.pic'),s=stage.getBoundingClientRect(),p=pic.getBoundingClientRect(),c=cartIcon.getBoundingClientRect();
+    const x0=p.left+p.width/2-s.left-stage.clientLeft,y0=p.top+p.height/2-s.top-stage.clientTop;
+    const dx=c.left+c.width/2-(p.left+p.width/2),dy=c.top+c.height/2-(p.top+p.height/2);
+    // The copy shrinks fast to a token at most 90px across, then on to the size of the cart icon, and fades into it
+    const big=Math.max(p.width,p.height),end=Math.min(1,26/big),mid=Math.max(end,Math.min(1,90/big));
+    const P={pic,w:p.width,h:p.height,x0,y0,dx,dy,end,mid,arc:a};
+    if(a){
+      // The top of the arc: a little above both ends, and never closer than 20px to the top of the stage
+      P.top=Math.max(Math.min(0,dy)-Math.min(28,Math.max(10,Math.abs(dx)*.05)),20-y0);
+      const v=2*P.top-2*Math.sqrt(P.top*(P.top-dy));P.at=-v/(2*(dy-v));   // start speed and the moment it is reached
+    }
+    return P;
   }
   // A copy of the picture is laid over it and flown to the middle of the cart icon. Arc: the outer layer moves sideways at an
   // even pace while the inner one rises, slowing, to a little above the cart and then drops into it, gathering speed, which is
   // the path of a thrown ball. Straight: both layers ease the same way, so the copy goes in a line. onLand runs after the landing.
-  function add(prod,quiet,onLand){
-    const name=prod.querySelector('.name').textContent;
-    if(reduce.matches){land(name,quiet);if(onLand)onLand();return}
-    const pic=prod.querySelector('.pic'),s=stage.getBoundingClientRect(),p=pic.getBoundingClientRect(),c=cartIcon.getBoundingClientRect();
-    const x0=p.left+p.width/2-s.left-stage.clientLeft,y0=p.top+p.height/2-s.top-stage.clientTop;
-    const dx=c.left+c.width/2-(p.left+p.width/2),dy=c.top+c.height/2-(p.top+p.height/2);
-    const fly=document.createElement('div'),lift=document.createElement('div'),copy=pic.cloneNode(true);
-    fly.className='fly';fly.style.left=x0+'px';fly.style.top=y0+'px';
+  function launch(prod,quiet,onLand,a,d,t,rate){
+    const name=prod.querySelector('.name').textContent,P=planOf(prod,a);
+    const fly=document.createElement('div'),lift=document.createElement('div'),copy=P.pic.cloneNode(true);
+    fly.className='fly';fly.style.left=P.x0+'px';fly.style.top=P.y0+'px';
     copy.classList.add('copy');
-    Object.assign(copy.style,{width:p.width+'px',height:p.height+'px',marginLeft:-p.width/2+'px',marginTop:-p.height/2+'px'});
+    Object.assign(copy.style,{width:P.w+'px',height:P.h+'px',marginLeft:-P.w/2+'px',marginTop:-P.h/2+'px'});
     lift.append(copy);fly.append(lift);stage.append(fly);
-    const opts={duration:dur,fill:'forwards'};
-    fly.animate([{transform:'none'},{transform:`translateX(${dx}px)`}],{...opts,easing:arc?'linear':'ease-in-out'});
-    let ys=[{transform:'none'},{transform:`translateY(${dy}px)`}];
-    if(arc){
-      // The top of the arc: a little above both ends, and never closer than 20px to the top of the stage
-      const top=Math.max(Math.min(0,dy)-Math.min(28,Math.max(10,Math.abs(dx)*.05)),20-y0);
-      const v=2*top-2*Math.sqrt(top*(top-dy)),at=-v/(2*(dy-v));   // start speed and the moment it is reached
-      ys=[{transform:'none',easing:OUT},{offset:at,transform:`translateY(${top}px)`,easing:IN},{transform:`translateY(${dy}px)`}];
-    }
-    const flight=lift.animate(ys,{...opts,easing:arc?'linear':'ease-in-out'});
-    // The copy shrinks fast to a token at most 90px across, then on to the size of the cart icon, and fades into it
-    const big=Math.max(p.width,p.height),end=Math.min(1,26/big),mid=Math.max(end,Math.min(1,90/big));
-    copy.animate([{transform:'none',easing:'ease-out'},{offset:.3,transform:`scale(${mid})`},{offset:.85,transform:`scale(${end})`,opacity:1},
-      {transform:`scale(${end*.6})`,opacity:0}],opts);
-    const f={fly,flight};flights.push(f);
-    flight.finished.then(()=>{fly.remove();flights=flights.filter(x=>x!==f);land(name,quiet);if(onLand)onLand()},()=>{});
+    const opts={duration:d,fill:'forwards'};
+    const side=fly.animate([{transform:'none'},{transform:`translateX(${P.dx}px)`}],{...opts,easing:a?'linear':'ease-in-out'});
+    let ys=[{transform:'none'},{transform:`translateY(${P.dy}px)`}];
+    if(a)ys=[{transform:'none',easing:OUT},{offset:P.at,transform:`translateY(${P.top}px)`,easing:IN},{transform:`translateY(${P.dy}px)`}];
+    const flight=lift.animate(ys,{...opts,easing:a?'linear':'ease-in-out'});
+    const shrink=copy.animate([{transform:'none',easing:'ease-out'},{offset:.3,transform:`scale(${P.mid})`},{offset:.85,transform:`scale(${P.end})`,opacity:1},
+      {transform:`scale(${P.end*.6})`,opacity:0}],opts);
+    const anims=[side,flight,shrink];
+    if(t)anims.forEach(x=>{x.currentTime=t;x.playbackRate=rate});
+    const f={fly,flight,anims,prod,quiet,onLand,a,d};flights.push(f);
+    flight.finished.then(()=>{fly.remove();flights=flights.filter(x=>x!==f);land(name,quiet);if(onLand)onLand();draw()},()=>{});
+  }
+  function add(prod,quiet,onLand){
+    planProd=prod;
+    if(reduce.matches){land(prod.querySelector('.name').textContent,quiet);if(onLand)onLand();draw();return}
+    launch(prod,quiet,onLand,arc,dur,0,1);
+    draw();
   }
   prods.forEach(prod=>prod.querySelector('.add').addEventListener('click',()=>add(prod,false)));
+  // The box changes shape when Compare comes or goes: a copy in the air is launched again in the new shape, at the same moment of its flight
+  function reaim(){
+    const old=flights;flights=[];
+    old.forEach(f=>{const t=f.flight.currentTime,rate=f.flight.playbackRate;f.anims.forEach(x=>x.cancel());f.fly.remove();launch(f.prod,f.quiet,f.onLand,f.a,f.d,t,rate)});
+  }
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
@@ -248,8 +328,8 @@
     flights.forEach(f=>{f.flight.cancel();f.fly.remove()});flights=[];
     bumps.forEach(a=>a.cancel());bumps=[];
     countEl.getAnimations().forEach(a=>a.cancel());
-    prods.forEach(p=>p.querySelector('.add').getAnimations().forEach(a=>a.cancel()));
-    count=REST;show();statusEl.textContent='';
+    [...prods.map(p=>p.querySelector('.add')),tAdd].forEach(b=>b.getAnimations().forEach(a=>a.cancel()));
+    count=REST;planProd=prods[0];show();statusEl.textContent='';
   }
   // The first product's button is pressed after 300ms of rest. The press is an animation, so it always ends by itself, and Slow
   // motion slows it with the rest of the stage. When the copy has landed and the cart has bumped (450ms), and 1.2 s more have
@@ -258,29 +338,133 @@
     stopRun();
     toRest();
     later(()=>{
-      const btn=prods[0].querySelector('.add');
       // Under reduced motion the pressed look is only held for a moment, with no easing in or out
-      btn.animate(reduce.matches?[{transform:'scale(.95)'},{transform:'scale(.95)'}]:[{transform:'none'},{transform:'scale(.95)',offset:.3},{transform:'none'}],
-        {duration:reduce.matches?150:300,easing:'ease-out'});
+      [prods[0].querySelector('.add'),tAdd].forEach(btn=>btn.animate(reduce.matches?[{transform:'scale(.95)'},{transform:'scale(.95)'}]:[{transform:'none'},{transform:'scale(.95)',offset:.3},{transform:'none'}],
+        {duration:reduce.matches?150:300,easing:'ease-out'}));
       awaiting=true;
       add(prods[0],true,()=>{if(!awaiting)return;awaiting=false;later(back,450,1200)});
     },0,300);
+    draw();
   });
-  function back(){count=REST;show();countEl.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out'})}
-  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
+  function back(){count=REST;show();countEl.animate([{opacity:0},{opacity:1}],{duration:300,easing:'ease-out'});draw()}
+  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();toRest();draw()});
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops; a copy in the air still lands and its count stays.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running())stopRun();draw()});
+
+  // See inside and Compare. Where the copy is at u (0 to 1 of the flight), by the easings launch() gives it: [sideways, up or down, size, opacity]
+  const bez=(a,b,c,d)=>t=>{let lo=0,hi=1,s=t;for(let i=0;i<24;i++){s=(lo+hi)/2;const x=3*(1-s)*(1-s)*s*a+3*(1-s)*s*s*c+s*s*s;if(x<t)lo=s;else hi=s}return 3*(1-s)*(1-s)*s*b+3*(1-s)*s*s*d+s*s*s};
+  const EASE_IO=bez(.42,0,.58,1),EASE_OUT=bez(0,0,.58,1);
+  function at(P,u){
+    let x,y;
+    if(P.arc){const a=P.at;x=P.dx*u;y=u<a?P.top*(u/a)*(2-u/a):P.top+(P.dy-P.top)*((u-a)/(1-a))**2}
+    else{const e=EASE_IO(u);x=P.dx*e;y=P.dy*e}
+    const s=u<.3?1+(P.mid-1)*EASE_OUT(u/.3):u<.85?P.mid+(P.end-P.mid)*(u-.3)/.55:P.end*(1-.4*(u-.85)/.15);
+    return[x,y,s,u<.85?1:1-(u-.85)/.15];
+  }
+  // A part's box in the stage's own coordinates, as [left, top, right, bottom], grown by m
+  function loc(el,m=0){
+    const r=el.getBoundingClientRect(),s=stage.getBoundingClientRect(),ox=s.left+stage.clientLeft,oy=s.top+stage.clientTop;
+    return[r.left-ox-m,r.top-oy-m,r.right-ox+m,r.bottom-oy+m];
+  }
+  const hit=(a,b,m=0)=>a[0]<b[2]+m&&a[2]>b[0]-m&&a[1]<b[3]+m&&a[3]>b[1]-m;
+  const poly=(P,u1,n)=>'M'+Array.from({length:n+1},(_,i)=>{const q=at(P,u1*i/n);return(P.x0+q[0]).toFixed(1)+' '+(P.y0+q[1]).toFixed(1)}).join('L');
+  const outline=(x,y,w,h,r,t='')=>['pl-u','pl-w'].map(c=>`<rect class="${c}" x="${x.toFixed(1)}" y="${y.toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" rx="${r.toFixed(1)}" ${t}/>`).join('');
+  const set=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  // Each label goes to the free spot nearest the part it names: clear of buttons, names, prices, the cart, the path, the outlines and the
+  // labels placed before it, inside the box. One that finds no room is left out.
+  function placeCaps(list,obst,soft){
+    const W=stage.clientWidth,H=stage.clientHeight,placed=[];
+    list.forEach(([el,ax,ay,off])=>{
+      el.hidden=true;
+      if(off)return;
+      el.hidden=false;
+      let best=null,bc=1e9;
+      // On one line if there is room for it, else on two, else on two over the pictures' icons too
+      for(const[two,icons]of[[0,1],[1,1],[1,0]]){
+        const ob=icons?obst.concat(soft):obst;
+        el.style.whiteSpace=two?"normal":"";el.style.width=two?"118px":"";
+        const w=el.offsetWidth,h=el.offsetHeight;
+        for(let y=4;y<=H-h-4;y+=2)for(let x=4;x<=W-w-4;x+=2){
+          const r=[x,y,x+w,y+h];
+          const c=Math.hypot(Math.max(x-ax,0,ax-r[2]),Math.max(y-ay,0,ay-r[3]));
+          if(c>=bc||ob.some(o=>hit(r,o))||placed.some(o=>hit(r,o,4)))continue;
+          bc=c;best=r;
+        }
+        if(best)break;
+      }
+      if(!best){el.hidden=true;return}
+      el.style.left=best[0]+'px';el.style.top=best[1]+'px';placed.push(best);
+    });
+  }
+  // See inside: the plan of the last press, over the real shop. The dashed line is the path the copy takes; a dot for every tenth of a
+  // second of the flight (three times as many in slow motion); dashed outlines of the copy at the start, 30% and 85% of the way; and
+  // the cart at its biggest bump.
+  function drawPlan(){
+    const P=planOf(planProd),D=dur*(slowTog.checked?3:1),c=loc(cart),cx=(c[0]+c[2])/2,cy=(c[1]+c[3])/2;
+    const pt=u=>{const q=at(P,u);return[P.x0+q[0],P.y0+q[1]]};
+    const dots=Array.from({length:Math.ceil(D/100)-1},(_,i)=>pt((i+1)*100/D));
+    const outs=[0,.3,.85].map(u=>{const q=at(P,u),w=P.w*q[2],h=P.h*q[2];return[P.x0+q[0]-w/2,P.y0+q[1]-h/2,w,h]});
+    const d=poly(P,1,48),r=phone.matches?2.6:3.2;
+    svg.innerHTML=`<path class="pl-u" d="${d}"/><path class="pl-w" d="${d}"/>`+outs.map(o=>outline(o[0],o[1],o[2],o[3],Math.max(2,12*o[2]/P.w))).join('')+
+      (bump?outline(cx-26.8,cy-26.8,53.6,53.6,14.6,`transform="rotate(-7 ${cx} ${cy})"`):'')+
+      dots.map(q=>`<circle class="pl-d" cx="${q[0].toFixed(1)}" cy="${q[1].toFixed(1)}" r="${r}"/>`).join('');
+    set(cTop,arc?'Rises, then drops in':'Straight in, easing in and out');
+    set(cBump,bump?'Bumps as it lands':'No bump: only the number changes');
+    const obst=[],hold=e=>obst.push(loc(e,2));
+    const soft=[];
+    prods.forEach(p=>{if(p.offsetParent){['.add','.row'].forEach(s=>hold(p.querySelector(s)));soft.push(loc(p.querySelector('.pic svg'),2))}});
+    hold(brand);hold(badge);obst.push([cx-34,cy-34,cx+34,cy+34]);
+    for(let i=0;i<=40;i++){const q=pt(i/40);obst.push([q[0]-7,q[1]-7,q[0]+7,q[1]+7])}
+    outs.forEach((o,i)=>{const m=i?3:1.5,[l,t,r,b]=[o[0]-m,o[1]-m,o[0]+o[2]+m,o[1]+o[3]+m];if(i)obst.push([l,t,r,b]);else obst.push([l,t,r,t+3],[l,b-3,r,b],[l,t,l+3,b],[r-3,t,r,b])});
+    const top=pt(arc?P.at:.5),mid=pt(.5),sub=pt(.6),o2=outs[1];
+    placeCaps([[cBump,cx,cy],[cTop,top[0],top[1]],[cShrink,o2[0]+o2[2]/2,o2[1]+o2[3]/2],[cDots,mid[0],mid[1]],[cEven,sub[0],sub[1]+24,!arc||phone.matches]],obst,soft);
+  }
+  // Compare, at rest: the copy a quarter of a second into its flight (of the Flight speed, whatever Slow motion does), and its trail
+  function drawPose(){
+    const P=planOf(prods[0]),u=Math.min(1,250/dur),q=at(P,u),d=poly(P,u,14);
+    svg.innerHTML=`<path class="pl-u" d="${d}"/><path class="pl-w" d="${d}"/>`;
+    pz.style.left=P.x0+'px';pz.style.top=P.y0+'px';
+    Object.assign(pzCopy.style,{width:P.w+'px',height:P.h+'px',marginLeft:-P.w/2+'px',marginTop:-P.h/2+'px',transform:`translate(${q[0]}px,${q[1]}px) scale(${q[2]})`,opacity:q[3]});
+  }
+  // Under reduced motion the notes say the view is a still, and Compare's says so only while the still stands (a Show me run lifts it)
+  function notes(){
+    set(nIn,'Inside, shown still: the dashed line is the path the picture would take into the cart, a dot for every tenth of a second, and the outlines show it shrinking.');
+    set(nCo,mode!=='compare'||posed?'Shown still: Count only just changes the number; Flies to cart has a copy of the picture caught on its way in.':
+      'Count only: pressing Add to cart just changes the number. Flies to cart: nothing flies with reduced motion, so its number fades in.');
+  }
+  // Draws the mode for the state now; Compare's pose stands only with no copy in the air, no run pending and the cart done bumping
+  function draw(){
+    posed=mode==='compare'&&!flights.length&&!running()&&!bumps.some(a=>a.playState==='running');
+    stage.classList.toggle('posed',posed);
+    paintTwin();
+    if(reduce.matches)notes();
+    const key=mode==='normal'?'':[mode,posed,dur,slowTog.checked,arc,bump,phone.matches,stage.clientWidth,stage.clientHeight,
+      ...[prods[0],planProd].map(p=>{const r=p.querySelector('.pic').getBoundingClientRect();return[r.left,r.top,r.width,r.height].map(Math.round)}),
+      cart.offsetLeft,cart.offsetTop].join();
+    if(key===shown)return;
+    shown=key;
+    svg.innerHTML='';
+    if(mode==='inside')drawPlan();else if(posed)drawPose();
+  }
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if((was==='compare')!==(mode==='compare'))reaim();
+    shown='';draw();
+  });
+  new ResizeObserver(draw).observe(stage);
+  if(document.fonts)document.fonts.ready.then(draw);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);draw();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms});
   choices('path-seg',d=>{arc=d.arc==='1'});
-  document.getElementById('bump-tog').addEventListener('change',e=>{bump=e.target.checked});
+  document.getElementById('bump-tog').addEventListener('change',e=>{bump=e.target.checked;draw()});
+  slowTog.addEventListener('change',draw);
 </script>
 </body>
 </html>
