@@ -27,6 +27,28 @@
     canvas{display:block;width:100%;height:100%}
     /* A soft dark edge, like the worn border of a printed map */
     .stage::after{content:"";position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center,transparent 58%,rgba(0,0,0,.5))}
+    /* See inside and Compare: plain words, the key and the magnifier sit above the dark edge (z-index) so it does not dim them */
+    .in,.cmp{display:none}
+    .stage[data-hb-mode="inside"] .in{display:block}
+    .stage[data-hb-mode="compare"] .cmp{display:grid;justify-items:start;gap:3px}
+    .cap{position:absolute;z-index:1;padding:5px 10px;border-radius:12px;background:rgba(5,7,6,.9);color:#f4f4f2;font:600 13px/1.3 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .cap b{font-weight:inherit;color:#ffce5a}
+    .arw{fill:none;stroke:#f4f4f2;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .arw.gold{stroke:#ffce5a}
+    .key,.loupe{position:absolute;z-index:1}
+    .key{right:10px;top:48px;width:28px;height:calc(100% - 96px)}
+    .loupe{right:48px;bottom:10px;width:130px;height:130px}
+    .tl,.c1{left:10px;top:10px}
+    .kc{right:48px;top:10px}
+    .c2{left:calc(50% + 10px);top:10px}
+    .dr{left:10px;bottom:10px}
+    .stage[data-hb-mode="inside"] .dr{display:grid;grid-template-columns:auto auto;align-items:center;gap:3px 8px}
+    .lc{right:48px;bottom:148px;max-width:240px;white-space:normal;text-wrap:balance}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"] .loupe,.stage[data-hb-mode="inside"] .lc{display:none}
+      .kc{top:50%;transform:translateY(-50%)}
+    }
+    @media(max-width:360px){.cap{font:600 12px/16px var(--hb-font);padding:5px 8px}.c2{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -49,12 +71,34 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <canvas id="cvs" aria-hidden="true"></canvas>
+      <canvas class="key in" id="key" aria-hidden="true"></canvas>
+      <canvas class="loupe in" id="loupe" aria-hidden="true"></canvas>
+      <p class="cap in tl" aria-hidden="true" data-hb-caption>Hidden hills: lighter is higher</p>
+      <p class="cap in kc" aria-hidden="true" data-hb-caption>A line at every step of height</p>
+      <p class="cap in lc" aria-hidden="true" data-hb-caption>Zoomed in: the line runs between higher and lower dots</p>
+      <div class="cap in dr" aria-hidden="true" data-hb-caption>
+        <span>Big hills drift</span><svg class="arw" data-ar="h"><path/></svg>
+        <span>Small <b>bumps</b> drift</span><svg class="arw gold" data-ar="b"><path/></svg>
+      </div>
+      <div class="cap cmp c1" aria-hidden="true" data-hb-caption><span>Hills only</span><svg class="arw" data-ar="h"><path/></svg></div>
+      <div class="cap cmp c2" aria-hidden="true" data-hb-caption>
+        <span>Hills and <b>bumps</b></span><svg class="arw" data-ar="h"><path/></svg><svg class="arw gold" data-ar="b"><path/></svg>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the shading shows the hidden hills, lighter where higher, and each line joins one height, as on a hiking map. Big hills and small bumps drift different ways, so the lines bend.</p>
+      <p data-hb-for="compare" hidden>Hills only slides past in one piece, like a moving picture. Hills and bumps adds small bumps drifting the other way, so over a few seconds its hills swell, sink and change shape.</p>
     </div>
   </section>
 
@@ -161,6 +205,19 @@
   let GAP=.1,SPD=1,COL='sand',HILL=220,BOLD=true;
   let clock=0; // the field's own time in seconds: it moves only while the loop runs, so Play carries on with no jump
   let step=7,cols=0,rows=0,hts=null;
+  // See inside and Compare: the shading's small picture, the key's and the magnifier's own canvases, and a grid for each half
+  let mode='normal',paused=false,hcols=0,hA=null,hB=null,shImg=null,shData=null,kw=0,kh=0,lw=0,lx=0,ly=0,lm=null,lg=0;
+  const shCv=document.createElement('canvas'),shCtx=shCv.getContext('2d');
+  const keyCv=document.getElementById('key'),keyCtx=keyCv.getContext('2d');
+  const lpCv=document.getElementById('loupe'),lpCtx=lpCv.getContext('2d');
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)');
+  const notes=[...document.querySelectorAll('.hb-mode-notes p')];
+  const MOVING=notes.map(p=>p.textContent); // the markup's words; the still words below replace them under reduced motion while paused
+  const STILL=['Inside, shown still: the shading shows the hidden hills, lighter where higher, and each line joins one height. The arrows show which way the big hills and the small bumps would drift.',
+    'Shown still: the arrows show how each would move. Hills only would slide past in one piece; in Hills and bumps the bumps drift the other way, so its hills would swell and change shape.'];
+  const LO=-.8,HI=.8,ZOOM=4,SPAN=5; // heights the shading and key cover; the magnifier's zoom; the arrows show about five seconds of drift
+  const DARK=[9,12,11],LIGHT=[116,124,120]; // the shading from the lowest height to the highest
+  const SHADE=new Uint32Array(256).map((_,i)=>{const v=i/255,c=DARK.map((d,j)=>Math.round(d+(LIGHT[j]-d)*v));return 0xff000000|c[2]<<16|c[1]<<8|c[0];});
 
   // Perlin's gradient noise: a random slope at every whole point of a lattice, blended smoothly in between (about -1 to 1)
   const P=new Uint8Array(512);
@@ -176,13 +233,15 @@
 
   // The height at every grid point: broad hills drifting one way plus smaller ones drifting another, so the ground seems to
   // swell and sink as it moves instead of sliding past in one piece
-  function heights(){
+  // Compare fills a grid of its own for each half: bumps off for the first, on for the second
+  const HX=.03,HY=.012,BX=.05,BY=.03,BK=2.3,BA=.45; // how fast the hills and the bumps slide, the bumps' scale and their share
+  function heights(h=hts,c=cols,rw=rows,bumps=true){
     const s=1/HILL,t=clock;
-    for(let r=0,k=0;r<=rows;r++){
+    for(let r=0,k=0;r<=rw;r++){
       const y=r*step*s;
-      for(let q=0;q<=cols;q++,k++){
+      for(let q=0;q<=c;q++,k++){
         const x=q*step*s;
-        hts[k]=noise(x+t*.03,y+t*.012)+.45*noise(x*2.3-t*.05+17.3,y*2.3+t*.03+5.1);
+        h[k]=bumps?noise(x+t*HX,y+t*HY)+BA*noise(x*BK-t*BX+17.3,y*BK+t*BY+5.1):noise(x+t*HX,y+t*HY)+1e-4; // the lift keeps exact zeros from tying with the zero level
       }
     }
   }
@@ -199,28 +258,144 @@
     else if(e===2){px=x+step*(L-d)/(c-d);py=y+step;}
     else{px=x;py=y+step*(L-a)/(d-a);}
   }
-  // The whole picture at the field's current time; the canvas is cleared first, so nothing of an earlier picture stays
-  function draw(){
-    heights();
-    const thin=new Path2D(),bold=new Path2D(),n=cols+1;
-    for(let r=0;r<rows;r++)for(let q=0;q<cols;q++){
-      const k=r*n+q,a=hts[k],b=hts[k+1],c=hts[k+n+1],d=hts[k+n],x=q*step,y=r*step;
-      const hi=Math.max(a,b,c,d);
-      for(let m=Math.ceil(Math.min(a,b,c,d)/GAP);m*GAP<hi;m++){
-        const L=m*GAP,idx=(a>L?8:0)|(b>L?4:0)|(c>L?2:0)|(d>L?1:0);
-        // two opposite corners above the level: the middle of the square decides which pairs of sides join
-        const s=SEG[idx]||((idx===5)===((a+b+c+d)/4>L)?[0,3,2,1]:[0,1,3,2]);
-        const path=BOLD&&m%5===0?bold:thin;
-        for(let e=0;e<s.length;e+=2){
-          cross(s[e],x,y,L,a,b,c,d);path.moveTo(px,py);
-          cross(s[e+1],x,y,L,a,b,c,d);path.lineTo(px,py);
-        }
-      }
+  // The segments of level L in the square at (x, y) whose corner heights are a (top left), b, c, d, added to path
+  function segs(path,x,y,L,a,b,c,d){
+    const idx=(a>L?8:0)|(b>L?4:0)|(c>L?2:0)|(d>L?1:0);
+    // two opposite corners above the level: the middle of the square decides which pairs of sides join
+    const s=SEG[idx]||((idx===5)===((a+b+c+d)/4>L)?[0,3,2,1]:[0,1,3,2]);
+    for(let e=0;e<s.length;e+=2){
+      cross(s[e],x,y,L,a,b,c,d);path.moveTo(px,py);
+      cross(s[e+1],x,y,L,a,b,c,d);path.lineTo(px,py);
     }
-    ctx.clearRect(0,0,W,H);
+  }
+  // Every line of a grid of heights h (cols + 1 by rows + 1 points): every fifth level goes in bold, when Bold is on
+  function lines(h,cs,rw,thin,bold){
+    const n=cs+1;
+    for(let r=0;r<rw;r++)for(let q=0;q<cs;q++){
+      const k=r*n+q,a=h[k],b=h[k+1],c=h[k+n+1],d=h[k+n],x=q*step,y=r*step;
+      const hi=Math.max(a,b,c,d);
+      for(let m=Math.ceil(Math.min(a,b,c,d)/GAP);m*GAP<hi;m++)segs(BOLD&&m%5===0?bold:thin,x,y,m*GAP,a,b,c,d);
+    }
+  }
+  function strokes(thin,bold){
     const rgb=COLORS[COL];
     ctx.lineWidth=1;ctx.strokeStyle=`rgba(${rgb},.5)`;ctx.stroke(thin);
     ctx.lineWidth=1.8;ctx.strokeStyle=`rgba(${rgb},.85)`;ctx.stroke(bold);
+  }
+  // The whole picture at the field's current time; the canvas is cleared first, so nothing of an earlier picture stays.
+  // See inside puts the shading under the lines and draws the key and the magnifier; Compare draws the two halves.
+  function draw(){
+    if(mode==='compare')return split();
+    heights();
+    const thin=new Path2D(),bold=new Path2D();
+    lines(hts,cols,rows,thin,bold);
+    ctx.clearRect(0,0,W,H);
+    if(mode==='inside')shade();
+    strokes(thin,bold);
+    if(mode==='inside')drawLoupe();
+  }
+  // Compare: both halves show the same patch of the field (from the box's left edge) at the same time: the first the big hills
+  // alone, which slide past in one piece; the second adds the small bumps, as the page does
+  function split(){
+    const hw=Math.floor((W-2)/2),x2=W-hw;
+    heights(hA,hcols,rows,false);heights(hB,hcols,rows,true);
+    ctx.clearRect(0,0,W,H);
+    half(hA,0,hw);half(hB,x2,hw);
+    ctx.fillStyle='rgba(244,244,242,.3)';ctx.fillRect(hw,0,2,H);
+  }
+  function half(h,x0,hw){
+    const thin=new Path2D(),bold=new Path2D();
+    lines(h,hcols,rows,thin,bold);
+    ctx.save();ctx.beginPath();ctx.rect(x0,0,hw,H);ctx.clip();ctx.translate(x0,0);
+    strokes(thin,bold);
+    ctx.restore();
+  }
+
+  // See inside. The shading: this frame's heights, a pixel per grid point (centered on it) stretched smoothly over the box
+  function shade(){
+    for(let k=0;k<hts.length;k++){const v=(hts[k]-LO)/(HI-LO);shData[k]=SHADE[v<=0?0:v>=1?255:v*255|0];}
+    shCtx.putImageData(shImg,0,0);
+    ctx.drawImage(shCv,-step/2,-step/2,(cols+1)*step,(rows+1)*step);
+  }
+  // Sets a canvas to its size on screen (0 when it is not shown) and returns that width
+  function fitCanvas(cv,cx){
+    const w=cv.clientWidth,h=cv.clientHeight,d=Math.min(window.devicePixelRatio||1,2);
+    if(w&&(cv.width!==Math.round(w*d)||cv.height!==Math.round(h*d))){cv.width=Math.round(w*d);cv.height=Math.round(h*d);cx.setTransform(d,0,0,d,0,0);}
+    return w;
+  }
+  // The key: the same grays from low (bottom) to high (top), with a tick at every level the lines use, every fifth one bold
+  function drawKey(){
+    kw=fitCanvas(keyCv,keyCtx);kh=keyCv.clientHeight;
+    if(!kw)return;
+    const c=keyCtx,top=4,bot=kh-4,bar=kw-12,g=c.createLinearGradient(0,top,0,bot);
+    g.addColorStop(0,`rgb(${LIGHT})`);g.addColorStop(1,`rgb(${DARK})`);
+    c.clearRect(0,0,kw,kh);
+    c.fillStyle=g;c.fillRect(bar,top,12,bot-top);
+    c.strokeStyle='rgba(244,244,242,.4)';c.lineWidth=1;c.strokeRect(bar+.5,top+.5,11,bot-top-1);
+    for(let m=Math.ceil(LO/GAP);m*GAP<=HI;m++){
+      const y=Math.round(bot-(m*GAP-LO)/(HI-LO)*(bot-top))+.5,big=BOLD&&m%5===0;
+      c.strokeStyle=big?'#fff':'rgba(244,244,242,.6)';c.lineWidth=big?2:1;
+      c.beginPath();c.moveTo(big?2:bar-7,y);c.lineTo(bar+12,y);c.stroke();
+    }
+  }
+  // The magnifier: the patch under its own center, four times larger: grid squares, a dot at every grid point (filled above the
+  // level, hollow below) and that level's line from the page's own cross(). The level is the multiple of Line spacing nearest the
+  // height at the center, kept while it still crosses the patch and is within a spacing.
+  function drawLoupe(){
+    lw=fitCanvas(lpCv,lpCtx);
+    if(!lw)return;
+    const c=lpCtx,n=cols+1,pw=lw/ZOOM,ox=lx-pw/2,oy=ly-pw/2;
+    const q0=Math.max(0,Math.floor(ox/step)),q1=Math.min(cols,Math.ceil((ox+pw)/step));
+    const r0=Math.max(0,Math.floor(oy/step)),r1=Math.min(rows,Math.ceil((oy+pw)/step));
+    const hc=hts[Math.min(rows,Math.round(ly/step))*n+Math.min(cols,Math.round(lx/step))]; // the height at the center, to a grid point
+    let lo=Infinity,hi=-Infinity;
+    for(let r=r0;r<=r1;r++)for(let q=q0;q<=q1;q++){const h=hts[r*n+q];if(h<lo)lo=h;if(h>hi)hi=h;}
+    if(lm===null||lg!==GAP||Math.abs(hc-lm*GAP)>GAP||lm*GAP<lo||lm*GAP>hi){
+      let best=Math.round(hc/GAP),bd=Infinity;
+      for(let m=Math.ceil(lo/GAP);m*GAP<=hi;m++)if(Math.abs(hc-m*GAP)<bd){bd=Math.abs(hc-m*GAP);best=m;}
+      lm=best;lg=GAP;
+    }
+    const L=lm*GAP,line=new Path2D();
+    c.clearRect(0,0,lw,lw);
+    c.drawImage(shCv,(ox+step/2)/step,(oy+step/2)/step,pw/step,pw/step,0,0,lw,lw);
+    c.save();c.translate(-ox*ZOOM,-oy*ZOOM);c.scale(ZOOM,ZOOM);
+    c.strokeStyle='rgba(244,244,242,.3)';c.lineWidth=1/ZOOM;c.beginPath();
+    for(let q=q0;q<=q1;q++){c.moveTo(q*step,r0*step);c.lineTo(q*step,r1*step);}
+    for(let r=r0;r<=r1;r++){c.moveTo(q0*step,r*step);c.lineTo(q1*step,r*step);}
+    c.stroke();
+    for(let r=r0;r<r1;r++)for(let q=q0;q<q1;q++){const i=r*n+q;segs(line,q*step,r*step,L,hts[i],hts[i+1],hts[i+n+1],hts[i+n]);}
+    c.strokeStyle='#ffce5a';c.lineWidth=3/ZOOM;c.stroke(line);
+    c.fillStyle='#f4f4f2';c.strokeStyle='#f4f4f2';c.lineWidth=1.5/ZOOM;
+    for(let r=r0;r<=r1;r++)for(let q=q0;q<=q1;q++){
+      c.beginPath();c.arc(q*step,r*step,4.5/ZOOM,0,6.2832);
+      if(hts[r*n+q]>L)c.fill();else{c.save();c.fillStyle='rgba(5,7,6,.85)';c.fill();c.restore();c.stroke();}
+    }
+    c.restore();
+    c.strokeStyle='#f4f4f2';c.lineWidth=2;c.strokeRect(1,1,lw-2,lw-2);
+  }
+  // An arrow as long as a layer drifts in about five seconds at this Speed and Hill size, pointing the way it drifts: the hills
+  // left and a little up, the bumps right and a little up (heights()'s own numbers)
+  function put(svg,dx,dy){
+    const L=Math.hypot(dx,dy),p=5,w=Math.abs(dx)+2*p,h=Math.abs(dy)+2*p,x0=dx<0?w-p:p,y0=dy<0?h-p:p,x1=x0+dx,y1=y0+dy,hd=Math.min(6,L*.6);
+    const ax=Math.atan2(dy,dx)+Math.PI,f=v=>v.toFixed(1),pt=a=>`${f(x1+hd*Math.cos(ax+a))} ${f(y1+hd*Math.sin(ax+a))}`;
+    svg.setAttribute('width',f(w));svg.setAttribute('height',f(h));svg.setAttribute('viewBox',`0 0 ${f(w)} ${f(h)}`);
+    svg.firstElementChild.setAttribute('d',`M${f(x0)} ${f(y0)}L${f(x1)} ${f(y1)}M${pt(.5)}L${f(x1)} ${f(y1)}L${pt(-.5)}`);
+  }
+  function arrows(){
+    const d=SPAN*SPD*HILL;
+    document.querySelectorAll('[data-ar="h"]').forEach(a=>put(a,-d*HX,-d*HY));
+    document.querySelectorAll('[data-ar="b"]').forEach(a=>put(a,d*BX/BK,-d*BY/BK));
+  }
+  // The key and the magnifier's place are measured when See inside opens and when the box or a setting changes them
+  function measure(){
+    if(mode!=='inside')return;
+    drawKey();
+    lx=lpCv.offsetLeft+lpCv.clientWidth/2;ly=lpCv.offsetTop+lpCv.clientHeight/2;
+  }
+  // The still notes replace the markup's words only under reduced motion while the loop is paused (Play brings the others back)
+  function setNotes(){
+    const still=reduced.matches&&paused;
+    notes.forEach((p,i)=>{const t=still?STILL[i]:MOVING[i];if(p.textContent!==t)p.textContent=t;});
   }
 
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one picture per
@@ -239,14 +414,22 @@
   // Registered at the top level, before the shared script (deferred) can run: under reduced motion it pauses the
   // loop on arrival, which this listener must catch. The lines on screen stay as they are while paused.
   document.addEventListener('hb:pause',e=>{
-    if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
+    paused=e.detail.paused;setNotes();
+    if(paused){cancelAnimationFrame(raf);raf=null;}
     else start();
   });
+  // The mode switch draws the mode at once, paused or not; the picture comes from the clock alone, so Normal comes back as it was
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;measure();draw();});
+  if(reduced.addEventListener)reduced.addEventListener('change',setNotes);else if(reduced.addListener)reduced.addListener(setNotes);
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no time
   document.addEventListener('visibilitychange',()=>{lastT=null;});
 
-  // The grid the heights are sampled on: 7px squares, 8px on phones
-  function grid(){step=phone.matches?8:7;cols=Math.ceil(W/step);rows=Math.ceil(H/step);hts=new Float32Array((cols+1)*(rows+1));}
+  // The grid the heights are sampled on: 7px squares, 8px on phones (and the See inside picture and each Compare half's grid)
+  function grid(){
+    step=phone.matches?8:7;cols=Math.ceil(W/step);rows=Math.ceil(H/step);hts=new Float32Array((cols+1)*(rows+1));
+    hcols=Math.ceil(Math.floor((W-2)/2)/step);hA=new Float32Array((hcols+1)*(rows+1));hB=new Float32Array((hcols+1)*(rows+1));
+    shCv.width=cols+1;shCv.height=rows+1;shImg=shCtx.createImageData(cols+1,rows+1);shData=new Uint32Array(shImg.data.buffer);
+  }
   // Setting the canvas size wipes it, so a real change of the stage's size draws the lines again at once, playing or
   // paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
   function resize(){
@@ -256,7 +439,7 @@
     const dpr=Math.min(window.devicePixelRatio||1,2);
     cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.lineCap=ctx.lineJoin='round';
-    grid();draw();
+    grid();measure();draw();
   }
 
   function choices(id,pick){
@@ -268,17 +451,18 @@
     }));
   }
   // A setting that changes the picture draws it at once, so the change shows while the loop is paused. Speed changes no
-  // picture: the hills carry on from where they are, at the new pace.
-  choices('gap-seg',d=>{GAP=+d.gap;draw();});
-  choices('speed-seg',d=>{SPD=+d.spd;});
+  // picture, only the arrows: the hills carry on from where they are, at the new pace.
+  choices('gap-seg',d=>{GAP=+d.gap;measure();draw();});
+  choices('speed-seg',d=>{SPD=+d.spd;arrows();});
   choices('color-sw',d=>{COL=d.col;draw();});
-  choices('hill-seg',d=>{HILL=+d.px;draw();});
-  document.getElementById('bold-tog').addEventListener('change',e=>{BOLD=e.target.checked;draw();});
+  choices('hill-seg',d=>{HILL=+d.px;arrows();draw();});
+  document.getElementById('bold-tog').addEventListener('change',e=>{BOLD=e.target.checked;measure();draw();});
 
+  arrows();
   resize();
   window.addEventListener('resize',resize);
   // A window that crosses the phone size changes the grid, even when the stage keeps its size
-  function onPhone(){if((phone.matches?8:7)!==step){grid();draw();}}
+  function onPhone(){if((phone.matches?8:7)!==step){grid();measure();draw();}}
   if(phone.addEventListener)phone.addEventListener('change',onPhone);
   else if(phone.addListener)phone.addListener(onPhone);
   start();
