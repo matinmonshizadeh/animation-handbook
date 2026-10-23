@@ -23,7 +23,7 @@
   <style>
     :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92;--flash-color:#ffffff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
@@ -47,6 +47,50 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}.pp{line-height:1.5}.pgrid,.pstat{margin-top:0}}
     @media(prefers-reduced-motion:reduce){#flash-overlay{display:none}}
+    /* The small site: its nav row over its page area. In Compare a copy of it, the twin, sits beside it. */
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.strip,.side{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .lbl{padding:2px 6px;border:1px solid rgba(255,255,255,.18);border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* See inside: the flash is never filled. The real overlay becomes a thick border in the flash color (the page's own fades
+       brighten and dim it, its blur makes a glow); under the page a strip draws the flash's strength over time as a hill. */
+    .stage[data-hb-mode="inside"] #flash-overlay,.stage[data-hb-mode="compare"].posed #flash-overlay{display:block;background:none;border:clamp(6px,2vw,10px) solid var(--flash-color)}
+    .stage[data-hb-mode="inside"] .strip{display:block}
+    .stage[data-hb-mode="inside"] .pc{gap:8px}.stage[data-hb-mode="inside"] .gi{padding:12px}
+    .strip{position:relative;flex:none;height:90px;overflow:hidden;background:#111114;border-top:1px solid var(--ui-border)}
+    .hill{position:absolute;inset:0;width:100%;height:100%}
+    .hill path,.hill line{fill:none;stroke:#8a8a92}
+    .hill #h-fill{fill:var(--flash-color);fill-opacity:.2;stroke:none}
+    .hill #h-line{stroke:var(--flash-color);stroke-width:2}
+    .hill #h-base{stroke:#3a3a42}
+    .hill #h-full,.hill #h-peak{stroke-dasharray:4 4}
+    .strip .cap{position:absolute;left:0;top:0}
+    .strip #c-peak{max-width:calc(100% - 16px);white-space:normal}
+    .dot{position:absolute;left:0;top:0;width:12px;height:12px;margin:-6px 0 0 -6px;border-radius:50%;background:var(--flash-color);box-shadow:0 0 0 2px #0b0b0d,0 0 0 3px #8a8a92}
+    /* Compare: the copy beside the real site, whose flash stands at its peak as an outline at rest. The names sit above its glow. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .side{position:absolute;bottom:20px;z-index:11}
+    .side.first{left:10px}.side.second{left:calc(50% + 10px)}
+    @media(max-width:440px){.strip{height:110px}}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:16px;gap:6px}.stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    /* Phones and short windows leave the page area short: the page keeps only its eyebrow and heading */
+    @media(max-width:600px),(max-height:759px){
+      .stage[data-hb-mode="inside"] .pp,.stage[data-hb-mode="inside"] .pgrid,.stage[data-hb-mode="inside"] .pstat{display:none}
+      .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .side.first{bottom:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .side.second{left:10px;bottom:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start;padding-top:12px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -69,16 +113,37 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area">
-        <div id="flash-overlay"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area">
+          <div id="flash-overlay"></div>
+        </div>
       </div>
+      <div class="strip" id="strip" aria-hidden="true">
+        <svg class="hill"><path id="h-fill"/><path id="h-line"/><line id="h-base"/><line id="h-full"/><line id="h-peak"/><line id="h-lr"/><line id="h-lf"/></svg>
+        <span class="lbl cap" id="c-rise" data-hb-caption>Flash rises</span>
+        <span class="lbl cap" id="c-peak" data-hb-caption>Page switches at the peak, hidden</span>
+        <span class="lbl cap" id="c-fall" data-hb-caption>Fades a little slower</span>
+        <span class="lbl cap" id="c-full" data-hb-caption>Fully hidden at this line</span>
+        <span class="dot" id="dot"></span>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Hard cut</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>With a flash</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the flash is drawn as an outline so the page stays in view: it switches at the brightest moment, marked on the strip below. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Hard cut switches the page with a visible jolt; With a flash switches it at the peak of a burst of light. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -172,13 +237,15 @@
     {name:'Work',bg:'#0a180a',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
     {name:'About',bg:'#150a18',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div><div><b>3</b><span>Continents</span></div></div></div>`},
   ];
-  const nav=document.getElementById('nav'),area=document.getElementById('page-area'),flashEl=document.getElementById('flash-overlay');
-  const blurTog=document.getElementById('blur-tog'),slowTog=document.getElementById('slow-tog');
+  const $=id=>document.getElementById(id);
+  const box=$('box'),stage=box.parentElement,nav=$('nav'),area=$('page-area'),flashEl=$('flash-overlay');
+  const blurTog=$('blur-tog'),slowTog=$('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   // No flash starts less than this many ms after the last one began, whatever the visitor presses (page names, Show me, Reset):
   // never more than two flashes a second. A change asked for sooner waits, with the overlay clear, until then.
   const MIN_CYCLE=500;
-  let current=0,animating=false,flashIn=200,flashOut=320,intensity=1,lastRise=-MIN_CYCLE,afterMove=null,wayBack=0,timers=[];
+  let mode='normal',ringOn=false,flashAt=0,runScale=1,raf=0,G=null,dotT=0,dotOp=0;
+  let home=-1,current=0,animating=false,flashIn=200,flashOut=320,intensity=1,lastRise=-MIN_CYCLE,afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -186,6 +253,20 @@
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+
+  // Compare's first half: a copy of the small site (no ids, no buttons, inert) that cuts to the next page when the real one switches
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  function showTwin(n){twinPages.forEach((el,i)=>el.classList.toggle('active',i===n));twinNav.forEach((b,i)=>b.classList.toggle('active',i===n))}
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still, with the flash as an outline: with motion on, the page switches at the brightest moment on the strip below, then the flash fades a little slower. Here it switches at once.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still: Hard cut simply switches page; With a flash is at its brightest moment, its light drawn as an outline.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -208,10 +289,12 @@
   function showPage(n){
     pages.forEach((el,i)=>el.classList.toggle('active',i===n));
     updateNav(n);
+    if(mode==='compare')showTwin(n);
   }
   // The overlay back to nothing at once: no transition, no opacity, no blur, and no fade left running. The reflow
   // commits this before a new flash starts, so a flash begun in the same task rises from nothing.
   function clearFlash(){
+    ringOn=false;
     flashEl.style.transition='none';
     flashEl.style.opacity='0';
     flashEl.classList.remove('blur-on');
@@ -221,14 +304,15 @@
 
   // Ends a flash: the demo is idle again, and a Show me run goes on to its next step
   function finish(){
-    animating=false;
+    animating=false;flashAt=0;
     const then=afterMove;afterMove=null;
     if(then)then();
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
-    animating=false;
+    animating=false;flashAt=0;cancelAnimationFrame(raf);
     clearFlash();
     showPage(current);
   }
@@ -239,6 +323,8 @@
     afterMove=then||null;
     if(!motionOk){showPage(next);finish();return}
     animating=true;
+    // A mode's pose goes the moment a change starts; the dot waits at the start of the hill
+    pose();if(mode==='inside')placeDot(0,0);
     // settle() cancels a wait, and the next change measures from the same lastRise, so no input can start two rises too close
     // together
     const wait=MIN_CYCLE-(performance.now()-lastRise);
@@ -246,8 +332,9 @@
   }
 
   function flash(prev,next){
-    lastRise=performance.now();
-    const scale=slowTog.checked?3:1;
+    lastRise=flashAt=performance.now();
+    const scale=runScale=slowTog.checked?3:1;
+    if(mode==='inside')ride();
     doTransition(prev,next,flashIn*scale,flashOut*scale);
   }
 
@@ -260,35 +347,125 @@
       // Peak: swap behind the flash and fade it out in the same step
       pages[prev].classList.remove('active');
       pages[next].classList.add('active');
+      if(mode==='compare')showTwin(next);
       flashEl.style.transition=`opacity ${flashOut}ms ease-out, filter ${flashOut}ms ease`;
       flashEl.style.opacity='0';flashEl.classList.remove('blur-on');
       later(finish,flashOut);
     },flashIn);
   }
 
-  // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started (pressed again mid-run, from there)
   function showMe(){
-    settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=home<0?current:home;
+    home=start;current=start;settle();
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;home=-1;navigate(start)},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){current=0;home=-1;settle();pose()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A flash already under way finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;home=-1;pose()});
+
+  // See inside's strip: the flash's strength over time from the page's own numbers, the overlay's two eases drawn as the curves they
+  // are over flashIn and flashOut; the strip stands for 1.2 s (three times that in slow motion).
+  const strip=$('strip'),dot=$('dot'),CAP={rise:$('c-rise'),peak:$('c-peak'),fall:$('c-fall'),full:$('c-full')};
+  const SPAN=1200,PHONE=matchMedia('(max-width:600px),(max-height:650px)');
+  const bez=(a,b,c,d,s)=>{const u=1-s;return u*u*u*a+3*u*u*s*b+3*u*s*s*c+s*s*s*d};
+  const seg=(id,x1,y1,x2,y2)=>{const l=$(id);l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2)};
+  const at=(el,x,y)=>{el.style.left=x.toFixed(1)+'px';el.style.top=y.toFixed(1)+'px'};
+  function layout(){
+    const W=strip.clientWidth,Hs=strip.clientHeight;
+    if(!W||mode!=='inside')return;
+    CAP.peak.textContent=intensity===1?'Page switches at the peak, hidden':'Page switches at the peak: it shows through';
+    CAP.full.hidden=PHONE.matches;
+    Object.values(CAP).forEach(c=>{c.style.left=c.style.top='0px'});  // measured from the strip's corner, not from the last place
+    const h=CAP.rise.offsetHeight,lane=Math.max(h,CAP.peak.offsetHeight),edge=8,base=Hs-8,fwid=CAP.fall.offsetWidth;
+    const x0=edge+CAP.rise.offsetWidth+12,xe=W-edge,Wg=xe-x0;
+    const rw=flashIn/SPAN*Wg,fw=flashOut/SPAN*Wg,x1=x0+rw,x2=x1+fw;
+    // The curves and lines for one or two rows of labels above the strength line (a second row only where the hill leaves no room)
+    const geom=rows=>{
+      const fullY=4+lane+9+(rows-1)*(h+4),H=base-fullY,top=base-intensity*H;
+      return{fullY,H,top,rise:t=>[bez(x0,x0+.42*rw,x1,x1,t),bez(base,base,top,top,t)],fall:t=>[bez(x1,x1,x1+.58*fw,x2,t),bez(top,top,base,base,t)]};
+    };
+    // "Fades a little slower" above the falling side, nearest the peak where the curve has dropped well clear of it
+    let g=geom(1),spot=null;
+    const clear=(l,b)=>{for(let q=0;q<=1;q+=.05){const [px,py]=g.fall(q);if(px>l-4&&px<l+fwid+4&&py<b+8)return false}return true};
+    for(let t=.3;t<=1.001&&!spot;t+=.04){
+      const [ax,ay]=g.fall(t),left=Math.min(ax+8,xe-fwid),bottom=ay-9;
+      if(bottom-h>=g.fullY+3&&clear(left,bottom))spot=[ax,ay,left,bottom-h,left,bottom];
+    }
+    if(!spot){
+      g=geom(2);
+      const [ax,ay]=g.fall(.5),left=xe-fwid;
+      spot=[ax,ay,left,4+lane+4,Math.max(left,Math.min(ax,xe)),4+lane+4+h];
+    }
+    const {fullY,H,top,rise}=g;
+    G={x0,Wg,base,H};
+    const d=`M${x0} ${base}C${x0+.42*rw} ${base} ${x1} ${top} ${x1} ${top}C${x1} ${top} ${x1+.58*fw} ${base} ${x2} ${base}`;
+    $('h-line').setAttribute('d',d);$('h-fill').setAttribute('d',d+'Z');
+    seg('h-base',x0-4,base,xe,base);seg('h-full',x0,fullY,xe,fullY);seg('h-peak',x1,base,x1,4+lane);
+    // The peak's label above its line, "Flash rises" left of the hill and level with a point on the rising side
+    const pw=CAP.peak.offsetWidth,pl=Math.max(edge,Math.min(x1-pw/2,W-edge-pw));
+    at(CAP.peak,pl,4);
+    const [rx,ry]=rise(.6),rt=Math.max(fullY+3,Math.min(ry-h/2,Hs-2-h));
+    at(CAP.rise,edge,rt);seg('h-lr',edge+CAP.rise.offsetWidth,rt+h/2,rx,ry);
+    at(CAP.fall,spot[2],spot[3]);seg('h-lf',spot[0],spot[1],spot[4],spot[5]);
+    if(!CAP.full.hidden){
+      const fl=W-edge-CAP.full.offsetWidth;
+      if(pl+pw+6>fl)CAP.full.hidden=true;else at(CAP.full,fl,4);
+    }
+    placeDot(dotT,dotOp);
+  }
+  function placeDot(t,op){
+    dotT=t;dotOp=op;
+    if(!G)return;
+    dot.style.transform=`translate(${(G.x0+Math.min(t,SPAN)/SPAN*G.Wg).toFixed(1)}px,${(G.base-op*G.H).toFixed(1)}px)`;
+  }
+  // While a flash runs the dot rides the hill: across by the clock, up and down by the strength the overlay really has
+  function ride(){
+    cancelAnimationFrame(raf);
+    const step=()=>{
+      if(!flashAt)return;
+      const t=(performance.now()-flashAt)/runScale;
+      placeDot(t,+getComputedStyle(flashEl).opacity);
+      raf=flashAt&&mode==='inside'&&t<flashIn+flashOut?requestAnimationFrame(step):0;
+    };
+    step();
+  }
+  // At rest in a mode the flash stands at its peak as an outline (the overlay at the chosen strength, never filled), the dot at the
+  // peak. A change lifts the pose; under reduced motion it stays.
+  function pose(){
+    const on=mode!=='normal'&&(!motionOk||!animating&&!wayBack);
+    stage.classList.toggle('posed',on);
+    if(!on){if(ringOn)clearFlash();return}
+    ringOn=true;cancelAnimationFrame(raf);
+    flashEl.style.transition='none';flashEl.style.opacity=intensity;flashEl.classList.toggle('blur-on',blurTog.checked);
+    placeDot(flashIn,intensity);
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='compare')showTwin(pages.findIndex(el=>el.classList.contains('active')));
+    layout();
+    if(mode==='inside'&&animating){if(flashAt)ride();else placeDot(0,0)}
+    pose();
+  });
+  const redraw=()=>{layout();pose()};
+  addEventListener('resize',redraw);document.fonts.ready.then(redraw);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      redraw();
     }));
   }
   choices('color-sw',d=>{document.documentElement.style.setProperty('--flash-color',d.c)});
   choices('speed-seg',d=>{flashIn=+d.in;flashOut=+d.out});
   choices('strength-seg',d=>{intensity=+d.v});
+  blurTog.addEventListener('change',pose);
   showPage(0);
 </script>
 </body>
