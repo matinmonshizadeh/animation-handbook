@@ -457,7 +457,7 @@ const NAMES={normal:cvs.getAttribute('aria-label'),
   compare:'The same shape twice: painted one flat color, and lit so each side has its own shade',
   insideEdges:"The shape's edges only: every flat triangle it is built from, front and back",
   compareEdges:"The same shape's edges twice; with Edges only on, both look alike"};
-let side=true,CX=0,CY=0,KEEP=0;
+let side=true,CX=0,CY=0,KEEP=0,KEEPY=1e9;
 const SCENE=[[0,0,0,0],[0,0,0,0]],DEVH=[[0,0,0,0],[0,0,0,0]],DEVS=[[0,0,0,0],[0,0,0,0]];
 
 // Compare: side by side while each half is about as wide as the box is tall, else one above the other. Each half keeps its name in a
@@ -477,13 +477,14 @@ function cmpAim(){
   const k=(side?ptrX>=SCENE[1][0]:ptrY>=SCENE[1][1]-NAME_H)?1:0,c=SCENE[k];
   cRy=Math.max(-1,Math.min(1,(ptrX-c[0])/c[2]*2-1))*1.5;cRx=Math.max(-1,Math.min(1,(ptrY-c[1])/c[3]*2-1))*1.2;
 }
-// A caption goes at the first of its places where it clears the circle the shape turns inside; with none free it is left out.
+// A caption goes at the first of its places where the shape never passes under it: outside the circle the shape turns inside, or,
+// for the cube (whose corners never rise or sink as far as that circle), far enough above or below the middle. With none free it is left out.
 function place(el,spots){
   el.style.display='';
   const w=el.offsetWidth,h=el.offsetHeight;
   for(const f of spots){
     const [x,y]=f(w,h),nx=Math.max(x,Math.min(CX,x+w)),ny=Math.max(y,Math.min(CY,y+h));
-    if(x<8||x+w>2*CX-8||Math.hypot(nx-CX,ny-CY)<KEEP)continue;
+    if(x<8||x+w>2*CX-8||Math.hypot(nx-CX,ny-CY)<KEEP&&Math.max(y-CY,CY-y-h)<KEEPY)continue;
     el.style.left=x+'px';el.style.top=y+'px';return;
   }
   el.style.display='none';
@@ -493,13 +494,14 @@ function place(el,spots){
 function layoutInside(){
   const cw=stage.clientWidth,ch=stage.clientHeight,L=Math.hypot(LIGHT[0],LIGHT[1]),c=LIGHT[0]/L,sn=LIGHT[1]/L;
   CX=cw/2;CY=ch/2;
-  const R=CY/Math.tan(FOV/2)*BOUND/Math.sqrt(DIST*DIST-BOUND*BOUND),t=(CY-SUN_Y)/sn,sx=CX+t*c,g=SUN_R+4;
-  KEEP=R*.8; // captions keep out of this circle: the shape reaches past it only at a corner, for a moment
+  const f=CY/Math.tan(FOV/2),R=f*BOUND/Math.sqrt(DIST*DIST-BOUND*BOUND),t=(CY-SUN_Y)/sn,sx=CX+t*c,g=SUN_R+4,e=BOUND/Math.sqrt(3);
+  KEEP=R+2; // captions keep out of the circle the shape turns inside
+  KEEPY=SHAPE==='cube'?f*e*Math.SQRT2/(DIST-e)+2:1e9; // a cube corner rises highest when two of its sides lean 45 degrees
   sunG.setAttribute('transform','translate('+sx+' '+SUN_Y+')');
   sunLine.setAttribute('x1',sx-g*c);sunLine.setAttribute('y1',SUN_Y+g*sn);
   sunLine.setAttribute('x2',CX+R*c);sunLine.setAttribute('y2',CY-R*sn);
   sunLine.style.display=t-R-g>10?'':'none';
-  place(sunLbl,[(w,h)=>[sx-SUN_R-6-w,SUN_Y-h/2],(w,h)=>[cw-10-w,SUN_Y+SUN_R+6]]);
+  place(sunLbl,[(w,h)=>[sx-SUN_R-6-w,SUN_Y-h/2],(w,h)=>[sx+SUN_R+6,SUN_Y-h/2],(w,h)=>[cw-10-w,SUN_Y+SUN_R+6]]);
   place(keyA,[(w,h)=>[10,ch-10-h]]);
   place(keyB,[(w,h)=>[10,ch-16-h-keyA.offsetHeight]]);
 }
