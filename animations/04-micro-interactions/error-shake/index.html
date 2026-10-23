@@ -21,26 +21,26 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Error Shake", "name": "Error Shake", "description": "A field shakes side to side when the input is wrong. Best for sign-in forms.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/error-shake/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Error Shake"}</script>
   <style>
-    :root{--bg:#0b0b0d;--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--err:#f4515b;--ok:#3fb950;--shake-x:8px;--shake-dur:400ms}
+    :root{--bg:#0b0b0d;--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--err:#f4515b;--ok:#3fb950;--shake-x:8px;--shake-dur:400ms;--shake-ease:cubic-bezier(.36,.07,.19,.97);--pose-k:-.857}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;align-items:center;justify-content:center;padding:clamp(16px,4vw,32px);background:var(--bg)}
     /* Login card */
     .card{width:100%;max-width:320px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:12px;padding:24px;display:flex;flex-direction:column;gap:14px}
     .card-title{font-weight:700;font-size:15px}
     .field{display:flex;flex-direction:column;gap:6px}
-    .field label{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted)}
-    .field input{background:var(--bg);border:1.5px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:11px 12px;border-radius:7px;width:100%;min-height:44px;outline:none;transition:border-color .18s}
+    .field label,.twin .lab{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--ui-muted)}
+    .field input,.twin .box{background:var(--bg);border:1.5px solid var(--ui-border);color:var(--ui-text);font-family:inherit;font-size:13px;padding:11px 12px;border-radius:7px;width:100%;min-height:44px;outline:none;transition:border-color .18s}
     .field input::placeholder{color:var(--ui-muted);opacity:1}
     .field input:focus{border-color:var(--ui-accent)}
     /* While the field is neutral it draws its own focus (the border), so the site ring is switched off; .stage in front outranks it (0,5,1).
        In the error and success states the border is red or green with or without focus, so there the site ring stays and shows it */
     .stage .field:not(.error):not(.ok) input:focus-visible{outline:none}
     /* Error state: red border + shake keyframe */
-    .field.error input{border-color:var(--err)}
-    .field.error input{animation:shake var(--shake-dur) cubic-bezier(.36,.07,.19,.97) both}
+    .field.error input,.twin .field.error .box{border-color:var(--err)}
+    .field.error input{animation:shake var(--shake-dur) var(--shake-ease) both}
     .msg{font-size:11px;min-height:14px;color:var(--err);opacity:0;transform:translateY(-2px);transition:opacity .18s,transform .18s}
     .field.error .msg{opacity:1;transform:none}
-    .field.ok input{border-color:var(--ok)}
+    .field.ok input,.twin .field.ok .box{border-color:var(--ok)}
     .field.ok .msg{opacity:1;transform:none;color:var(--ok)}
     /* buildShake() rewrites this rule when the page loads, with swings that decay (six by default); this copy only stands in until then. translateX only -> compositor-friendly. */
     @keyframes shake{
@@ -58,7 +58,48 @@
     /* Read out by screen readers only */
     .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
     /* Phones zoom the page in on a field with type smaller than 16px */
-    @media(pointer:coarse){.field input{font-size:16px}}
+    @media(pointer:coarse){.field input,.twin .box{font-size:16px}}
+    /* See inside and Compare. Their labels are plain words on a dark backing. */
+    .twin,.trace,.side,.ghost{display:none}
+    .lbl{position:absolute;padding:2px 7px;border:1px solid rgba(244,244,242,.16);border-radius:5px;background:rgba(11,11,13,.9);color:var(--ui-text);font:600 12px/15px var(--hb-font);white-space:nowrap}
+    .twin .box{display:flex;align-items:center;overflow:hidden;white-space:nowrap}
+    .twin .box.ph{color:var(--ui-muted)}
+    .twin .submit{display:flex;align-items:center;justify-content:center;cursor:default}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative}
+    /* See inside: the card beside a trace of its shake, level with the field (under the card on phones). The trace is the field's path
+       with time running down, drawn five times as wide as the field moves; the script draws it and its words, and a dot rides it. */
+    .stage[data-hb-mode="inside"]{display:grid;grid-template-columns:minmax(0,320px) minmax(0,440px);grid-template-rows:minmax(0,1fr);justify-content:center;
+      column-gap:clamp(12px,3vw,28px)}
+    .stage[data-hb-mode="inside"] .trace{display:block;position:relative;align-self:stretch}
+    .trace svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .trace .rest{fill:none;stroke:rgba(244,244,242,.6);stroke-width:1.5;stroke-dasharray:5 4}
+    .trace .zig{fill:none;stroke:var(--ui-accent);stroke-width:2.5;stroke-linejoin:round}
+    .trace .dot{fill:#f4f4f2}
+    .trace .lbl{width:max-content;white-space:normal;text-wrap:balance}
+    /* Compare: the card twice. On the left a copy that only turns red, on the right the card itself, which also shakes. At rest both stand
+       as just after a wrong password (the pose), the right field held at its first swing beside a dashed outline of its place. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;justify-items:center;
+      column-gap:clamp(8px,2vw,24px);padding:44px clamp(6px,2vw,24px) 12px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"] .field{position:relative}
+    .side{top:10px;left:10px}
+    .side.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="compare"].posed .field:not(.error):not(.ok) :is(input,.box){border-color:var(--err)}
+    .stage[data-hb-mode="compare"].posed .field:not(.error):not(.ok) .msg{opacity:1;transform:none}
+    .stage[data-hb-mode="compare"].posed .card:not(.twin) .field:not(.error):not(.ok) input{transform:translateX(calc(var(--shake-x) * var(--pose-k)))}
+    .stage[data-hb-mode="compare"].posed .card:not(.twin) .ghost{display:block;position:absolute;left:0;right:0;border:1.5px dashed rgba(244,244,242,.5);border-radius:7px;pointer-events:none}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,320px);grid-template-rows:auto minmax(0,1fr);align-content:stretch;row-gap:4px;padding:6px 10px}
+      .stage[data-hb-mode="compare"] .msg{min-height:28px}
+    }
+    /* Phones and short boxes (a window up to 640px tall): a compact card, so the trace's words and the half names fit */
+    @media(max-width:600px),(max-height:640px){
+      .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:10px 12px;gap:8px}
+      .stage[data-hb-mode="inside"] .field,.stage[data-hb-mode="compare"] .field{gap:4px}
+      .stage[data-hb-mode="inside"] .card-title,.stage[data-hb-mode="compare"] .card-title{display:none}
+    }
     @media(prefers-reduced-motion:reduce){.field.error input{animation:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -82,6 +123,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Sign in with a wrong or empty password (the right one is letmein), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <form class="card" id="login" novalidate>
         <p class="card-title">Sign in</p>
@@ -93,10 +139,23 @@
         <button class="submit" type="submit">Sign in</button>
         <p class="sr-only" id="live" role="alert"></p>
       </form>
+      <div class="trace" aria-hidden="true">
+        <svg><path class="rest"/><path class="zig"/><circle class="dot" r="6"/></svg>
+        <span class="lbl rests" data-hb-caption>Where it rests</span>
+        <span class="lbl swings" data-hb-caption>Six swings, each smaller than the last</span>
+        <span class="lbl back" data-hb-caption>Back where it started after under half a second</span>
+        <span class="lbl wide" data-hb-caption>Drawn five times as wide as it moves</span>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Just turns red</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Shakes too</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the zig-zag is the field's path, drawn five times as wide: each swing is smaller than the last, and it ends where it started. Sign in with a wrong password, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Just turns red only changes the border and message, which is easy to miss; Shakes too also moves the field, which catches the eye. Sign in with a wrong password, or press Show me.</p>
     </div>
   </section>
 
@@ -185,10 +244,16 @@
   const PASSWORD='letmein';
   const DEMO_PASSWORD='abc123'; // what Show me types in
   let dur=400;                  // the shake's length, which Show me waits for
+  let swings=6;                 // Number of swings
+  let mode='normal',modeClick=false;
 
   // Building the keyframe from the oscillation count keeps the demo honest:
   // more oscillations = more decaying swings written into one @keyframes.
+  // Swing i of n alternates from the left and shrinks toward the end: where buildShake puts it, and where See inside and Compare draw it
+  const swing=(i,n)=>(i%2?-1:1)*(1-i/(n+1));
   function buildShake(count){
+    swings=count;
+    root.setProperty('--pose-k',swing(1,count).toFixed(3));
     const sheet=document.styleSheets[0];
     // find and drop the old shake rule
     for(let i=sheet.cssRules.length-1;i>=0;i--){
@@ -197,9 +262,7 @@
     let steps='0%{transform:translateX(0)}';
     for(let i=1;i<=count;i++){
       const pos=(i/(count+1))*100;
-      const dir=i%2?-1:1;
-      const decay=(1-i/(count+1)).toFixed(3); // amplitude shrinks toward the end
-      steps+=`${pos.toFixed(2)}%{transform:translateX(calc(var(--shake-x) * ${(dir*decay).toFixed(3)}))}`;
+      steps+=`${pos.toFixed(2)}%{transform:translateX(calc(var(--shake-x) * ${swing(i,count).toFixed(3)}))}`;
     }
     steps+='100%{transform:translateX(0)}';
     sheet.insertRule(`@keyframes shake{${steps}}`,sheet.cssRules.length);
@@ -216,6 +279,7 @@
   function clearState(){
     field.classList.remove('error','ok');
     clearTimeout(sayTimer);live.textContent='';
+    state();
   }
 
   // The visitor's failed sign-in and Show me both call this
@@ -225,6 +289,7 @@
     void field.offsetWidth;
     msg.textContent=text;
     field.classList.add('error');
+    state();
   }
 
   form.addEventListener('submit',e=>{
@@ -234,6 +299,7 @@
       clearState();
       msg.textContent='Welcome back — signed in.';
       field.classList.add('ok');
+      state();
     }else{
       shake(v?'Incorrect password. Try again.':'Password is required.');
       if(v)input.select();else input.focus();
@@ -248,7 +314,7 @@
   let runTimers=[];
   function later(fn,move,hold){
     const slow=!!(slowTog&&slowTog.checked);
-    const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); }, move*(slow?3:1)+(hold||0));
+    const id=setTimeout(()=>{ runTimers=runTimers.filter(t=>t!==id); fn(); state(); }, move*(slow?3:1)+(hold||0));
     runTimers.push(id);
   }
   function running(){ return runTimers.length>0; }
@@ -256,29 +322,27 @@
   function clearField(){input.value='';clearState()}
   // A run starts with an empty field and no error, put there without animating: the transitions are turned off, the field is
   // emptied, a reflow makes it stick, and the transitions come back.
-  function toRest(){
-    const parts=[input,msg];
-    parts.forEach(p=>p.style.setProperty('transition','none','important'));
-    clearField();
-    void field.offsetWidth;
-    parts.forEach(p=>p.style.removeProperty('transition'));
-  }
+  function toRest(){snap(clearField)}
   // A wrong password appears as dots, the field shakes as it does for a visitor (no submit, no focus, nothing said aloud),
   // and once the shake has run and been seen the field is emptied. The press the shared script makes on arrival leaves a
   // visitor who is already in the form alone: it would empty and replace a password being typed.
   document.getElementById('btn-demo').addEventListener('click',e=>{
     if(!e.isTrusted&&stage.contains(document.activeElement))return;
+    // A See inside or Compare press clicks Show me for the visitor: it never empties or replaces a password they typed
+    if(modeClick&&input.value&&input.value!==DEMO_PASSWORD)return;
     stopRun();
     toRest();
     input.value=DEMO_PASSWORD;
     later(()=>shake('Incorrect password. Try again.'),0,400);
     later(clearField,dur,2000);
+    state();
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops, and the run's password goes, so the
   // visitor starts from a clean field.
   function takeOver(){
     if(!running())return;
     stopRun();
+    state();
     if(input.value===DEMO_PASSWORD)clearField();
   }
   document.addEventListener('hb:input',takeOver);
@@ -291,11 +355,134 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      view();
     }));
   }
   choices('dist-seg',d=>root.setProperty('--shake-x',d.x));
   choices('swings-seg',d=>buildShake(+d.n));
   choices('speed-seg',d=>{dur=+d.ms;root.setProperty('--shake-dur',d.ms+'ms')});
+
+  // See inside and Compare ------------------------------------------------------------------------------------------------
+  const MAG=5;                  // See inside draws the field's path five times as wide as it moves
+  const EASE=getComputedStyle(document.documentElement).getPropertyValue('--shake-ease').match(/[\d.]+/g).map(Number); // the shake's own curve
+  const NUMS={4:'Four',6:'Six',8:'Eight'};
+  const words=ms=>ms<=300?'a quarter of a second':ms<=450?'under half a second':ms<=700?'about two thirds of a second':ms<=900?'about three quarters of a second':ms<=1300?'just over a second':'about two seconds';
+  const POSED_MSG='Incorrect password. Try again.';
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const trace=stage.querySelector('.trace'),svg=trace.querySelector('svg'),zig=svg.querySelector('.zig'),rest=svg.querySelector('.rest'),dot=svg.querySelector('.dot');
+  const [tRests,tSwings,tBack,tWide]=trace.querySelectorAll('.lbl');
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const setNote=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  const STILL='Shown still, at the first swing: Just turns red stays in place; Shakes too is held away from its dashed outline, as it would be with motion on.';
+  const LIVE='With reduced motion on, neither half shakes, so Just turns red and Shakes too look alike: a wrong password shows only as a red border and a message.';
+  if(!motionOk){
+    setNote(notes.inside,'Inside, shown still: the zig-zag is the path the field takes when motion is on, drawn five times as wide, each swing smaller than the last.');
+    setNote(notes.compare,STILL);
+  }
+  // Compare's first card: a copy that only turns red. No form, input, label link or alert, no ids, out of reach of the keyboard and
+  // screen readers; state() makes it show what the real card shows (the dots as dots, the classes, the message).
+  const twin=document.createElement('div');
+  twin.className='card twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML='<p class="card-title">Sign in</p><div class="field"><span class="lab">Password</span><span class="box"></span><span class="msg"></span></div><span class="submit">Sign in</span>';
+  form.before(twin);
+  const tf=twin.querySelector('.field'),tb=twin.querySelector('.box'),tm=twin.querySelector('.msg');
+  const ghost=document.createElement('span');
+  ghost.className='ghost';ghost.setAttribute('aria-hidden','true');field.append(ghost);
+  // Runs fn with the fields' transitions off, so it shows at once
+  function snap(fn){
+    const parts=[input,msg,tb,tm];
+    parts.forEach(p=>p.style.setProperty('transition','none','important'));
+    fn();
+    void field.offsetWidth;
+    parts.forEach(p=>p.style.removeProperty('transition'));
+  }
+  // Compare's rest pose: both cards as just after a wrong password (red border, the message), the right field held at its first swing.
+  // A key typed, focus in the form, a red or green field or a Show me run lifts it; it returns when the field is empty and idle.
+  function state(focusLeft){
+    const on=mode==='compare'&&!input.value&&!field.matches('.error,.ok')&&!running()&&(focusLeft||!form.contains(document.activeElement));
+    if(on!==stage.classList.contains('posed'))snap(()=>stage.classList.toggle('posed',on));
+    if(mode!=='compare')return;
+    if(on)msg.textContent=POSED_MSG;
+    tf.className=field.className;
+    tm.textContent=msg.textContent;
+    const n=input.value.length;
+    tb.textContent=n?'•'.repeat(n):input.placeholder;
+    tb.classList.toggle('ph',!n);
+    if(!motionOk)setNote(notes.compare,on?STILL:LIVE);
+  }
+  form.addEventListener('focusin',()=>state());
+  form.addEventListener('focusout',e=>{if(!form.contains(e.relatedTarget))state(true)});
+
+  // The field's share of the way across a stretch between two keyframes, along the shake's own curve (found by halving)
+  function bez(x){
+    const [a,b,c,e]=EASE,at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  let G={cx:0,y0:0,h:0},rideRaf=0;
+  // Draws the mode from the page's own numbers; again on a setting, a resize and when the font arrives. See inside: the trace (the
+  // dashed rest line, the zig-zag through every swing's turn, sampled along the curve) and its four labels, placed from measured sizes.
+  function view(){
+    if(mode==='compare'){ghost.style.top=input.offsetTop+'px';ghost.style.height=input.offsetHeight+'px'}
+    if(mode!=='inside'||!trace.clientWidth)return;
+    const w=trace.clientWidth,h=trace.clientHeight,k=swings+1;
+    const dist=MAG*parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--shake-x'));
+    const cx=Math.round(dist*(1-1/k))+6;
+    tSwings.textContent=NUMS[swings]+' swings, each smaller than the last';
+    tBack.textContent='Back where it started after '+words(dur*(slowTog.checked?3:1));
+    const fit=(el,x)=>{el.style.maxWidth=(w-x-2)+'px';el.style.left=x+'px'};
+    fit(tRests,0);
+    const rw=tRests.offsetWidth,bx=Math.min(Math.max(cx-rw/2,0),w-rw),xr=Math.max(Math.round(cx+dist*(1-2/k)+14),Math.round(bx+rw+8));
+    fit(tRests,bx);fit(tWide,xr);fit(tSwings,xr);fit(tBack,xr);
+    // The trace starts level with the field; its two top labels stand in a row above it, the others in a column beside it
+    const y0=Math.max(input.offsetTop-trace.offsetTop,Math.max(tRests.offsetHeight,tWide.offsetHeight)+8),y1=h-4,H=y1-y0;
+    tRests.style.top=y0-6-tRests.offsetHeight+'px';
+    tWide.style.top=y0-6-tWide.offsetHeight+'px';
+    tBack.style.top=h-tBack.offsetHeight+'px';
+    const hc=tSwings.offsetHeight;
+    tSwings.style.top=Math.min(Math.max(y0+H*2/k-hc/2,y0+6),tBack.offsetTop-hc-6)+'px';
+    svg.setAttribute('viewBox',`0 0 ${w} ${h}`);
+    rest.setAttribute('d',`M${cx} ${y0}V${y1}`);
+    const pts=[];
+    for(let i=0;i<=swings;i++){
+      const v0=i?swing(i,swings):0,v1=i<swings?swing(i+1,swings):0;
+      for(let s=i?1:0;s<=8;s++)pts.push(`${(cx+dist*(v0+(v1-v0)*bez(s/8))).toFixed(1)} ${(y0+H*(i+s/8)/k).toFixed(1)}`);
+    }
+    zig.setAttribute('d','M'+pts.join('L'));
+    G={cx,y0,h:H};
+    placeDot();
+  }
+  // The dot rides the trace while the field shakes: down with the animation's progress, sideways with the field's offset (five
+  // times over), both read from the real animation, so Slow motion slows it too. Between shakes it waits at the top.
+  function placeDot(){
+    const a=input.getAnimations().find(x=>x.animationName==='shake'),run=!!a&&a.playState==='running';
+    const t=run?getComputedStyle(input).transform:'none';
+    const x=t==='none'?0:new DOMMatrix(t).m41*MAG;
+    dot.style.transform=`translate(${G.cx+x}px,${G.y0+(run?G.h*(a.effect.getComputedTiming().progress||0):0)}px)`;
+    return run;
+  }
+  function ride(){
+    cancelAnimationFrame(rideRaf);
+    const step=()=>{rideRaf=placeDot()&&mode==='inside'?requestAnimationFrame(step):0};
+    step();
+  }
+  stage.addEventListener('animationstart',e=>{if(mode==='inside'&&e.animationName==='shake')ride()});
+
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it. That
+  // press runs right after this event, so a flag lets the Show me handler tell it from the visitor's own press.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    modeClick=true;
+    queueMicrotask(()=>{modeClick=false});
+    state();
+    view();
+    if(mode==='inside')ride();
+  });
+  const redraw=new ResizeObserver(view);
+  redraw.observe(stage);redraw.observe(trace);
+  document.fonts.ready.then(view);
+  slowTog.addEventListener('change',view);
 
   buildShake(6);
 </script>
