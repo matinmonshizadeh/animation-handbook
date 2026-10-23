@@ -340,7 +340,8 @@
   // A note is written only when its words change
   function notes(){
     const i=(motionOk?0:2)+(both()?1:0);
-    for(const m in NOTES){const el=document.querySelector(`[data-hb-for="${m}"]`);if(el.textContent!==NOTES[m][i])el.textContent=NOTES[m][i]}
+    // With no pause while covered the panel never holds, so the notes leave the hold out
+    for(const m in NOTES){const el=document.querySelector(`[data-hb-for="${m}"]`),t=pause?NOTES[m][i]:NOTES[m][i].replace(/,? (?:and )?holds?,/,',');if(el.textContent!==t)el.textContent=t}
   }
 
   // The share of a pass's way a panel has made at a share x of its time, on the page's own curve (found by halving)
@@ -366,7 +367,7 @@
   }
   function setPose(){
     const on=mode!=='normal'&&!busy;
-    if(on){const [a,b]=pose();stage.style.setProperty('--pose-a',a);stage.style.setProperty('--pose-b',b)}
+    if(on){clearCurtains();const [a,b]=pose();stage.style.setProperty('--pose-a',a);stage.style.setProperty('--pose-b',b)}
     if(on||stage.classList.contains('posed'))snap(()=>stage.classList.toggle('posed',on));
   }
 
