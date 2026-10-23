@@ -21,16 +21,47 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Scramble / Glitch Text", "name": "Scramble / Glitch Text", "description": "Random symbols lock into the real text, left to right. Best for tech headlines.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/scramble-text/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Scramble / Glitch Text"}</script>
   <style>
-    :root{--ui-accent:#ff6f8b}
+    :root{--ui-accent:#ff6f8b;--flick:#5f9a5f;--edge:rgba(255,255,255,.3);--pill:rgba(4,6,12,.92)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:#04060c;padding:clamp(20px,4vw,48px)}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:#04060c;padding:clamp(20px,4vw,48px)}
     .scramble-text{width:100%;max-width:720px;min-height:1.4em;font-size:clamp(24px,5vw,60px);font-weight:700;letter-spacing:0.04em;line-height:1.2;color:#fff;text-align:center}
     .scramble-text .char{display:inline-block;transition:color 60ms}
     .scramble-text .char.locked{color:#fff}
     .scramble-text .char.scrambling{color:#5f9a5f}
     /* Each word's letters sit in one box that cannot break, so lines wrap only between words */
     .unit-word{display:inline-block;white-space:nowrap}
-    @media(prefers-reduced-motion:reduce){.scramble-text .char{transition:none!important;color:#fff!important}}
+    /* See inside and Compare. The box keeps the height the real text gives it (a hidden copy of the text holds it); the real text moves
+       into the view's slot, and the view is laid out inside the box. Their words are plain, on a dark backing. */
+    .sz,.mt,.vin,.vcmp{display:none}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{overflow:hidden}
+    .stage[data-hb-mode="inside"] .sz,.stage[data-hb-mode="compare"] .sz{display:block;visibility:hidden}
+    .stage[data-hb-mode="inside"] .mt,.stage[data-hb-mode="compare"] .mt{display:block;position:absolute;left:0;top:0;min-height:0;visibility:hidden;pointer-events:none}
+    .stage[data-hb-mode="inside"] .vin,.stage[data-hb-mode="compare"] .vcmp{display:flex;position:absolute;inset:clamp(12px,2.5vw,24px);flex-direction:column;gap:6px}
+    .stage[data-hb-mode="compare"] .vcmp{gap:8px}
+    .slot{flex:1 1 0;min-height:0;display:flex;align-items:center;justify-content:center}
+    .slot .scramble-text{min-height:0}
+    .cap{padding:3px 8px;border:1px solid rgba(255,255,255,.14);border-radius:6px;background:var(--pill);color:#f4f4f2;font:600 13px/17px var(--hb-font);text-align:center;text-wrap:balance;max-width:100%}
+    .cap b{font-weight:inherit}
+    .cap .gn{color:var(--flick)}
+    .caprow{flex:none;display:flex;flex-wrap:wrap;justify-content:center;gap:6px}
+    .vin>.cap{flex:none;align-self:center}
+    .pz{visibility:hidden}
+    .stage[data-hb-mode="inside"].posed .pz,.stage[data-hb-mode="compare"].posed .pz{visibility:visible}
+    /* See inside: a box round every letter, and under the text one bar per letter as tall as that letter's wait, filling as the wait passes */
+    .stage[data-hb-mode="inside"] .char{outline:1px solid var(--edge);outline-offset:-1px;border-radius:3px}
+    .stage[data-hb-mode="inside"] .char.scrambling{outline-color:rgba(95,154,95,.85)}
+    .stairs{flex:none;align-self:center;width:fit-content;max-width:100%;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(var(--bmin,2px),30px);grid-template-rows:100%;align-items:end;gap:var(--sg,3px);height:clamp(44px,26%,104px);border-bottom:1px solid var(--edge)}
+    .bar{position:relative;min-height:3px;background:rgba(255,255,255,.12)}
+    .bar i{position:absolute;inset:0;background:var(--flick);transform:scaleY(0);transform-origin:50% 100%}
+    .bar.on i{background:#fff}
+    /* Compare: two bands, the same text at the same size in both */
+    .band{position:relative;flex:1 1 0;min-height:0;display:flex;flex-direction:column;padding:34px 8px 6px;border:1px solid rgba(255,255,255,.14);border-radius:10px;background:rgba(255,255,255,.04)}
+    .band .nm,.band .pz{position:absolute;top:6px}
+    .band .nm{left:6px}
+    .band .pz{right:6px}
+    @media(max-width:600px),(max-height:500px){.cap{font-size:12px;line-height:16px}}
+    @media(prefers-reduced-motion:reduce){.scramble-text .char{transition:none!important;color:#fff!important}
+      .stage[data-hb-mode="inside"] .char.scrambling,.stage[data-hb-mode="compare"] .char.scrambling{color:var(--flick)!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -53,13 +84,38 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
       <div class="scramble-text" id="scramble-out" role="img" aria-label="Scrambling text"></div>
+      <div class="scramble-text sz" aria-hidden="true" inert></div>
+      <div class="scramble-text mt" aria-hidden="true" inert></div>
+      <div class="vin">
+        <div class="slot"></div>
+        <div class="caprow" aria-hidden="true" inert>
+          <span class="cap" data-hb-caption><b class="gn">Green</b>: still flickering · <b>white</b>: locked in</span>
+          <span class="cap w-flick" data-hb-caption>Changes character about 25 times a second</span>
+          <span class="cap pz" data-hb-caption>Shown half way</span>
+        </div>
+        <div class="stairs" aria-hidden="true" inert></div>
+        <span class="cap w-lock" data-hb-caption aria-hidden="true">Locks left to right, about 14 letters a second</span>
+      </div>
+      <div class="vcmp">
+        <div class="band"><span class="cap nm" data-hb-caption aria-hidden="true">All at once</span><div class="slot"><div class="scramble-text copy" aria-hidden="true" inert></div></div></div>
+        <div class="band"><span class="cap nm" data-hb-caption aria-hidden="true">One by one</span><span class="cap pz" data-hb-caption aria-hidden="true">Half way through</span><div class="slot"></div></div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Every letter is its own piece in a box and flickers through random characters until its turn. Each waits one step longer than the one before, as the bars show.</p>
+      <p data-hb-for="compare" hidden>All at once keeps every letter random until the very end, so nothing can be read. One by one locks the letters in reading order, so the words appear as they decode.</p>
     </div>
   </section>
 
@@ -162,6 +218,10 @@
   const txtIn=document.getElementById('txt-in');
   const reduceMotion=window.matchMedia('(prefers-reduced-motion:reduce)');
   let charset='symbols',settleMs=70,cycleMs=40,timers=[],cycleTimer=null;
+  // See inside and Compare. phase: 'run' while letters flicker, 'hold' once all are locked, 'rest' when nothing is pending
+  const stage=document.querySelector('.stage'),$=q=>stage.querySelector(q);
+  const sz=$('.sz'),mt=$('.mt'),stairs=$('.stairs'),copy=$('.copy'),slots=stage.querySelectorAll('.slot');
+  let mode='normal',phase='rest',curText='',baseName=out.getAttribute('aria-label'),chars=[],cchars=[],bars=[],t0=0,runSettle=70,raf=0;
 
   function randChar(cs){return cs[Math.floor(Math.random()*cs.length)]}
   function settleDur(){return slowTog.checked?settleMs*3:settleMs}
@@ -173,6 +233,7 @@
   // off lets it finish decoded. Slow motion stretches the per-letter delay and the flicker, not the hold.
   function cycle(){
     const text=(txtIn.value.trim()?txtIn.value:'DECODE THE MESSAGE').toUpperCase();
+    curText=text;
     const reduce=reduceMotion.matches;
 
     out.innerHTML='';
@@ -197,10 +258,13 @@
 
     // Reduced motion (or nothing to decode): show the decoded text immediately, no flicker
     if(reduce||!total){
-      out.setAttribute('aria-label',text);
+      setName(text);phase='rest';
+      if(mode!=='normal'){build();rest()}
       return;
     }
-    out.setAttribute('aria-label','Loading: '+text);
+    setName('Loading: '+text);phase='run';t0=performance.now();runSettle=settleDur();
+    stage.classList.remove('posed');
+    if(mode!=='normal'){build();ride()}
 
     const locked=new Array(total).fill(false);
     let lockedCount=0;
@@ -212,10 +276,11 @@
         locked[i]=true;lockedCount++;
         if(lockedCount===total){
           clearInterval(cycleTimer);cycleTimer=null;
-          out.setAttribute('aria-label',text);
+          phase='hold';if(mode==='compare')cchars.forEach(lockChar);
+          setName(text);
           // Loop is re-checked here, when the hold actually ends, not when it starts: switching Loop
           // off during the 1200ms hold must not still trigger one more scramble.
-          later(()=>{if(loopTog.checked)cycle()},1200);
+          later(()=>{if(loopTog.checked)cycle();else{phase='rest';if(mode!=='normal')rest()}},1200);
         }
       },settleDur()*i+settleDur());
     });
@@ -223,7 +288,7 @@
     // Cycle random chars on unlocked letters; charset is read per tick so a change applies live.
     // The settle callback above always clears this interval once the last letter locks (and play()
     // clears it otherwise), so it never needs a fallback timer of its own.
-    const cycleFn=()=>{const cs=CHARSETS[charset];spans.forEach((s,i)=>{if(!locked[i])s.textContent=randChar(cs);});};
+    const cycleFn=()=>{const cs=CHARSETS[charset];spans.forEach((s,i)=>{if(!locked[i])s.textContent=randChar(cs);});if(mode==='compare')cchars.forEach(s=>{s.textContent=randChar(cs)});};
     cycleTimer=setInterval(cycleFn,cycleDur());
   }
   function play(){
@@ -231,6 +296,117 @@
     clearInterval(cycleTimer);cycleTimer=null;
     cycle();
   }
+
+
+  // ---- See inside and Compare ----
+  const MODE_WORDS={normal:'',inside:', each letter in its own box',compare:', shown twice: all at once and one by one'};
+  function setName(label){baseName=label;out.setAttribute('aria-label',label+MODE_WORDS[mode])}
+  const seeded=(i,k)=>{const x=Math.sin(i*127.1+k*311.7)*43758.5453;return x-Math.floor(x)};
+  function lockChar(s){s.textContent=s.dataset.char;s.classList.remove('scrambling');s.classList.add('locked')}
+  // a letter shown flickering, from a fixed seed so the still pictures never change
+  function greenChar(s,i,k){const cs=CHARSETS[charset];s.textContent=cs[Math.floor(seeded(i,k)*cs.length)];s.classList.remove('locked');s.classList.add('scrambling')}
+  // The text laid out as the page lays it out (a box per word that cannot break, a box per letter)
+  function lay(box,fn){
+    box.textContent='';const cs=[];
+    curText.split(' ').filter(Boolean).forEach((word,wi,ws)=>{
+      const w=document.createElement('span');w.className='unit-word';
+      [...word].forEach(c=>{const s=document.createElement('span');s.className='char';s.dataset.char=c;fn(s,c,cs.length);w.appendChild(s);cs.push(s)});
+      box.appendChild(w);if(wi<ws.length-1)box.appendChild(document.createTextNode(' '));
+    });
+    return cs;
+  }
+  const half=()=>chars.length>1?Math.ceil(chars.length/2):0;
+  const per=ms=>Math.round(1000/ms);
+  // Built again with each play, setting and mode: the hidden copy that keeps the box at the height the text gives it, Compare's
+  // first band, and one bar per letter (as tall as that letter's wait before it locks)
+  function build(){
+    chars=[...out.querySelectorAll('.char')];
+    lay(sz,(s,c)=>{s.textContent=c});
+    cchars=lay(copy,(s,c,i)=>{if(phase==='hold')lockChar(s);else greenChar(s,i,2)});
+    const n=chars.length;
+    stairs.textContent='';stairs.style.setProperty('--sg',n>45?'1px':n>20?'2px':'3px');stairs.style.setProperty('--bmin',n>80?'1px':'2px');
+    bars=chars.map((s,i)=>{
+      const b=document.createElement('span'),f=document.createElement('i');
+      b.className='bar';b.style.height=100*Math.min(1,settleMs*(i+1)/(n*120))+'%';
+      b.appendChild(f);stairs.appendChild(b);return{b,f};
+    });
+    $('.w-lock').textContent='Locks left to right, about '+per(settleDur())+' letters a second';
+    $('.w-flick').textContent='Changes character about '+per(cycleDur())+' times a second';
+    fit();
+  }
+  // The text in a view is as large as the room allows (never larger than in Normal), measured with each letter as the wider of itself
+  // and the widest character the set can show, so a line never wraps further while the letters change
+  function fit(){
+    const slot=mode==='inside'?slots[0]:mode==='compare'?slots[2]:null;
+    if(!slot||!slot.clientHeight||!curText)return;
+    const ctx=fit.ctx||(fit.ctx=document.createElement('canvas').getContext('2d'));
+    ctx.font='700 100px '+getComputedStyle(out).fontFamily;
+    let wide='W',ww=0;
+    for(const c of CHARSETS[charset]){const w=ctx.measureText(c).width;if(w>ww){ww=w;wide=c}}
+    lay(mt,(s,c)=>{s.textContent=ctx.measureText(c).width>ww?c:wide});
+    mt.style.width=Math.min(720,slot.clientWidth)+'px';
+    const fits=px=>{mt.style.fontSize=px+'px';return mt.offsetHeight<=slot.clientHeight};
+    let size=parseFloat(getComputedStyle(sz).fontSize);
+    if(!fits(size)){let lo=10,hi=size;for(let i=0;i<7;i++){const m=(lo+hi)/2;if(fits(m))lo=m;else hi=m}size=lo}
+    out.style.fontSize=copy.style.fontSize=size+'px';
+  }
+  // Each bar fills as its wait passes (t ms into the play, a wait being unit ms for each letter before it) and is full, white,
+  // once its letter has locked
+  function paint(t,unit){
+    let more=false;
+    chars.forEach((s,i)=>{
+      const done=s.classList.contains('locked');
+      if(!bars[i])return;
+      bars[i].f.style.transform='scaleY('+(done?1:Math.min(.98,t/(unit*(i+1))))+')';
+      bars[i].b.classList.toggle('on',done);
+      if(!done)more=true;
+    });
+    return more;
+  }
+  function ride(){
+    cancelAnimationFrame(raf);raf=0;
+    const step=()=>{raf=paint(performance.now()-t0,runSettle)&&mode==='inside'?requestAnimationFrame(step):0};
+    if(mode==='inside'&&bars.length)step();
+  }
+  // The still picture, half way through: the first half of the letters locked, the rest still random, Compare's first band all
+  // random. Only in a mode, and only when no play is pending: a play lifts it and it comes back after the play.
+  function rest(){
+    stage.classList.add('posed');
+    chars.forEach((s,i)=>i<half()?lockChar(s):greenChar(s,i,1));
+    cchars.forEach((s,i)=>greenChar(s,i,2));
+    paint(settleMs*half(),settleMs);
+  }
+  function refresh(){
+    if(mode==='normal'||!curText)return;
+    build();
+    if(phase==='rest')rest();else ride();
+  }
+  function place(){const to=mode==='inside'?slots[0]:mode==='compare'?slots[2]:stage;if(out.parentNode!==to)to.prepend(out)}
+
+  // Under reduced motion both views are still pictures, and their notes say so
+  const notes=[...document.querySelectorAll('[data-hb-for]')],lively=notes.map(n=>n.textContent),shown=[
+    'Shown still, half way: the white letters have locked and the green ones are still random. The bars show each letter waiting one step longer, left to right.',
+    'Shown still, half way through: All at once is still all random, while One by one can already be read up to its middle.'];
+  function describe(){notes.forEach((n,i)=>{const words=reduceMotion.matches?shown[i]:lively[i];if(n.textContent!==words)n.textContent=words})}
+  describe();
+  reduceMotion.addEventListener('change',()=>{describe();refresh()});
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    place();setName(baseName);
+    if(mode==='normal'){
+      cancelAnimationFrame(raf);out.style.fontSize='';stage.classList.remove('posed');
+      // leaving the half-way picture puts every letter back, locked; a play under way goes on
+      if(was!=='normal'&&phase==='rest')out.querySelectorAll('.char').forEach(lockChar);
+      return;
+    }
+    build();
+    if(phase==='rest')rest();else ride();
+  });
+  new ResizeObserver(()=>{if(mode!=='normal')fit()}).observe(stage);
+  if(document.fonts)document.fonts.ready.then(()=>{if(mode!=='normal')fit()});
+  slowTog.addEventListener('change',refresh);
 
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
@@ -241,9 +417,9 @@
       pick(b.dataset);
     }));
   }
-  choices('charset-seg',d=>{charset=d.charset});
-  choices('delay-seg',d=>{settleMs=+d.ms});
-  choices('flicker-seg',d=>{cycleMs=+d.ms});
+  choices('charset-seg',d=>{charset=d.charset;refresh()});
+  choices('delay-seg',d=>{settleMs=+d.ms;refresh()});
+  choices('flicker-seg',d=>{cycleMs=+d.ms;refresh()});
 </script>
 </body>
 </html>
