@@ -55,7 +55,6 @@
     /* See inside and Compare. The small site stays in .box; Compare puts a copy of it (.twin, no ids) beside it. */
     .twin,.ins,.cap,.side{display:none}
     .twin .nav-back{display:flex;align-items:center}
-    .twin .thumb{white-space:pre}
     .ins,.ins svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
     .ins rect,.ins line{fill:none;stroke:#f4f4f2;stroke-width:2;stroke-dasharray:6 5}
     .lbl{position:absolute;z-index:45;padding:2px 7px;border-radius:5px;background:rgba(17,17,20,.92);color:var(--ui-text);font:600 12px/1.25 var(--hb-font);white-space:nowrap}
@@ -64,6 +63,9 @@
     /* At rest with the list showing, both views hold the same moment: a quarter of the way into opening, the list almost faded */
     .stage.posed .pose{display:block}
     .stage.posed .cg{opacity:var(--fade)!important}
+    /* Keyboard focus in the list brings it back to full strength and leaves the held picture faint, so the focused project and its ring show */
+    .stage.posed:has(.cg :focus-visible) .cg{opacity:1!important}
+    .stage.posed:has(.cg :focus-visible) .pose{opacity:.3}
     .stage[data-hb-mode="inside"] .ins,.stage[data-hb-mode="inside"] .cap,.stage[data-hb-mode="compare"] .ins,.stage[data-hb-mode="compare"] .side{display:block}
     .stage[data-hb-mode="inside"] .pose,.stage[data-hb-mode="inside"] #flip-el{outline:4px solid var(--ui-accent)}
     .stage[data-hb-mode="compare"] #route,.stage[data-hb-mode="compare"]:not(.posed) #rs{display:none}
@@ -146,7 +148,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the dashed boxes are where the picture starts and ends: one copy of it grows along the lines between them while the pages fade. Click a project, or press Show me.</p>
-      <p data-hb-for="compare" hidden>Just fades swaps the list for the project with fades only; Picture travels does the same while the picture grows from the list into the header. Click a project, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Just fades swaps the list for the project with fades only; Picture travels does the same while the picture grows from the list into the header. Click a project, then Back, or press Show me.</p>
     </div>
   </section>
 
@@ -379,7 +381,7 @@
   // Under reduced motion a click opens the project at once, so the notes speak of the list
   if(!motionOk){
     document.querySelector('[data-hb-for="inside"]').textContent='While the list shows, one copy of the picture is held part way along the lines between the dashed boxes, where it starts and where it ends.';
-    document.querySelector('[data-hb-for="compare"]').textContent='While the list shows, both halves are held a moment into opening a project: Just fades has only faded its list; Picture travels has its picture part way to the header.';
+    document.querySelector('[data-hb-for="compare"]').textContent='While the list shows, both halves are held a moment into opening: Just fades has only faded its list; Picture travels has its picture part way to the header. After a click, press Back.';
   }
 
   // The share of a movement done at time t (0 to 1), from the browser's own curve for the easing
