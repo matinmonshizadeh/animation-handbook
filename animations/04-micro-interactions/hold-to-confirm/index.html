@@ -61,6 +61,57 @@
     .tip.on{opacity:1}
     .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
     @media(prefers-reduced-motion:reduce){.file,.hold,.dial,.ic,.words span,.tip{transition:none!important}.shaker.shake{animation:none}}
+    /* See inside and Compare: everything they add stays hidden in Normal. */
+    .strip,.cp,.lbl{display:none}
+    .lbl{padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/15px var(--hb-font)}
+    /* See inside: a time strip under the hint, on a fixed scale of three seconds (a faint mark every half second). The top bar is
+       the hold (the marker rides it as the fill is drawn); the lower bar is how long a full drain takes, with its arrow toward the start. */
+    .stage[data-hb-mode="inside"]{container-type:size;padding:10px}
+    .stage[data-hb-mode="inside"] .card{gap:10px;padding:14px 16px}
+    .stage[data-hb-mode="inside"] .strip{display:block;--hw:50%;--dw:13.3%}
+    .stage[data-hb-mode="inside"] .strip .lbl{display:block}
+    .s-fin{width:118px;margin:0 0 6px clamp(0px,calc(var(--hw) - 59px),calc(100% - 118px));text-align:center;white-space:nowrap}
+    .rail{position:relative;height:14px;border-radius:3px;background:#1b1b20;box-shadow:inset -1px 0 rgba(255,255,255,.2)}
+    .rail::before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.2) 1px,transparent 1px) 0 0/calc(100%/6) 100%}
+    .r2{margin-top:10px}
+    .hbar,.dbar{position:absolute;left:0;top:2px;bottom:2px}
+    .hbar{width:var(--hw);border-radius:2px;background:var(--red-edge)}
+    .hlit{position:absolute;inset:0;border-radius:2px;background:var(--ring);transform:scaleX(0);transform-origin:left center}
+    .dbar{width:var(--dw);background:#adadb2;clip-path:polygon(7px 0,100% 0,100% 100%,7px 100%,0 50%)}
+    .fin{position:absolute;left:var(--hw);top:-6px;bottom:-3px;width:2px;margin-left:-1px;border-radius:1px;background:var(--ui-accent)}
+    .mark{position:absolute;left:0;top:-3px;bottom:-3px;width:var(--hw)}
+    .mark::after{content:"";position:absolute;left:-1px;top:0;bottom:0;width:2px;border-radius:1px;background:#f4f4f2}
+    .s-hold,.s-drain,.s-scale{margin-top:4px;max-width:100%}
+    .s-hold,.s-scale{width:max-content}
+    .s-scale{margin-top:6px}
+    /* Narrow stages (phones): no file line and no scale label. Short wide stages: the strip sits beside the card's button instead. */
+    @container (max-width:519px){
+      .stage[data-hb-mode="inside"] .file,.stage[data-hb-mode="inside"] .strip .s-scale{display:none}
+    }
+    @container (max-height:340px) and (min-width:520px){
+      .stage[data-hb-mode="inside"] .card:not(.cp){max-width:560px;display:grid;grid-template-columns:minmax(0,240px) minmax(0,1fr);column-gap:20px;align-items:center}
+      .stage[data-hb-mode="inside"] .card>*{grid-column:1}
+      .stage[data-hb-mode="inside"] .card>.strip{grid-column:2;grid-row:1/4}
+    }
+    /* Compare: on the left a copy whose plain button deletes at the first touch, on the right the real card. At rest the copy stands
+       deleted and the real fill is a quarter of a second in, with its hint (the pose; a press lifts it). Phones stack the halves. */
+    .stage[data-hb-mode="compare"]{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:20px;align-items:center;padding:40px 12px 12px}
+    .stage[data-hb-mode="compare"]::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .card,.stage[data-hb-mode="compare"] .cp{display:flex;justify-self:center;padding:16px 18px;gap:14px}
+    .stage[data-hb-mode="compare"] .side{display:block;position:absolute;top:8px;z-index:2}
+    .stage[data-hb-mode="compare"] .side.first{left:12px}
+    .stage[data-hb-mode="compare"] .side.second{left:calc(50% + 12px)}
+    .stage[data-hb-mode="compare"].posed #tip{opacity:1}
+    .cp .hold{cursor:default}
+    .ring-mode .cp .hold{width:100%;gap:10px;padding:0 20px;border:1px solid var(--red-edge);background:var(--red-dim);overflow:hidden}
+    .ring-mode .cp .dial{width:20px;height:20px;border-radius:0;background:none}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));padding:0 12px}
+      .stage[data-hb-mode="compare"]::before{left:0;right:0;top:50%;bottom:auto;width:auto;height:1px}
+      .stage[data-hb-mode="compare"] .card,.stage[data-hb-mode="compare"] .cp{margin-top:30px;padding:10px 14px;gap:6px}
+      .stage[data-hb-mode="compare"] .file{display:none}
+      .stage[data-hb-mode="compare"] .side.second{left:12px;top:calc(50% + 8px)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -83,6 +134,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press and hold the button until it fills (or hold Space or Enter on it), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="card" id="card">
         <div class="file">
@@ -101,11 +157,25 @@
           </button>
         </div>
         <p class="tip" id="tip" aria-hidden="true">Keep holding until it fills</p>
+        <div class="strip" aria-hidden="true">
+          <p class="lbl s-fin" data-hb-caption>Deletes only here</p>
+          <div class="rail"><span class="hbar"><span class="hlit"></span></span><span class="fin"></span><span class="mark"></span></div>
+          <p class="lbl s-hold" data-hb-caption>Hold: about a second and a half</p>
+          <div class="rail r2"><span class="dbar"></span></div>
+          <p class="lbl s-drain" data-hb-caption>Let go early: it drains back in under half a second, and shakes</p>
+          <p class="lbl s-scale" data-hb-caption>Each mark: half a second</p>
+        </div>
       </div>
       <p class="sr-only" id="status" role="status" aria-live="polite"></p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Deletes on tap</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Hold to confirm</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>The marker follows the fill along the top bar, and only its end deletes. Hold the button and let go early, or press Show me: it runs back, from full in the lower bar's time.</p>
+      <p data-hb-for="compare" hidden>Deletes on tap: one slip and the drafts are gone. Hold to confirm: a short press only starts the fill, which drains back, and it deletes once full; press the button or Show me.</p>
     </div>
   </section>
 
@@ -197,12 +267,15 @@
   // Everything that eases between two looks; toRest() switches these transitions off for a moment
   const easing=[hold,tip,card.querySelector('.file'),...hold.querySelectorAll('.dial,.ic,.words span')];
   let holdMs=1500,drainMs=400,p=0,holding=false,done=false,byVisitor=false,raf=0,lastT=null,doneTimer=0,tipTimer=0,runTimers=[];
+  let mode='normal',posed=false,fromMode=false;
 
   // p is how full it is (0 to 1). Under reduced motion the fill shows it in quarters, so it steps instead of sliding.
   function draw(){
-    const v=reduceMq.matches?Math.floor(p*4+1e-9)/4:p;
+    const v=posed?poseFill():reduceMq.matches?Math.floor(p*4+1e-9)/4:p;
     fill.style.transform='scaleX('+v+')';
     rf.style.strokeDashoffset=String(1-v);
+    if(mode==='inside'){hlit.style.transform='scaleX('+v+')';mark.style.transform='translateX('+100*v+'%)'}
+    else if(mode==='compare')syncCopy();
   }
   // One frame: held, it fills by the time passed over How long to hold; let go, it drains by the time passed over How fast it drains.
   function frame(ts){
@@ -212,6 +285,9 @@
     else p=Math.max(0,p-dt/drainMs);
     draw();
     raf=holding||(!done&&p>0)?requestAnimationFrame(frame):0;
+    // Show me's run ends as its fill empties (only watch() is still pending then), so the pose comes back at once
+    if(!raf&&p===0&&runTimers.length===1){clearTimeout(runTimers[0]);runTimers=[]}
+    if(!raf&&mode==='compare')pose();
   }
   function run(){if(!raf){lastT=null;raf=requestAnimationFrame(frame)}}
   document.addEventListener('visibilitychange',()=>{lastT=null});
@@ -219,7 +295,9 @@
   // A press starts filling (a confirmed button ignores presses until it is back). byVisitor keeps Show me's run quiet for screen readers.
   function press(visitor){
     if(done)return;
+    if(posed){posed=false;stage.classList.remove('posed');draw()}
     byVisitor=visitor;holding=true;
+    if(mode==='compare')syncCopy();
     hold.classList.add('down');
     clearTimeout(tipTimer);tip.classList.remove('on');statusEl.textContent='';
     run();
@@ -258,6 +336,8 @@
   // press without the shake or the hint. This page has no Slow motion: How long to hold already sets the pace.
   function later(fn,ms){const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},ms);runTimers.push(id)}
   function running(){return runTimers.length>0}
+  // The run stays pending until the button is empty again, the last hold and the confirmed second included
+  function watch(){if(holding||done||p>0)later(watch,250);else if(mode==='compare')pose()}
   function stopRun(){
     runTimers.forEach(clearTimeout);runTimers=[];
     if(holding&&!byVisitor){holding=false;hold.classList.remove('down');run()}
@@ -266,7 +346,7 @@
   // cleared, a reflow makes it stick, and the transitions come back.
   function toRest(){
     cancelAnimationFrame(raf);raf=0;clearTimeout(doneTimer);clearTimeout(tipTimer);
-    holding=done=false;p=0;
+    holding=done=false;p=0;posed=false;stage.classList.remove('posed');
     easing.forEach(el=>{el.style.transition='none'});
     hold.classList.remove('down','done');card.classList.remove('gone');tip.classList.remove('on');shaker.classList.remove('shake');
     statusEl.textContent='';draw();
@@ -276,27 +356,73 @@
   // A press let go at 30% of How long to hold (the drain, the hint and the shake), then a press held until it is full. At the defaults
   // the tick shows at 2.6 s and the button is empty again at 4 s. The arrival press leaves a visitor's own hold alone.
   $('btn-demo').addEventListener('click',e=>{
-    if(!e.isTrusted&&(holding||done||p>0))return;
+    if(!e.isTrusted&&!fromMode&&(holding||done||p>0))return;
     stopRun();toRest();
     const early=.3*holdMs;
     later(()=>press(false),150);
     later(release,150+early);
     later(()=>press(false),600+early);
+    later(watch,700+early);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops, also while its last press is held (no timer is left
   // then). This comes before the button's own pointerdown, so a press on the button takes over the fill where it is.
   document.addEventListener('hb:input',()=>{if(running()||(holding&&!byVisitor))stopRun()});
+
+  // See inside's strip and Compare's copy. The strip stands for three seconds; its bars and words come from How long to hold, How fast
+  // it drains and Shakes if let go early, and the marker and the lit part follow the fill exactly as draw() draws it.
+  const SPAN=3000,strip=card.querySelector('.strip'),hlit=strip.querySelector('.hlit'),mark=strip.querySelector('.mark');
+  const HOLD_WORDS={800:'under a second',1500:'about a second and a half',2500:'two and a half seconds'};
+  const DRAIN_WORDS={400:'in under half a second',1500:'in up to a second and a half'};
+  function drawStrip(){
+    strip.style.setProperty('--hw',100*holdMs/SPAN+'%');
+    strip.style.setProperty('--dw',100*drainMs/SPAN+'%');
+    strip.querySelector('.s-hold').textContent='Hold: '+HOLD_WORDS[holdMs];
+    strip.querySelector('.s-drain').textContent='Let go early: it drains back '+DRAIN_WORDS[drainMs]+(shakeTog.checked&&!reduceMq.matches?', and shakes':'');
+  }
+  // Compare's first half: the same card with a plain button, no ids, out of the Tab order and hidden from screen readers
+  const cp=card.cloneNode(true);
+  cp.removeAttribute('id');cp.className='card cp';cp.inert=true;cp.setAttribute('aria-hidden','true');
+  cp.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  cp.querySelectorAll('.fill,.ring,.strip').forEach(el=>el.remove());
+  const cpBtn=document.createElement('span'),cpOld=cp.querySelector('.hold');
+  cpBtn.className='hold';cpBtn.append(...cpOld.childNodes);cpOld.replaceWith(cpBtn);
+  cp.querySelector('.w-hold').textContent='Delete';
+  card.before(cp);
+  easing.push(cp.querySelector('.file'),...cp.querySelectorAll('.dial,.ic,.words span'));
+  // The copy stands deleted at the first touch and comes back when the real button is empty again
+  function syncCopy(){
+    const gone=posed||holding||done||p>0;
+    cp.classList.toggle('gone',gone);cpBtn.classList.toggle('done',gone);
+  }
+  // The pose: at rest in Compare the real fill is drawn a quarter of a second in (the first quarter under reduced motion) without
+  // touching p; a press lifts it before p is read, and it comes back when the button is empty and no run is pending
+  const poseFill=()=>reduceMq.matches?.25:Math.min(1,250/holdMs);
+  function pose(){
+    posed=mode==='compare'&&!holding&&!done&&p===0&&!running();
+    stage.classList.toggle('posed',posed);
+    draw();
+  }
+  function refresh(){if(mode!=='normal'){drawStrip();pose()}}
+  // The mode switch draws the mode at once. Its Show me press is untrusted, so fromMode lets it through the guard at Show me.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    fromMode=true;queueMicrotask(()=>{fromMode=false});
+    drawStrip();pose();
+  });
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('time-seg',d=>{holdMs=+d.ms});
   choices('style-seg',d=>{stage.classList.toggle('ring-mode',d.s==='ring')});
   choices('drain-seg',d=>{drainMs=+d.ms});
+  shakeTog.addEventListener('change',refresh);
+  reduceMq.addEventListener('change',refresh);
 </script>
 </body>
 </html>
