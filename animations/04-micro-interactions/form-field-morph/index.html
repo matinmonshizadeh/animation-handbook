@@ -49,7 +49,7 @@
     .stage .float-field :is(input,textarea):focus-visible,.stage .box-field input:focus-visible{outline:none}
     /* iOS Safari zooms in on a field whose text is smaller than 16px */
     @media(pointer:coarse){.float-field input,.float-field textarea,.box-field input,.float-field .tw-in,.box-field .tw-in,.float-field .pose-t{font-size:16px}}
-    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field textarea,.float-field .underline,.box-field label,.box-field input{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.float-field label,.float-field input,.float-field textarea,.float-field .underline,.box-field label,.box-field input,.box-field .tw-in{transition:none!important}}
     /* See inside and Compare: nothing below shows in Normal. See inside draws the label's two places from the page's own variables
        (the raised place is the label's own move) and joins them with an arrow; Compare puts an inert copy of the form with only a
        hint inside each field (a placeholder) beside the real one. */
@@ -69,7 +69,7 @@
     .gh-up i,.gh-box i{border-color:var(--focus-color);border-width:calc(2px / var(--label-scale))}
     .gh-box i{border-width:calc(2px / var(--box-scale))}
     .form .tw-in{display:flex;align-items:center;min-width:0;overflow:hidden;white-space:pre}
-    .form .tw-in.ta{align-items:flex-start;white-space:pre-wrap;overflow-wrap:anywhere}
+    .form .tw-in.ta{align-items:flex-start;white-space:pre-wrap;overflow-wrap:anywhere;height:56px}
     .tw-in:empty::before{content:attr(data-h);color:var(--ui-muted)}
     .pose-t{position:absolute;left:0;top:20px;height:44px;align-items:center;font-size:13px;color:var(--ui-text)}
     .stage[data-hb-mode="inside"] .views{display:block}
@@ -447,7 +447,9 @@
     mode=e.detail.mode;
     modePress=true;queueMicrotask(()=>{modePress=false});
     if(mode!=='inside')form.style.translate='';
+    const posed=nameWrap.classList.contains('pose');
     applyPose();
+    if(posed&&!nameWrap.classList.contains('pose')){const l=nameWrap.querySelector('label');l.style.transition='none';void l.offsetWidth;l.style.transition=''} // a pose a mode press takes away goes at once
     drawInside();
   });
 </script>
