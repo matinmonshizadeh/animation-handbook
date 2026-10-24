@@ -257,15 +257,15 @@
   const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
     "Inside, shown still: the band of light is caught where it stopped, and the faint strip shows its track past the card's edges, which cut it off.",
     "Shown still: the arrows show where each band would sweep; in Mixed directions the card's and the row's go opposite ways, in One direction the same way."];
-  let paused=reduceMQ.matches;
+  let paused=reduceMQ.matches,held=null;
   function describe(){
     notes.forEach((n,i)=>{const words=reduceMQ.matches&&paused?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
   }
   describe();
-  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused)held=null;describe()});
   reduceMQ.addEventListener('change',describe);
   // Two captions follow the settings: how often the band crosses (Speed, Slow motion) and how strong it is (Brightness)
-  const sweeps={2400:['a little over every second','every three and a half seconds'],1500:['every three quarters of a second','every two and a quarter seconds'],900:['about twice a second','every second and a third']};
+  const sweeps={2400:['every second or so','every three and a half seconds'],1500:['every three quarters of a second','every two and a quarter seconds'],900:['about twice a second','every second and a third']};
   const strengths={'0.12':'faint','0.25':'soft','0.45':'bright'};
   let bright='0.25';
   function captions(){
@@ -294,7 +294,16 @@
       if(t&&(t.classList.contains('sband')||t.classList.contains('bandl')))a.currentTime=ref.currentTime;
     });
   }
-  document.addEventListener('hb:mode',()=>{place();syncBands()});
+  // Under reduced motion a mode pressed while the loop is paused shows its still, as on arrival (time zero, where the mode's rules
+  // lay each band across its placeholder), and Normal gets back the moment the visitor paused at
+  document.addEventListener('hb:mode',e=>{
+    if(reduceMQ.matches&&paused){
+      const all=stage.getAnimations({subtree:true});
+      if(e.detail.mode!=='normal'){if(!held)held=all.map(a=>[a,a.currentTime]);all.forEach(a=>{a.currentTime=0})}
+      else if(held){held.forEach(([a,t])=>{a.currentTime=t});held=null}
+    }
+    place();syncBands();
+  });
   addEventListener('resize',place);
 
   function choices(id,pick){
@@ -309,6 +318,7 @@
   choices('speed-seg',d=>{
     const next=+d.ms;
     stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/shimMs});
+    if(held)held.forEach(h=>{h[1]=h[1]*next/shimMs});
     shimMs=next;
     vars.setProperty('--shim-dur',next+'ms');
     captions();
