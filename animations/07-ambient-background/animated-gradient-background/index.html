@@ -165,7 +165,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the gradient is painted four times as wide and tall as the box, and the box shows only the outlined part as it slides across and back.</p>
-      <p data-hb-for="compare" hidden>Too fast runs a whole cycle in a few seconds, which pulls the eye from the content. Calm, as you set it, shifts so slowly that you barely notice.</p>
+      <p data-hb-for="compare" hidden>Too fast runs a whole cycle in a few seconds, which pulls the eye from the content. Calm, as you set it, takes several times as long, so it stays in the background.</p>
     </div>
   </section>
 
@@ -296,7 +296,7 @@
   const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
   const STYLES=['var-pos','var-hue','var-multi'],FAST=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fast'));
   const REF=secs,POSE=1000; // the bars measure against Normal's speed; Compare's still is one second into the cycle
-  let mode='normal',posed=false,saved=0,lastSecs=secs;
+  let mode='normal',posed=false,saved=0,posedOn=null,lastSecs=secs;
   const kind=()=>bg.classList.contains('var-hue')?'hue':bg.classList.contains('var-multi')?'bands':'slide';
   const paused=()=>stage.classList.contains('hb-paused');
   const lead=()=>bg.getAnimations()[0];
@@ -311,15 +311,15 @@
   });
   stage.append(fast,cardCopy,...names);
 
-  // A note is written only when its words change, since its box is read out loud; the still words show while the loop is paused
-  // under reduced motion, and Compare's only while its pose shows
+  // A note is written only when its words change, since its box is read out loud; See inside's still words show while the loop is
+  // paused under reduced motion, and Compare's while its pose shows
   const STILL_IN={slide:'Inside, shown still: the gradient is four times as wide and tall as the box, which shows only the outlined part; the arrow shows how far that part slides.',
     hue:'Inside, shown still: the gradient stays put while all its colors turn around the color wheel together; the arrow shows they go all the way around.'};
   const HUE_IN='Inside, the gradient itself stays put: every one of its colors turns around the color wheel together, so the whole picture changes color.';
-  const STILL_CMP='Both are shown still, one second in: Too fast has already changed color a lot, while Calm has barely changed.';
+  const STILL_CMP='Both are shown still, one second in: Too fast has already changed color a lot, while Calm has changed much less.';
   function describe(){
     const k=kind(),still=reduceMQ.matches&&paused(),three=s=>k==='bands'?s.replace('four','three'):s;
-    const words=[k==='hue'?(still?STILL_IN.hue:HUE_IN):three(still?STILL_IN.slide:moving[0]),still&&posed?STILL_CMP:moving[1]];
+    const words=[k==='hue'?(still?STILL_IN.hue:HUE_IN):three(still?STILL_IN.slide:moving[0]),posed?STILL_CMP:moving[1]];
     notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
   }
   describe();
@@ -371,15 +371,14 @@
     if(k==='hue')placeDots();
     texts();syncTime(vin);
   }
-  // Compare: the copy follows the real gradient's style and muting; both then run from the same moment. Where the loop is paused near
-  // its start (or at a mode press under reduced motion) the halves could look alike, so both are posed one second in, and the real
-  // time is kept to put back.
+  // Compare: the copy follows the real gradient's style and muting; both then run from the same moment. Where the loop is paused
+  // the two cycles can line up and the halves look alike, so both are posed one second in, and the real time is kept to put back.
   function drawCompare(entering){
     fast.className='grad-bg cmp-fast '+STYLES.find(c=>bg.classList.contains(c))+(bg.classList.contains('subtle')?' subtle':'');
     const a=lead(),c=fast.getAnimations()[0];
     if(a&&c&&a.currentTime!=null){
-      if(paused()&&(posed||a.currentTime<POSE||entering&&reduceMQ.matches)){
-        if(!posed){saved=a.currentTime;posed=true}
+      if(paused()){
+        if(!posed){saved=a.currentTime;posedOn=a;posed=true}
         a.currentTime=c.currentTime=POSE;
       }else if(entering)syncTime(fast);
     }
@@ -394,16 +393,17 @@
     if(mode==='compare')drawCompare(true);
     describe();
   });
-  // Play lifts the pose and the gradient carries on from where it is; a Pause near the start poses again
+  // Play lifts the pose and the gradient carries on from where it is; every Pause poses again
   document.addEventListener('hb:pause',e=>{
     if(!e.detail.paused)posed=false;
     else if(mode==='compare')drawCompare(false);
     describe();
   });
   const on=(id,type,fn)=>document.getElementById(id).addEventListener(type,fn);
-  // A new gradient starts its own animation at zero, as in Normal, so a pose is dealt again and the real time to put back is zero
+  // A gradient with another animation starts it at zero, as in Normal, so a pose is dealt again and the real time to put back is
+  // zero; Sliding and Bright bands share one animation, which keeps its time, so the time to put back stays
   on('grad-seg','click',()=>{
-    if(mode==='compare'){if(posed)saved=0;drawCompare(true)}
+    if(mode==='compare'){if(posed&&lead()!==posedOn){saved=0;posedOn=lead()}drawCompare(true)}
     if(mode==='inside')drawInside();
     describe();
   });
