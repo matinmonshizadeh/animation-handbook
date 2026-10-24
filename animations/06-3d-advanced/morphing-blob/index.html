@@ -21,10 +21,46 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Morphing Blob", "name": "Morphing Blob", "description": "Blobs melt together, and one drop chases your pointer. Best for hero sections.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/morphing-blob/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Morphing Blob"}</script>
   <style>
-    :root{--ui-accent:#3fd6c4;--stage:#08060e}
+    :root{--ui-accent:#3fd6c4;--stage:#08060e;--gold:#ffc94d;--glow:#b9c6ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:radial-gradient(circle at 50% 42%,#141024,var(--stage) 70%);touch-action:none;cursor:crosshair}
     .stage svg{position:absolute;inset:0;width:100%;height:100%;display:block}
+    /* See inside and Compare: the extra layers, copy, key and names are drawn only in their own mode */
+    .stage :is(.gl,.cr,.ai,.cp,.keys,.nm){display:none}
+    .gs{stop-color:var(--glow)}
+    .cr{stroke:rgba(8,6,14,.7);stroke-width:1.2}
+    .ai{fill:none;stroke:#fff;stroke-linecap:round}
+    .ai .ring{stroke-width:2.6}
+    .ai .lead{stroke-width:2;stroke-dasharray:3 6}
+    .ai .cross{stroke-width:2.4}
+    .key,.nm{padding:5px 10px;border-radius:8px;background:rgba(8,6,14,.92);color:#f4f4f2;font:600 13px/1.3 var(--hb-font)}
+    .key{display:flex;align-items:center;gap:8px;text-wrap:balance}
+    .key .n{display:none}
+    .sw{flex:none;width:13px;height:13px;border-radius:50%}
+    .s1{background:linear-gradient(135deg,#b98bff,#58a6ff)}
+    .s2{background:radial-gradient(circle,#fff 0 22%,var(--glow) 40%,rgba(185,198,255,0) 100%)}
+    .s3{background:var(--gold)}
+    .s4{border:2px solid #fff}
+    .stage[data-hb-mode="inside"]{display:flex}
+    .stage[data-hb-mode="inside"] :is(.gl,.cr,.ai){display:inline}
+    .stage[data-hb-mode="inside"] #blobs{fill:var(--gold)}
+    .stage[data-hb-mode="inside"] svg{position:relative;inset:auto;flex:1 1 0;min-width:0;width:auto;height:100%}
+    .stage[data-hb-mode="inside"] .keys{display:flex;flex-direction:column;justify-content:center;gap:8px;flex:none;width:clamp(200px,32%,290px);padding:10px}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{flex-direction:column}
+      .stage[data-hb-mode="inside"] svg{width:100%;height:auto;min-height:0}
+      .stage[data-hb-mode="inside"] .keys{display:grid;grid-template-columns:1fr 1fr;width:auto;padding:6px;gap:6px}
+      .stage[data-hb-mode="inside"] .key{padding:4px 7px;gap:6px;font-size:12.5px}
+      .stage[data-hb-mode="inside"] .key .w{display:none}
+      .stage[data-hb-mode="inside"] .key .n{display:inline}
+    }
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr}
+    .stage[data-hb-mode="compare"] svg{position:relative;inset:auto;grid-row:2;min-width:0;min-height:0}
+    .stage[data-hb-mode="compare"] .cp{display:block;grid-column:1}
+    .stage[data-hb-mode="compare"] svg:not(.cp){grid-column:2}
+    .stage[data-hb-mode="compare"] .nm{display:block;grid-row:1;justify-self:center;margin:8px 4px 4px;white-space:nowrap}
+    .stage[data-hb-mode="compare"] .nm.second{grid-column:2}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:1px;background:rgba(255,255,255,.16)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,6 +83,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself, and one drop follows your pointer or finger. Pause it to look closely, or turn on slow motion.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <!-- The circles wander up to about 190 units from the middle (200, 200); this 360-unit box holds them almost always,
            and "meet" fits the whole box into any stage, so the blob is almost never cut. Beside the box the stage is still drawn. -->
@@ -66,12 +107,28 @@
             <stop offset="1" stop-color="#58a6ff"/>
           </linearGradient>
         </defs>
+        <g class="gl"></g>
         <g id="blobs" filter="url(#goo)" fill="url(#fill)"></g>
+        <g class="cr" fill="url(#fill)"></g>
+        <g class="ai"><line class="lead"/><path class="cross"/><circle class="ring"/></g>
       </svg>
+      <svg class="cp" viewBox="20 20 360 360" preserveAspectRatio="xMidYMid meet" aria-hidden="true" inert><g fill="url(#fill)"></g></svg>
+      <div class="keys" aria-hidden="true">
+        <p class="key" data-hb-caption><i class="sw s1"></i>Plain circles</p>
+        <p class="key" data-hb-caption><i class="sw s2"></i><span class="w">Blurred: each edge spreads into a glow</span><span class="n">Blurred: edges glow</span></p>
+        <p class="key" data-hb-caption><i class="sw s3"></i><span class="w">Sharpened again: where glows add up, liquid joins them (gold)</span><span class="n">Gold: liquid joins</span></p>
+        <p class="key" data-hb-caption><i class="sw s4"></i><span class="w">This drop chases your pointer</span><span class="n">Drop chases pointer</span></p>
+      </div>
+      <p class="nm first" aria-hidden="true" data-hb-caption>Plain circles</p>
+      <p class="nm second" aria-hidden="true" data-hb-caption>Gooey</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the blob is plain circles: the filter blurs each one (the soft glow), then sharpens the edge again, and where two glows add up, liquid joins them (gold).</p>
+      <p data-hb-for="compare" hidden>Plain circles: the same circles with no filter, which only overlap with hard edges. Gooey: blurred and sharpened again, they melt into one liquid shape.</p>
     </div>
   </section>
 
@@ -153,34 +210,81 @@
 const NS='http://www.w3.org/2000/svg';
 const svg=document.getElementById('svg'),group=document.getElementById('blobs'),blur=document.getElementById('blur');
 const stage=document.getElementById('stage'),slowTog=document.getElementById('slow-tog');
+// See inside and Compare: the layers drawn inside the real picture (a glow and a crisp circle for each blob, a ring and a line
+// for the drop) and the copy of the circles with no filter, which Compare shows beside it
+const defs=svg.querySelector('defs'),glowG=svg.querySelector('.gl'),crispG=svg.querySelector('.cr'),copyG=document.querySelector('.cp g');
+const ring=svg.querySelector('.ring'),lead=svg.querySelector('.lead'),cross=svg.querySelector('.cross');
+const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+let mode='normal',paused=reduceMQ.matches,held=null;
+const LABELS={normal:svg.getAttribute('aria-label'),
+  inside:'The blob\'s plain circles, each with a soft glow, with the liquid that joins close circles shown in gold and the drop that chases the pointer ringed',
+  compare:'Two copies of the blob side by side: plain circles that only overlap on the left, circles that melt into one liquid shape on the right'};
 
 const CX=200,CY=200;                  // viewBox centre
 let blobs=[],drop=null,speed=1,phase=0; // phase accumulates so a speed change never jumps
 let raf=null,last=null;
 let pointer={x:CX,y:CY};              // target for the drop, in viewBox units
 
-// Makes the circles and nothing else: place() puts them on the stage. The drop stays where it was.
+function add(parent,tag,attrs){
+  const el=document.createElementNS(NS,tag);
+  for(const k in attrs)el.setAttribute(k,attrs[k]);
+  parent.appendChild(el);
+  return el;
+}
+
+// Makes the circles and nothing else: place() puts them on the stage. The drop stays where it was. Every view draws these same
+// circles: each gets a glow, a crisp circle (See inside) and a copy with no filter (Compare). Made here, never on a mode press.
 function build(n){
   const from=drop?{x:drop.x,y:drop.y}:{x:CX,y:CY};
-  group.textContent='';
-  blobs=[];
-  for(let i=0;i<n;i++){
-    const el=document.createElementNS(NS,'circle');
-    group.appendChild(el);
-    if(i===0){
-      // The drop: chases the pointer instead of drifting.
-      drop={el,droplet:true,x:from.x,y:from.y,r:34};
-      blobs.push(drop);
-    }else{
-      const ang=(i/n)*Math.PI*2, orbit=58+Math.random()*30;
-      blobs.push({el,droplet:false,
-        bx:CX+Math.cos(ang)*orbit, by:CY+Math.sin(ang)*orbit,
-        r:26+Math.random()*26,
-        ax:20+Math.random()*34, ay:20+Math.random()*34,     // wander amplitude
-        px:Math.random()*6.28, py:Math.random()*6.28,       // phase
-        sx:0.4+Math.random()*0.6, sy:0.4+Math.random()*0.6, // per-axis rate
-        x:CX,y:CY});
+  [group,glowG,crispG,copyG].forEach(g=>{g.textContent='';});
+  defs.querySelectorAll('.glow').forEach(g=>g.remove());
+  for(let tries=0;tries<20;tries++){
+    blobs=[];
+    for(let i=0;i<n;i++){
+      if(i===0){
+        // The drop: chases the pointer instead of drifting.
+        blobs.push({droplet:true,x:from.x,y:from.y,r:34});
+      }else{
+        const ang=(i/n)*Math.PI*2, orbit=58+Math.random()*30;
+        blobs.push({droplet:false,
+          bx:CX+Math.cos(ang)*orbit, by:CY+Math.sin(ang)*orbit,
+          r:26+Math.random()*26,
+          ax:20+Math.random()*34, ay:20+Math.random()*34,     // wander amplitude
+          px:Math.random()*6.28, py:Math.random()*6.28,       // phase
+          sx:0.4+Math.random()*0.6, sy:0.4+Math.random()*0.6, // per-axis rate
+          x:CX,y:CY});
+      }
     }
+    if(!reduceMQ.matches||melts())break;
+  }
+  blobs.forEach((b,i)=>{
+    b.el=add(group,'circle',{});
+    const g=add(defs,'radialGradient',{id:'gl'+i,class:'glow'});
+    b.stops=[.7,.26,0].map(a=>add(g,'stop',{class:'gs','stop-opacity':a}));
+    b.gl=add(glowG,'circle',{fill:'url(#gl'+i+')'});
+    b.cr=add(crispG,'circle',{r:b.r.toFixed(2)});
+    b.cp=add(copyG,'circle',{r:b.r.toFixed(2)});
+    b.views={inside:[b.gl,b.cr],compare:[b.cp]};
+    if(b.droplet)drop=b;
+  });
+  ring.setAttribute('r',drop.r+4);
+  glow();
+}
+
+// A reduced-motion still shows the plan as it is, so it needs two circles close enough to join (a gap under one blur)
+function melts(){
+  blobs.forEach(drift);
+  return blobs.some((a,i)=>blobs.some((b,j)=>j>i&&Math.hypot(a.x-b.x,a.y-b.y)-a.r-b.r<5));
+}
+
+// See inside: each circle's soft glow is what the blur makes of its edge, a fade from the edge to about two blurs out,
+// taken from the filter's own spread (the same circles and the same spread as the picture, with no second filter)
+function glow(){
+  const spread=+blur.getAttribute('stdDeviation');
+  for(const b of blobs){
+    const R=b.r+2*spread,f=b.r/R;
+    b.gl.setAttribute('r',R.toFixed(2));
+    [f,f+(1-f)/2,1].forEach((o,k)=>b.stops[k].setAttribute('offset',o.toFixed(3)));
   }
 }
 
@@ -199,16 +303,35 @@ function step(dt){
 
 // Every circle's place follows from the phase (the drop from its own position), so the picture can be
 // drawn at any moment without moving anything: at load, and when the circles are made again while paused.
+function drift(b){
+  if(!b.droplet){
+    b.x=b.bx+Math.sin(phase*b.sx+b.px)*b.ax;
+    b.y=b.by+Math.cos(phase*b.sy+b.py)*b.ay;
+  }
+}
 function place(){
   for(const b of blobs){
-    if(!b.droplet){
-      b.x=b.bx+Math.sin(phase*b.sx+b.px)*b.ax;
-      b.y=b.by+Math.cos(phase*b.sy+b.py)*b.ay;
-    }
-    b.el.setAttribute('cx',b.x.toFixed(2));
-    b.el.setAttribute('cy',b.y.toFixed(2));
+    drift(b);
+    const x=b.x.toFixed(2),y=b.y.toFixed(2),v=b.views[mode];
+    b.el.setAttribute('cx',x);
+    b.el.setAttribute('cy',y);
     b.el.setAttribute('r',b.r.toFixed(2));
+    if(v)for(let i=0;i<v.length;i++){v[i].setAttribute('cx',x);v[i].setAttribute('cy',y);}
   }
+  if(mode==='inside')aimAt();
+}
+
+// See inside: a ring on the drop and a dashed line from its edge to the cross where it is heading (nothing when it is there)
+function aimAt(){
+  const dx=pointer.x-drop.x,dy=pointer.y-drop.y,d=Math.hypot(dx,dy),k=drop.r+4,f=d>k+8?k/d:0;
+  ring.setAttribute('cx',drop.x.toFixed(2));
+  ring.setAttribute('cy',drop.y.toFixed(2));
+  lead.setAttribute('visibility',f?'visible':'hidden');
+  lead.setAttribute('x1',(drop.x+dx*f).toFixed(2));
+  lead.setAttribute('y1',(drop.y+dy*f).toFixed(2));
+  lead.setAttribute('x2',pointer.x.toFixed(2));
+  lead.setAttribute('y2',pointer.y.toFixed(2));
+  cross.setAttribute('d','M'+(pointer.x-7).toFixed(2)+' '+pointer.y.toFixed(2)+'h14M'+pointer.x.toFixed(2)+' '+(pointer.y-7).toFixed(2)+'v14');
 }
 
 // The loop keeps exactly one pending frame in raf. The first frame after a start adds nothing, and a long
@@ -227,9 +350,45 @@ document.addEventListener('visibilitychange',()=>{last=null;});
 // loop on arrival, which this listener must catch. Pause cancels the pending frame and the picture stays;
 // Play calls start(), which carries on from the same phase.
 document.addEventListener('hb:pause',e=>{
-  if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}
-  else start();
+  paused=e.detail.paused;
+  describe();
+  if(paused){cancelAnimationFrame(raf);raf=null;}
+  else{held=null;start();}
 });
+
+// Under reduced motion the blob starts paused, so both views are still pictures and their notes say so; after Play they
+// say the markup's own words again, and after Pause the still words. A note is written only when its words change.
+const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
+  'Shown still: the blob is plain circles; the filter blurs each one (the soft glow), then sharpens the edge again, and where two glows add up, liquid joins them (gold).',
+  'Shown still: Plain circles only overlap, with hard edges; Gooey, blurred and sharpened again, melts them into one liquid shape.'];
+function describe(){
+  const shown=reduceMQ.matches&&paused;
+  notes.forEach((n,i)=>{const words=shown?still[i]:moving[i];if(n.textContent!==words)n.textContent=words;});
+}
+describe();
+reduceMQ.addEventListener('change',describe);
+
+// The mode switch: the view is drawn at once from the same circles, whether the blob moves or is paused. In a view the drop and
+// the pointer's target stay inside the picture they are shown in.
+// Paused, Normal's phase, drop and target are held while a view shows and put back by Normal unless it played since, and a
+// view paused where no two circles are close enough to join poses the next moment where they are
+document.addEventListener('hb:mode',e=>{
+  if(paused&&mode==='normal')held={phase,x:drop.x,y:drop.y,px:pointer.x,py:pointer.y};
+  mode=e.detail.mode;
+  svg.setAttribute('aria-label',LABELS[mode]);
+  if(mode==='normal'&&held){phase=held.phase;drop.x=held.x;drop.y=held.y;pointer.x=held.px;pointer.y=held.py;held=null;}
+  keepIn(pointer);keepIn(drop);pose();
+  place();
+});
+function pose(){if(paused&&mode!=='normal')for(let k=0;k<600&&!melts();k++)phase+=.05;}
+function keepIn(p){
+  if(mode==='normal')return;
+  const m=svg.getScreenCTM(),r=svg.getBoundingClientRect(),k=drop.r+4;
+  if(!m)return;
+  p.x=Math.min((r.right-m.e)/m.a-k,Math.max((r.left-m.e)/m.a+k,p.x));
+  p.y=Math.min((r.bottom-m.f)/m.d-k,Math.max((r.top-m.f)/m.d+k,p.y));
+}
+window.addEventListener('resize',()=>{if(mode!=='normal'){keepIn(pointer);keepIn(drop);place();}});
 
 // Pointer Events cover mouse, pen and touch with one code path. The SVG's own screen matrix turns the pointer into drawing
 // units, so the drop stays under the pointer wherever the SVG is scaled and centred, also beside the box on a wide stage.
@@ -237,9 +396,12 @@ document.addEventListener('hb:pause',e=>{
 function toViewBox(e){
   const m=svg.getScreenCTM();
   if(!m)return;
+  // Compare: the real picture is the second half, and a pointer over the first half moves nothing
+  if(mode==='compare'&&e.clientX<svg.getBoundingClientRect().left)return;
   const p=new DOMPoint(e.clientX,e.clientY).matrixTransform(m.inverse());
   pointer.x=p.x;
   pointer.y=p.y;
+  keepIn(pointer);
 }
 stage.addEventListener('pointermove',toViewBox);
 stage.addEventListener('pointerdown',toViewBox);
@@ -252,9 +414,9 @@ function choices(id,pick){
     pick(b.dataset);
   }));
 }
-choices('goo-seg',d=>{blur.setAttribute('stdDeviation',d.goo);});
+choices('goo-seg',d=>{blur.setAttribute('stdDeviation',d.goo);glow();});
 // Choosing the count already chosen must not make new random circles
-choices('count-seg',d=>{const n=+d.count;if(n===blobs.length)return;build(n);place();});
+choices('count-seg',d=>{const n=+d.count;if(n===blobs.length)return;build(n);pose();place();});
 choices('speed-seg',d=>{speed=+d.speed;});
 
 build(6);
