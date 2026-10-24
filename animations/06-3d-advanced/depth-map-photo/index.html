@@ -29,6 +29,17 @@
     /* A finger on the picture aims the view both ways, so the picture keeps it; under reduced motion it scrolls the page */
     canvas{display:block;width:100%;height:100%;touch-action:none}
     @media(prefers-reduced-motion:reduce){canvas{touch-action:auto}}
+    /* See inside and Compare: plain words and a pretend pointer over the picture (the picture itself is drawn by the shader) */
+    .ovl{display:none;position:absolute;inset:0;pointer-events:none;overflow:hidden}
+    .stage[data-hb-mode="inside"] .ovl,.stage[data-hb-mode="compare"] .ovl{display:block}
+    .cap{display:none;position:absolute;left:0;top:0;padding:3px 8px;border-radius:5px;background:rgba(8,8,12,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .stage[data-hb-mode="inside"] .cap.in,.stage[data-hb-mode="compare"] .cap.half{display:block}
+    .cap.half,.cap.nw{white-space:nowrap}
+    .ring{display:none;position:absolute;left:0;top:0;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 2px rgba(8,8,12,.75),inset 0 0 0 2px rgba(8,8,12,.75)}
+    .ring::after{content:"";position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#fff}
+    .ring.ghost{border-style:dashed}
+    .stage[data-hb-mode="inside"] .ring.you,.stage[data-hb-mode="compare"] .ring{display:block}
+    .stage[data-hb-mode="inside"] .ring.ghost{display:none}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -51,11 +62,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the picture, drag a finger across it (or Tab to it and use the arrow keys), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" tabindex="0" aria-label="A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones. The arrow keys do what the pointer does."></canvas>
+      <div class="ovl" aria-hidden="true">
+        <p class="cap in" data-k="map" data-hb-caption>Depth map: white is near, black is far</p>
+        <p class="cap in" data-k="near" data-hb-caption>Near: shifts most</p>
+        <p class="cap in nw" data-k="far" data-hb-caption>Far: shifts the other way</p>
+        <p class="cap in" data-k="hold" data-hb-caption>This depth holds still</p>
+        <p class="cap in" data-k="lines" data-hb-caption>Faint lines: where it stood facing straight on</p>
+        <p class="cap half" data-hb-caption>One flat sheet</p>
+        <p class="cap half" data-hb-caption>With depth</p>
+        <i class="ring you"></i><i class="ring ghost"></i>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the left part shows the depth map (white near, black far); each spot shifts by its gray, so near parts move most. Faint lines show where everything stood facing straight on.</p>
+      <p data-hb-for="compare" hidden>One flat sheet slides the whole picture the same amount, so it stays flat; With depth shifts each part by its gray, so it looks deep. Point at With depth or press Show me.</p>
     </div>
   </section>
 
@@ -123,22 +153,39 @@
 const VS='attribute vec2 a;varying vec2 v;void main(){v=a*.5+.5;gl_Position=vec4(a,0.,1.);}';
 // A spot at depth t moves by uOff*(t-uFocus). Each pixel tries depths from near (1) to far (0) for the spot that lands on it,
 // stops at the first that is at least as near as the try (the nearest surface wins), then halves the last step five times.
-const FS=`precision mediump float;varying vec2 v;uniform sampler2D uImg,uDep;uniform vec2 uOff,uZoom;uniform float uFocus,uMap;
+// See inside and Compare: uFlat is a depth that moves every spot alike, uSplit the share drawn as the depth map, and uLines draws
+// the faint lines where the depth map steps from one layer to the next, read at the spot facing straight on (uPx is under a pixel).
+const FS=`precision mediump float;varying vec2 v;uniform sampler2D uImg,uDep;uniform vec2 uOff,uZoom,uPx;uniform float uFocus,uMap,uFlat,uLines,uSplit,uVw;
+float lv(vec2 q){float d=texture2D(uDep,q).r;return step(.1,d)+step(.325,d)+step(.55,d)+step(.775,d);}
 void main(){
-  vec2 uv=.5+(v-.5)*uZoom;
-  float t=1.,tp=1.,h=texture2D(uDep,uv+uOff*(1.-uFocus)).r-1.;
-  for(int i=0;i<24;i++){if(h>=0.)break;tp=t;t-=1./24.;h=texture2D(uDep,uv+uOff*(t-uFocus)).r-t;}
-  for(int i=0;i<5;i++){float m=(t+tp)*.5;if(texture2D(uDep,uv+uOff*(m-uFocus)).r>=m)t=m;else tp=m;}
-  vec2 p=uv+uOff*(t-uFocus);
-  gl_FragColor=vec4(mix(texture2D(uImg,p).rgb,vec3(texture2D(uDep,p).r),uMap),1.);
+  vec2 uv=.5+(v-.5)*uZoom,p;
+  if(uFlat>0.)p=uv+uOff*(uFlat-uFocus);
+  else{
+    float t=1.,tp=1.,h=texture2D(uDep,uv+uOff*(1.-uFocus)).r-1.;
+    for(int i=0;i<24;i++){if(h>=0.)break;tp=t;t-=1./24.;h=texture2D(uDep,uv+uOff*(t-uFocus)).r-t;}
+    for(int i=0;i<5;i++){float m=(t+tp)*.5;if(texture2D(uDep,uv+uOff*(m-uFocus)).r>=m)t=m;else tp=m;}
+    p=uv+uOff*(t-uFocus);
+  }
+  vec3 c=mix(texture2D(uImg,p).rgb,vec3(texture2D(uDep,p).r),max(uMap,1.-step(uSplit,v.x)));
+  if(uLines>.5){
+    float e=(lv(uv+vec2(uPx.x,0.))!=lv(uv-vec2(uPx.x,0.))||lv(uv+vec2(0.,uPx.y))!=lv(uv-vec2(0.,uPx.y)))?1.:0.;
+    c=mix(c,vec3(mix(1.,.03,smoothstep(.4,.6,dot(c,vec3(.3,.59,.11))))),e*.9);
+    if(uSplit>0.)c=mix(c,vec3(1.),step(abs(v.x-uSplit)*uVw,.75));
+  }
+  gl_FragColor=vec4(c,1.);
 }`;
 const stage=document.getElementById('stage');
 let cvs=document.getElementById('cvs');
 const reduce=matchMedia('(prefers-reduced-motion:reduce)');
 const PHONE=matchMedia('(max-width:600px),(max-height:500px)'); // phones: up to 600px wide, or 500px tall when held sideways
 const FRAME=1000/60,K=.1,RUN_MS=3000,FOCUS=.4,MAXSTR=.05,VY=.3; // FOCUS: the depth that holds still; VY: share of up and down
-let gl=null,g2=null,U={},W=0,H=0,SW=0,SH=0,sizeTimer=0;
+// See inside and Compare: PARK is where the aim rests (the right edge), FLAT the one depth "One flat sheet" moves by, GRAY the share
+// of See inside drawn as the depth map, STRIP the room above a half for its name, and the halves stack below STACK pixels wide
+const PARK=1,FLAT=.65,GRAY=.45,STRIP=34,GAP=6,STACK=480;
+let gl=null,g2=null,U={},W=0,H=0,SW=0,SH=0,cs=1,sizeTimer=0,mode='normal',pointerAim=false,V=[],shape='',lineCv=null;
 let STR=.035,MAP=0,ax=0,ay=0,sx=0,sy=0,run=null,raf=0,lastT=null,holdTimer=0; // a: where the pointer aims, s: where the view is (-1 to 1)
+const home=()=>mode==='normal'?[0,0]:[PARK,0]; // where the view goes when nothing aims it
+function aimHome(){const h=home();ax=h[0];ay=h[1];}
 
 // The picture, far to near, as [depth, draw(g,w,h,c,m,dm)]: c(color) is the color, or in the depth map (dm) the layer's gray
 const gray=d=>{const n=Math.round(d*255);return `rgb(${n},${n},${n})`;};
@@ -179,7 +226,7 @@ function initGL(){
   try{
     const p=gl.createProgram();gl.attachShader(p,sh(gl.VERTEX_SHADER,VS));gl.attachShader(p,sh(gl.FRAGMENT_SHADER,FS));gl.linkProgram(p);
     if(!gl.getProgramParameter(p,gl.LINK_STATUS))throw new Error(gl.getProgramInfoLog(p));
-    gl.useProgram(p);U={};['uImg','uDep','uOff','uZoom','uFocus','uMap'].forEach(n=>{U[n]=gl.getUniformLocation(p,n);});
+    gl.useProgram(p);U={};['uImg','uDep','uOff','uZoom','uPx','uFocus','uMap','uFlat','uLines','uSplit','uVw'].forEach(n=>{U[n]=gl.getUniformLocation(p,n);});
     gl.bindBuffer(gl.ARRAY_BUFFER,gl.createBuffer());gl.bufferData(gl.ARRAY_BUFFER,new Float32Array([-1,-1,1,-1,-1,1,1,1]),gl.STATIC_DRAW);
     const a=gl.getAttribLocation(p,'a');gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
     [0,1].forEach(i=>{ // unit 0: the picture, unit 1: the depth map
@@ -196,38 +243,87 @@ function init2d(){const c=cvs.cloneNode(false);cvs.replaceWith(c);cvs=c;g2=cvs.g
 
 // Both pictures are painted larger than the canvas (SW x SH), so no shift shows an edge. Near shapes in the depth map grow a little
 // (the lighter of shifted copies), so a strip of background moves with each and fills what it uncovers; a slight blur smooths steps.
-function upload(){
-  const make=dm=>{const c=document.createElement('canvas');c.width=SW;c.height=SH;const g=c.getContext('2d'),m=Math.min(SW,SH);
-    LAYERS.forEach(([d,draw])=>draw(g,SW,SH,colorOf(d,dm),m,dm));return c;};
-  const dep=make(true),map=document.createElement('canvas');map.width=SW;map.height=SH;
+function paint(dm){const c=document.createElement('canvas');c.width=SW;c.height=SH;const g=c.getContext('2d'),m=Math.min(SW,SH);
+  LAYERS.forEach(([d,draw])=>draw(g,SW,SH,colorOf(d,dm),m,dm));return c;}
+function depthMap(){
+  const dep=paint(true),map=document.createElement('canvas');map.width=SW;map.height=SH;
   const b=map.getContext('2d'),r=SW/250;
   b.drawImage(dep,0,0);b.globalCompositeOperation='lighten';
   for(let i=0;i<16;i++)b.drawImage(dep,Math.cos(i*Math.PI/8)*r*(i%2?.5:1),Math.sin(i*Math.PI/8)*r*(i%2?.5:1));
   b.globalCompositeOperation='source-over';b.filter=`blur(${Math.max(1,Math.round(SW/500))}px)`;b.drawImage(map,0,0);
-  gl.activeTexture(gl.TEXTURE0);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,make(false));
+  return map;
+}
+function upload(){
+  const map=depthMap();
+  gl.activeTexture(gl.TEXTURE0);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,paint(false));
   gl.activeTexture(gl.TEXTURE1);gl.texImage2D(gl.TEXTURE_2D,0,gl.RGBA,gl.RGBA,gl.UNSIGNED_BYTE,map);
 }
-// Only a real change of size repaints (it clears the canvas). Pixel density is capped at 2, and at 1.5 on phones.
+// The faint lines for the 2D picture: where the depth map steps from one layer to the next (the shader's cuts, on its pixels)
+function edges(){
+  const d=depthMap().getContext('2d').getImageData(0,0,SW,SH).data,o=new ImageData(SW,SH),n=SW*4;
+  const lv=i=>(d[i]>25)+(d[i]>83)+(d[i]>140)+(d[i]>198);
+  for(let i=n+4;i<d.length-n-4;i+=4)if(lv(i+4)!==lv(i-4)||lv(i+n)!==lv(i-n)){o.data[i]=o.data[i+1]=o.data[i+2]=255;o.data[i+3]=220;}
+  const c=document.createElement('canvas');c.width=SW;c.height=SH;c.getContext('2d').putImageData(o,0,0);return c;
+}
+// The pictures drawn, in canvas pixels (c: the same in page pixels). Normal and See inside draw one over the whole stage.
+// Compare draws two of the same size, "One flat sheet" first, each below its name; they stack on a narrow stage.
+function views(){
+  cs=W/Math.max(1,stage.clientWidth);
+  const mk=(x,y,w,h,flat,lines,split)=>({x,y,w,h,flat,lines,split,c:{x:x/cs,y:y/cs,w:w/cs,h:h/cs}});
+  if(mode!=='compare')return [mk(0,0,W,H,0,+(mode==='inside'),mode==='inside'?GRAY:0)];
+  const S=Math.round(STRIP*cs),G=Math.round(GAP*cs);
+  if(stage.clientWidth<STACK){const b=Math.floor((H-G)/2);return [mk(0,S,W,b-S,FLAT,1,0),mk(0,H-b+S,W,b-S,0,1,0)];}
+  const w=Math.floor((W-G)/2);return [mk(0,S,w,H-S,FLAT,1,0),mk(W-w,S,w,H-S,0,1,0)];
+}
+// Only a real change of size (or of the picture's shape in Compare) repaints (it clears the canvas). Pixel density is capped at 2,
+// and at 1.5 on phones.
 function layout(){
   const dpr=Math.min(devicePixelRatio||1,PHONE.matches?1.5:2);
-  const w=Math.max(1,Math.round(stage.clientWidth*dpr)),h=Math.max(1,Math.round(stage.clientHeight*dpr));
-  if(w===W&&h===H)return false;
-  W=cvs.width=w;H=cvs.height=h;
-  const z=Math.min(1/(1+2*MAXSTR*(1-FOCUS)),H/(H+2*VY*MAXSTR*(1-FOCUS)*W)); // room for the strongest shift on every side
-  SW=Math.ceil(W/z);SH=Math.ceil(H/z);
-  if(gl){gl.viewport(0,0,W,H);upload();}
+  const w=Math.max(1,Math.round(stage.clientWidth*dpr)),h=Math.max(1,Math.round(stage.clientHeight*dpr)),same=w===W&&h===H;
+  if(!same){W=cvs.width=w;H=cvs.height=h;}
+  V=views();
+  const key=V[0].w+'x'+V[0].h;
+  if(same&&key===shape)return false;
+  shape=key;lineCv=null;
+  const vw=V[0].w,vh=V[0].h;
+  const z=Math.min(1/(1+2*MAXSTR*(1-FOCUS)),vh/(vh+2*VY*MAXSTR*(1-FOCUS)*vw)); // room for the strongest shift on every side
+  SW=Math.ceil(vw/z);SH=Math.ceil(vh/z);
+  if(gl)upload();
   return true;
 }
 // The nearest part moves STR of the picture's width against the farthest one at the edge; up and down move VY as far.
 function draw(){
-  const O=STR*W;
   if(gl){
-    gl.uniform2f(U.uOff,O*sx/SW,-VY*O*sy/SH);gl.uniform2f(U.uZoom,W/SW,H/SH);gl.uniform1f(U.uFocus,FOCUS);gl.uniform1f(U.uMap,MAP);
-    gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    gl.uniform1f(U.uFocus,FOCUS);gl.uniform1f(U.uMap,MAP);gl.uniform2f(U.uPx,.75*cs/SW,.75*cs/SH);
+    if(mode==='compare'){gl.clearColor(.043,.043,.051,1);gl.clear(gl.COLOR_BUFFER_BIT);}
+    V.forEach(v=>{
+      const O=STR*v.w;
+      gl.viewport(v.x,H-v.y-v.h,v.w,v.h);
+      gl.uniform2f(U.uOff,O*sx/SW,-VY*O*sy/SH);gl.uniform2f(U.uZoom,v.w/SW,v.h/SH);
+      gl.uniform1f(U.uFlat,v.flat);gl.uniform1f(U.uLines,v.lines);gl.uniform1f(U.uSplit,v.split);gl.uniform1f(U.uVw,v.w/cs);
+      gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
+    });
   }else{
     const m=Math.min(SW,SH);
-    LAYERS.forEach(([d,paint])=>{const k=d-FOCUS;g2.setTransform(1,0,0,1,(W-SW)/2-O*sx*k,(H-SH)/2-VY*O*sy*k);paint(g2,SW,SH,colorOf(d,MAP),m,MAP);});
+    if(mode==='compare'){g2.setTransform(1,0,0,1,0,0);g2.fillStyle='#0b0b0d';g2.fillRect(0,0,W,H);}
+    V.forEach(v=>{
+      const O=STR*v.w,ox=v.x+(v.w-SW)/2,oy=v.y+(v.h-SH)/2;
+      const pass=(dm,w)=>{
+        g2.setTransform(1,0,0,1,0,0);g2.save();g2.beginPath();g2.rect(v.x,v.y,w,v.h);g2.clip();
+        LAYERS.forEach(([d,fn])=>{const k=(v.flat||d)-FOCUS;g2.setTransform(1,0,0,1,ox-O*sx*k,oy-VY*O*sy*k);fn(g2,SW,SH,colorOf(d,dm),m,dm);});
+        g2.restore();
+      };
+      if(!MAP)pass(0,v.w);
+      if(MAP||v.split)pass(1,MAP?v.w:v.w*v.split);
+      if(v.lines){
+        g2.setTransform(1,0,0,1,0,0);g2.save();g2.beginPath();g2.rect(v.x,v.y,v.w,v.h);g2.clip();
+        g2.drawImage(lineCv||(lineCv=edges()),ox,oy);
+        if(v.split){g2.fillStyle='#fff';g2.fillRect(v.x+v.w*v.split-.75*cs,v.y,1.5*cs,v.h);}
+        g2.restore();
+      }
+    });
   }
+  marks();
 }
 
 // Runs only while the view moves: Show me by its own clock, else the view closes 10% of the gap every 60th of a second.
@@ -236,9 +332,9 @@ function tick(ts){
   raf=0;const dt=lastT===null?0:Math.min(ts-lastT,50);lastT=ts;let more=false;
   if(run){
     if(run.t0===null)run.t0=ts;
-    const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p);
-    sx=.9*Math.sin(2*Math.PI*e);sy=.5*Math.sin(4*Math.PI*e);
-    if(p<1)more=true;else{run=null;sx=sy=ax=ay=0;}
+    const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p),q=Math.min(1,p/.15),l=1-q*q*(3-2*q); // l: the view leaving where it stood
+    sx=.9*Math.sin(2*Math.PI*e)+l*run.from[0];sy=.5*Math.sin(4*Math.PI*e)+l*run.from[1];
+    if(p<1)more=true;else{run=null;pointerAim=false;sx=sy=0;aimHome();more=ax!==0||ay!==0;}
   }else{
     const k=1-Math.pow(1-K,dt/FRAME);
     sx+=(ax-sx)*k;sy+=(ay-sy)*k;
@@ -249,41 +345,119 @@ function tick(ts){
 }
 document.addEventListener('visibilitychange',()=>{lastT=null;});
 
-// Show me: a figure of eight in 3 s. Under reduced motion nothing moves: the view from one side for 1.2 s, then the front again.
+// Show me: a figure of eight in 3 s. Under reduced motion nothing moves: the view from one side for 1.2 s, then home again.
 function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
 function still(x,y){run=null;sx=ax=x;sy=ay=y;cancelAnimationFrame(raf);raf=0;draw();}
+function stillHome(){const h=home();still(h[0],h[1]);}
 document.getElementById('btn-demo').addEventListener('click',()=>{
   stopHold();
-  if(reduce.matches){still(.9,-.4);holdTimer=setTimeout(()=>{holdTimer=0;still(0,0);},1200);return;}
-  run={t0:null};wake();
+  if(reduce.matches){still(.9,-.4);holdTimer=setTimeout(()=>{holdTimer=0;stillHome();},1200);return;}
+  run={t0:null,from:mode==='normal'?[0,0]:[sx,sy]};wake();
 });
-// A press in the stage stops a run and the view glides back to the middle, unless the same press aims it (that comes next)
+// A press in the stage stops a run and the view glides back home, unless the same press aims it (that comes next)
 document.addEventListener('hb:input',()=>{
-  if(holdTimer){stopHold();still(0,0);}
-  if(run){run=null;ax=ay=0;wake();}
+  if(holdTimer){stopHold();stillHome();}
+  if(run){run=null;aimHome();wake();}
 });
 
-// A mouse, pen or finger aims the view; a real hover ends a run. A mouse that leaves or a finger that lifts sends it back.
+// A mouse, pen or finger aims the view; a real hover ends a run. A mouse that leaves or a finger that lifts sends it back home.
+// In Compare only "With depth" is aimed: a pointer over "One flat sheet" aims nothing, and the view rests at home.
 const clamp=v=>Math.max(-1,Math.min(1,v));
 function aim(e){if(reduce.matches)return;const r=stage.getBoundingClientRect();
+  if(mode==='compare'){
+    const c=V[1].c,x=e.clientX-r.left-stage.clientLeft-c.x,y=e.clientY-r.top-stage.clientTop-c.y;
+    if(x<0||x>c.w||y<-STRIP||y>c.h){if(pointerAim){pointerAim=false;aimHome();wake();}return;}
+    pointerAim=true;ax=clamp(x/c.w*2-1);ay=clamp(y/c.h*2-1);wake();return;
+  }
+  pointerAim=true;
   ax=clamp((e.clientX-r.left)/r.width*2-1);ay=clamp((e.clientY-r.top)/r.height*2-1);wake();}
-const toMiddle=()=>{if(!run&&!reduce.matches){ax=ay=0;wake();}};
+const toMiddle=()=>{pointerAim=false;if(!run&&!reduce.matches){aimHome();wake();}};
 stage.addEventListener('pointerdown',aim);
-stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches)run=null;aim(e);});
+// In Compare a pointer off "With depth" aims nothing, so it leaves a run playing too
+const offDeep=e=>{if(mode!=='compare')return false;const r=stage.getBoundingClientRect(),c=V[1].c,x=e.clientX-r.left-stage.clientLeft-c.x,y=e.clientY-r.top-stage.clientTop-c.y;return x<0||x>c.w||y<-STRIP||y>c.h;};
+stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches&&!offDeep(e)){run=null;wake();}aim(e);});
 ['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,toMiddle));
 stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')toMiddle();});
 // The keyboard is a pretend pointer through the same aim, heard on the stage (the 2D fallback swaps the canvas): focus by keyboard
 // ends a run, each arrow key moves the aim 6% of the picture (held, it repeats), and Escape or leaving the picture sends the view
-// back to the middle. Under reduced motion the keys move nothing, as the pointer does not, and the arrow keys scroll the page.
+// back home. Under reduced motion the keys move nothing, as the pointer does not, and the arrow keys scroll the page.
 const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
 let keys=false;
-stage.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible')&&!reduce.matches){keys=true;if(run){run=null;ax=ay=0;wake();}}});
+stage.addEventListener('focusin',e=>{if(e.target.matches(':focus-visible')&&!reduce.matches){keys=true;if(run){run=null;aimHome();wake();}}});
 stage.addEventListener('keydown',e=>{
   const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
   if(d&&!reduce.matches){e.preventDefault();keys=true;ax=clamp(ax+.12*d[0]);ay=clamp(ay+.12*d[1]);wake();}
   else if(e.key==='Escape'&&keys){keys=false;toMiddle();}
 });
 stage.addEventListener('focusout',()=>{if(keys){keys=false;toMiddle();}});
+
+// See inside and Compare. The pose: with nothing aiming the view (no pointer, key or Show me run) it rests at the park, so a still
+// picture shows the shift, and a ring marks the pretend pointer. Leaving a mode puts a view that rests at the park back in the middle.
+const NAMES={
+  normal:['A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones. The arrow keys do what the pointer does.',
+    'The depth map of the landscape in gray: the sky is black, and the mountains, hills, meadow, tree and ground get lighter the nearer they are. The arrow keys do what the pointer does.'],
+  inside:['The sunset landscape in color on the right and its depth map in gray on the left, aimed from the right, with faint lines where each part stands facing straight on: the tree has moved far from its line, the hills hardly, the mountains and sky a little the other way. The arrow keys do what the pointer does.',
+    'The depth map of the landscape in gray, aimed from the right, with faint lines where each layer stands facing straight on: the tree has moved far from its line, the hills hardly, the mountains a little the other way. The arrow keys do what the pointer does.'],
+  compare:['Two copies of the sunset landscape, aimed from the right, each with faint lines where its parts stand facing straight on: first One flat sheet, where every part has moved the same, then With depth, where each part has moved its own amount. The arrow keys move both.',
+    'Two copies of the landscape\'s depth map in gray, aimed from the right, each with faint lines where its parts stand facing straight on: first One flat sheet, where every part has moved the same, then With depth, where each part has moved its own amount. The arrow keys move both.']
+};
+const setName=()=>cvs.setAttribute('aria-label',NAMES[mode][MAP]);
+const NOTES=[...document.querySelectorAll('[data-hb-for]')],WORDS=NOTES.map(n=>n.textContent);
+const STILL={
+  inside:'Shown still, aimed from the right: the left part shows the depth map (white near, black far); near parts have shifted most, and faint lines show where everything stood facing straight on.',
+  compare:'Shown still, aimed from the right: in One flat sheet every part has moved the same from its faint line; in With depth each part has moved its own amount.'
+};
+function words(){NOTES.forEach((n,i)=>{const t=reduce.matches?STILL[n.dataset.hbFor]:WORDS[i];if(n.textContent!==t)n.textContent=t;});}
+words();reduce.addEventListener('change',words);
+
+const ring=stage.querySelector('.ring.you'),ghost=stage.querySelector('.ring.ghost');
+const CAPS=[...stage.querySelectorAll('.cap.in')],PILLS=[...stage.querySelectorAll('.cap.half')];
+const move=(el,x,y)=>{el.style.transform=`translate(${x}px,${y}px)`;};
+// The ring marks the pretend pointer, kept whole inside the picture; the ghost stands in the same place of "One flat sheet"
+function marks(){
+  if(mode==='normal')return;
+  const R=16,at=(el,c)=>move(el,c.x+R+(sx+1)/2*(c.w-2*R),c.y+R+(sy+1)/2*(c.h-2*R));
+  at(ring,V[V.length-1].c);ring.style.visibility=pointerAim?'hidden':'';
+  if(mode==='compare')at(ghost,V[0].c);
+}
+// The words, placed from the picture's own numbers: each caption takes the free spot nearest its part, clear of the parts, the
+// divider, the ring's park and the other captions. The tree's room includes the most it shifts, so it never passes under its caption.
+function place(){
+  const cw=stage.clientWidth,ch=stage.clientHeight;
+  if(mode==='compare'){PILLS.forEach((n,i)=>move(n,V[i].c.x+8,V[i].c.y-STRIP+6));return;}
+  if(mode!=='inside')return;
+  const m=Math.min(SW,SH)/cs,at=(fx,fy)=>[(fx*SW-(SW-W)/2)/cs,(fy*SH-(SH-H)/2)/cs],sh=MAXSTR*cw*.5+4;
+  const [tx,ty]=at(.25,.47),[sunX,sunY]=at(.7,.32),r=.065*m+6,band=(a,b)=>({x:0,y:at(0,a)[1],w:cw,h:at(0,b)[1]-at(0,a)[1]});
+  const avoid=[{x:tx-.2*m-sh,y:ty-.13*m-VY*sh,w:.4*m+2*sh,h:at(0,.88)[1]-ty+.13*m+2*VY*sh},band(.37,.51),band(.575,.665),
+    {x:sunX-r,y:sunY-r,w:2*r,h:2*r},{x:cw-36,y:ch/2-20,w:36,h:40},{x:GRAY*cw-4,y:0,w:8,h:ch}];
+  // widths: the max widths to try in turn (0: as long as it is), so a caption that finds no room wraps into a narrower one
+  const put=(k,px,py,widths,x1)=>{
+    const el=CAPS.find(c=>c.dataset.k===k);
+    el.style.display='none';
+    if(k==='far'&&PHONE.matches)return;
+    for(const mw of widths){
+      el.style.display='';el.style.maxWidth=mw?mw+'px':'';
+      const w=el.offsetWidth,h=el.offsetHeight;let best=null,bd=1e12;
+      for(let y=8;y<=ch-h-8;y+=4)for(let x=8;x<=cw-w-8&&(!x1||x+w<=x1);x+=4){
+        const d=(x+w/2-px)**2+(y+h/2-py)**2;
+        if(d<bd&&!avoid.some(a=>x<a.x+a.w&&a.x<x+w&&y<a.y+a.h&&a.y<y+h)){best=[x,y];bd=d;}
+      }
+      if(best){move(el,best[0],best[1]);avoid.push({x:best[0]-6,y:best[1]-6,w:w+12,h:h+12});return;}
+    }
+    el.style.display='none';
+  };
+  const peak=at(.6,.38),gw=Math.floor(GRAY*cw);
+  put('map',0,0,[gw-14],gw-5);
+  put('near',tx,ty-.13*m-14,[0,90],gw);
+  put('lines',cw,0,[PHONE.matches?Math.floor(cw*.5):350,136,128]);
+  put('far',peak[0],peak[1]-16,[0]);
+  put('hold',cw*.6,at(0,.575)[1]-16,[0,100]);
+}
+document.addEventListener('hb:mode',e=>{
+  mode=e.detail.mode;setName();layout();
+  if(!run&&!holdTimer&&!pointerAim&&!keys){const resting=!raf;aimHome();if(resting){sx=ax;sy=ay;}else wake();}
+  place();draw();
+});
 
 function choices(id,pick){
   const buttons=document.querySelectorAll('#'+id+' button');
@@ -294,15 +468,14 @@ function choices(id,pick){
 }
 choices('str-seg',d=>{STR=+d.str;if(!raf)draw();});
 document.getElementById('map-tog').addEventListener('change',e=>{
-  MAP=e.target.checked?1:0;if(!raf)draw();
-  cvs.setAttribute('aria-label',MAP?'The depth map of the landscape in gray: the sky is black, and the mountains, hills, meadow, tree and ground get lighter the nearer they are. The arrow keys do what the pointer does.':
-    'A drawn sunset landscape: a low sun, far mountains, hills, a meadow, and a tree and a rock in front. As the pointer moves, the near parts shift more than the far ones. The arrow keys do what the pointer does.');
+  MAP=e.target.checked?1:0;if(!raf)draw();setName();
 });
 
 if(!initGL())init2d();
 layout();draw();
 // Dragging a window edge sends many resizes: the repaint waits until the size has held for 150 ms
-addEventListener('resize',()=>{clearTimeout(sizeTimer);sizeTimer=setTimeout(()=>{if(layout())draw();},150);});
+addEventListener('resize',()=>{clearTimeout(sizeTimer);sizeTimer=setTimeout(()=>{if(layout()){place();draw();}},150);});
+document.fonts.ready.then(place);
 if(gl){ // a GPU reset or a restored tab loses the context: paint and upload again when it comes back
   cvs.addEventListener('webglcontextlost',e=>{e.preventDefault();cancelAnimationFrame(raf);raf=0;});
   cvs.addEventListener('webglcontextrestored',()=>{if(initGL()){W=H=0;layout();draw();}});
