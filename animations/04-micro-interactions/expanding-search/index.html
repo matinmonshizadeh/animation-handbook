@@ -48,7 +48,7 @@
     .to-right .sfield{clip-path:inset(0 calc(100% - 44px) 0 0 round 22px)}
     .bar.open .sfield{visibility:visible;clip-path:inset(0 round 22px);transition:clip-path var(--dur) var(--ease),visibility 0s}
     /* The field draws the focus ring for its text box, so the site ring (0,3,0 inside the stage) is switched off on the box */
-    .sfield:focus-within,.bar.is-demo .sfield{box-shadow:inset 0 0 0 2px var(--ui-accent)}
+    .sfield:focus-within,.bar.is-demo .sfield,.bar.foc .sfield{box-shadow:inset 0 0 0 2px var(--ui-accent)}
     .hb-page .stage .sfield input:focus-visible{outline:none}
     .glass{flex:none;display:grid;place-items:center;width:44px;color:var(--ui-muted)}
     .sfield input{flex:1;min-width:0;height:100%;border:0;background:none;color:var(--ui-text);font:inherit;font-size:15px;outline:none;-webkit-appearance:none;appearance:none}
@@ -68,7 +68,56 @@
     @media(max-width:360px){.brand span{display:none}}
     /* Phones zoom the page in on a field with type smaller than 16px */
     @media(pointer:coarse){.sfield input{font-size:16px}}
-    @media(prefers-reduced-motion:reduce){.links,.sbtn,.sbtn svg,.sfield,.bar.open .sfield,.sclose,.sclose svg{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.rim,.links,.sbtn,.sbtn svg,.sfield,.bar.open .sfield,.sclose,.sclose svg{transition:none!important}}
+    /* See inside and Compare. Normal shows none of this: every part below is hidden until a mode shows it. */
+    .stage{position:relative}
+    .half{display:contents}
+    .hname,.twin,.tag,.rim,.dash,.arr,.pose{display:none}
+    .cap{padding:3px 8px;border:1px solid rgba(255,255,255,.22);border-radius:6px;background:rgba(17,17,20,.94);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);text-align:left}
+    /* The copies: plain text where the real field has its text box, and no easing, so they open and close at once */
+    .ctext{flex:1;min-width:0;height:100%;display:flex;align-items:center;font-size:15px;color:var(--ui-text);white-space:nowrap;overflow:hidden}
+    .ctext.ph{color:var(--ui-muted)}
+    @media(pointer:coarse){.ctext{font-size:16px}}
+    .twin .app *,.pose,.pose *{transition:none!important}
+    /* See inside: the field's full size dashed; a rim on the part that shows (the field's own clip, 2px bigger all round, same class
+       and easing); an arrow from the icon the way the field opens */
+    .rim,.dash,.arr{position:absolute;pointer-events:none}
+    .dash{inset:0;z-index:2;border:1.5px dashed rgba(244,244,242,.85);border-radius:22px}
+    .rim{inset:-2px;background:var(--ui-accent);clip-path:inset(0 0 0 calc(100% - 48px) round 24px);transition:clip-path var(--dur) var(--ease)}
+    .to-right .rim{clip-path:inset(0 calc(100% - 48px) 0 0 round 24px)}
+    .bar.open .rim{clip-path:inset(0 round 24px)}
+    .arr{z-index:2;top:calc(100% + 10px);left:20px;right:22px;height:2px;margin-top:-1px;background:var(--ui-accent)}
+    .arr::before,.arr::after{content:"";position:absolute}
+    .arr::before{left:-2px;top:-4px;border:5px solid transparent;border-left:0;border-right:8px solid var(--ui-accent)}
+    .arr::after{right:-3px;top:-2px;width:6px;height:6px;border-radius:50%;background:var(--ui-accent)}
+    .to-right .arr{left:22px;right:20px;transform:scaleX(-1)}
+    .tag{position:absolute;z-index:3;left:0;top:0}
+    .tag-a{border-style:dashed;border-color:rgba(244,244,242,.75)}
+    .tag-b,.tag-c{border-color:var(--ui-accent)}
+    .tag.up::after{content:"";position:absolute;left:var(--lx,12px);top:100%;width:2px;height:var(--ll,10px);margin:1px 0 0 -1px;background:rgba(244,244,242,.85)}
+    .tag-b.up::after{background:var(--ui-accent)}
+    .stage[data-hb-mode="inside"] :is(.rim,.dash,.arr,.tag){display:block}
+    .stage[data-hb-mode="inside"] .page{display:none}
+    .stage[data-hb-mode="inside"] .bar{height:84px}
+    /* Compare: the app twice, the copy that opens at once, then the real one. At rest the real one shows a still copy of the field over
+       its toolbar, opened as far as the easing has taken it at a fixed share of the run (--pp), the links faded as far. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(8px,2vw,16px);align-items:center}
+    .stage[data-hb-mode="compare"] .half{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0;container-type:inline-size}
+    .stage[data-hb-mode="compare"] .hname{display:block}
+    .stage[data-hb-mode="compare"].posed .pose{display:flex;visibility:visible;pointer-events:none;clip-path:inset(0 0 0 calc((100% - 44px)*(1 - var(--pp))) round 22px)}
+    .stage[data-hb-mode="compare"].posed .to-right .pose{clip-path:inset(0 calc((100% - 44px)*(1 - var(--pp))) 0 0 round 22px)}
+    .stage[data-hb-mode="compare"].posed .half:not(.twin) .links{opacity:calc(1 - var(--pp));transition:none}
+    /* A narrow half drops what the field needs the room for, as a phone's toolbar does */
+    @container (max-width:340px){.stage[data-hb-mode="compare"] .links span:nth-child(3){display:none}}
+    @container (max-width:290px){.stage[data-hb-mode="compare"] .brand span{display:none}}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));gap:6px}
+      .stage[data-hb-mode="compare"] .half{gap:5px}
+      .stage[data-hb-mode="compare"] .page{padding:7px 14px 8px;gap:5px}
+      .stage[data-hb-mode="compare"] .page b{height:10px}
+      .stage[data-hb-mode="compare"] .page i{height:7px}
+      .stage[data-hb-mode="compare"] .page i:nth-of-type(n+2){display:none}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -91,28 +140,46 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the search icon and type, then close it with Escape, × or a click outside, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="app">
-        <div class="bar" id="bar">
-          <span class="brand"><i aria-hidden="true"></i><span>Acme</span></span>
-          <div class="tools">
-            <div class="links" aria-hidden="true"><span>Docs</span><span>Blog</span><span>Pricing</span></div>
-            <button class="sbtn" id="sbtn" type="button" aria-label="Search" aria-expanded="false" aria-controls="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
-            <div class="sfield" id="sfield" role="search">
-              <span class="glass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
-              <label class="sr-only" for="q">Search the docs</label>
-              <input id="q" type="search" placeholder="Search docs…" autocomplete="off" spellcheck="false">
-              <button class="sclose" id="sclose" type="button" aria-label="Close search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+      <div class="half" id="half">
+        <span class="cap hname" data-hb-caption aria-hidden="true">Grows from icon</span>
+        <div class="app" id="app">
+          <div class="bar" id="bar">
+            <span class="brand"><i aria-hidden="true"></i><span>Acme</span></span>
+            <div class="tools">
+              <div class="links" aria-hidden="true"><span>Docs</span><span>Blog</span><span>Pricing</span></div>
+              <span class="rim" aria-hidden="true"></span>
+              <button class="sbtn" id="sbtn" type="button" aria-label="Search" aria-expanded="false" aria-controls="sfield"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></button>
+              <div class="sfield" id="sfield" role="search">
+                <span class="glass" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg></span>
+                <label class="sr-only" for="q">Search the docs</label>
+                <input id="q" type="search" placeholder="Search docs…" autocomplete="off" spellcheck="false">
+                <button class="sclose" id="sclose" type="button" aria-label="Close search"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg></button>
+              </div>
+              <span class="dash" aria-hidden="true"></span><span class="arr" aria-hidden="true"></span>
             </div>
           </div>
+          <div class="page" aria-hidden="true"><b></b><i></i><i></i><i style="width:62%"></i></div>
         </div>
-        <div class="page" aria-hidden="true"><b></b><i></i><i></i><i style="width:62%"></i></div>
       </div>
+      <span class="cap tag tag-a up" id="tag-a" data-hb-caption aria-hidden="true">The search field, always full size</span>
+      <span class="cap tag tag-b up" id="tag-b" data-hb-caption aria-hidden="true">Only this part shows</span>
+      <span class="cap tag tag-c" id="tag-c" data-hb-caption aria-hidden="true">Opens this way in about a quarter of a second</span>
+      <span class="cap tag tag-d" id="tag-d" data-hb-caption aria-hidden="true">Closes when you click away</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed box is the search field, always full size; only the outlined part shows, and that part grows from the icon over the links. Click the icon, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Opens at once: the field simply appears; Grows from icon: the field is uncovered from the icon outward while the links fade. Click the icon, or press Show me.</p>
     </div>
   </section>
 
@@ -188,10 +255,11 @@
   const $=id=>document.getElementById(id);
   const stage=document.querySelector('.stage'),bar=$('bar'),sbtn=$('sbtn'),field=$('sfield'),input=$('q'),sclose=$('sclose'),leaveTog=$('leave-tog'),slowTog=$('slow-tog');
   const vars=document.documentElement.style;
+  const app=$('app'),half=$('half'),tools=bar.querySelector('.tools'),rim=bar.querySelector('.rim');
   // Everything that eases between closed and open; toRest() switches these transitions off for a moment
-  const moving=[field,sbtn,...bar.querySelectorAll('.sbtn svg,.sclose,.sclose svg,.links')];
+  const moving=[field,sbtn,rim,...bar.querySelectorAll('.sbtn svg,.sclose,.sclose svg,.links')];
   const word='pricing';
-  let dur=280,runTimers=[],downInField=false;
+  let dur=280,runTimers=[],downInField=false,mode='normal',posed=false,letThrough=false;
 
   // Open: the field shows and, when the visitor opened it, takes the focus. The icon under it is out of reach (inert) while it is open.
   function open(focus){
@@ -217,38 +285,35 @@
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
   function later(fn,move,hold){
-    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn()},move*(slowTog.checked?3:1)+(hold||0));
+    const id=setTimeout(()=>{runTimers=runTimers.filter(t=>t!==id);fn();pose()},move*(slowTog.checked?3:1)+(hold||0));
     runTimers.push(id);
   }
   function running(){return runTimers.length>0}
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];sclose.classList.remove('hit')}
   // A run starts closed and empty, put there without animating: the transitions are turned off, the state is set, a reflow
   // makes it stick, and the transitions come back.
-  function toRest(){
-    moving.forEach(el=>{el.style.transition='none'});
-    close(false);sclose.classList.remove('hit');input.value='';
-    void bar.offsetWidth;
-    moving.forEach(el=>{el.style.transition=''});
-  }
+  function toRest(){snap(()=>{close(false);sclose.classList.remove('hit');setText('')})}
   // The field opens and looks focused (is-demo) without taking the real focus, "pricing" is typed a letter every 80ms, and after a
   // pause it closes the way the settings say: the focus look leaves (Closes when you leave it) or the close button is pressed. At
   // Normal speed it is closed again at 2.4 s. A real press on Show me lets go of a field that still has the focus (this also closes
-  // the phone keyboard); the press on arrival leaves a visitor who is already in the field alone.
+  // the phone keyboard); the press on arrival leaves a visitor who is already in the field alone, but the press that follows a
+  // See inside or Compare press (letThrough) goes ahead, so the view is seen working.
   $('btn-demo').addEventListener('click',e=>{
     const inStage=stage.contains(document.activeElement);
-    if(!e.isTrusted&&(inStage||bar.classList.contains('open')))return;
+    if(!e.isTrusted&&!letThrough&&(inStage||bar.classList.contains('open')))return;
     stopRun();
     if(inStage)document.activeElement.blur();
     toRest();
     later(()=>{bar.classList.add('is-demo');open(false)},0,150);
-    [...word].forEach((_,k)=>later(()=>{input.value=word.slice(0,k+1)},dur,350+80*k));
+    [...word].forEach((_,k)=>later(()=>setText(word.slice(0,k+1)),dur,350+80*k));
     const t=350+80*word.length+700;
     if(leaveTog.checked)later(()=>bar.classList.remove('is-demo'),dur,t);
     else later(()=>sclose.classList.add('hit'),dur,t);
     later(()=>{sclose.classList.remove('hit');close(false)},dur,t+200);
-    later(()=>{input.value=''},2*dur,t+250);
+    later(()=>setText(''),2*dur,t+250);
+    pose();
   });
-  $('btn-reset').addEventListener('click',()=>{stopRun();toRest()});
+  $('btn-reset').addEventListener('click',()=>{stopRun();toRest();pose()});
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. A press on the field, open or still closing, or
   // input while the focus is in it takes it over (it stays open with the run's text and the focus); any other input closes and empties it.
   stage.addEventListener('pointerdown',e=>{downInField=field.contains(e.target)},true);
@@ -256,7 +321,7 @@
     if(!running())return;
     stopRun();
     if((e.detail.type==='pointerdown'&&downInField)||field.contains(document.activeElement)){bar.classList.remove('is-demo');open(false);return}
-    close(false);input.value='';
+    close(false);setText('');
   });
   // Focus that comes into the field while the run goes on (Shift+Tab from Show me lands on its close button) takes it over the same way
   field.addEventListener('focusin',()=>{if(running()){stopRun();bar.classList.remove('is-demo');open(false)}});
@@ -268,8 +333,135 @@
       pick(b.dataset);
     }));
   }
-  choices('side-seg',d=>{bar.classList.toggle('to-right',d.side==='right')});
-  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
+  // Closed, the rim jumps to the icon's new end with it instead of sliding across the toolbar
+  choices('side-seg',d=>{const jump=!bar.classList.contains('open');if(jump)rim.style.transition='none';bar.classList.toggle('to-right',d.side==='right');if(jump){void rim.offsetWidth;rim.style.transition=''}place()});
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms');place()});
+  [leaveTog,slowTog].forEach(c=>c.addEventListener('change',place));
+  // ---- Compare: the first half is an inert, id-free copy of the app that opens at once and mirrors the real one
+  function dupe(src){
+    const c=src.cloneNode(true);
+    c.querySelectorAll('.rim,.dash,.arr,label').forEach(n=>n.remove());
+    c.querySelectorAll('button').forEach(b=>{const t=document.createElement('span');t.className=b.className;t.innerHTML=b.innerHTML;b.replaceWith(t)});
+    c.querySelectorAll('input').forEach(i=>{const t=document.createElement('span');t.className='ctext';i.replaceWith(t)});
+    [c,...c.querySelectorAll('*')].forEach(n=>['id','role','aria-label','aria-expanded','aria-controls'].forEach(a=>n.removeAttribute(a)));
+    c.inert=true;c.setAttribute('aria-hidden','true');
+    return c;
+  }
+  const twin=document.createElement('div'),twinApp=dupe(app),twinBar=twinApp.querySelector('.bar'),twinClose=twinApp.querySelector('.sclose');
+  twin.className='half twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML='<span class="cap hname" data-hb-caption>Opens at once</span>';
+  twin.append(twinApp);stage.prepend(twin);
+  // The overlay on the real toolbar: a copy of the field, shown only while the pose stands
+  const overlay=dupe(field);overlay.classList.add('pose');tools.insertBefore(overlay,sbtn);
+  const texts=[...twinApp.querySelectorAll('.ctext'),...overlay.querySelectorAll('.ctext')];
+  // How far the page's own easing has opened the field a fixed share of the way into a run (the share, not a time, so Speed and
+  // Slow motion leave the pose alone)
+  function eased(x){
+    const [x1,y1,x2,y2]=getComputedStyle(document.documentElement).getPropertyValue('--ease').match(/-?[\d.]+/g).map(Number);
+    const bz=(t,a,b)=>3*a*t*(1-t)*(1-t)+3*b*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1;
+    for(let i=0;i<24;i++){const m=(lo+hi)/2;if(bz(m,x1,x2)<x)lo=m;else hi=m}
+    return bz(lo,y1,y2);
+  }
+  half.style.setProperty('--pp',eased(.2).toFixed(3));
+
+  // The copy follows the real app: its classes (open, side, demo look), the pressed look of the cross, the focus look and the text
+  function sync(){
+    twinBar.className=bar.className;
+    twinBar.classList.toggle('open',bar.classList.contains('open')||posed);
+    twinBar.classList.toggle('foc',field.matches(':focus-within'));
+    twinClose.classList.toggle('hit',sclose.classList.contains('hit'));
+    texts.forEach(t=>{t.textContent=input.value||input.placeholder;t.classList.toggle('ph',!input.value);t.scrollLeft=input.scrollLeft});
+  }
+  function setText(v){input.value=v;sync()}
+  function snap(fn){
+    moving.forEach(el=>{el.style.transition='none'});
+    fn();
+    void bar.offsetWidth;
+    moving.forEach(el=>{el.style.transition=''});
+  }
+  // The pose stands in Compare while the real field is closed (and has finished closing) and no run is pending
+  function pose(){
+    const on=mode==='compare'&&!running()&&!bar.classList.contains('open')&&field.getAnimations().length===0;
+    if(on===posed)return;
+    posed=on;
+    // Lifted because the field has begun to open (a press on the icon): no snap, or its opening would jump to its end
+    const lift=()=>{stage.classList.toggle('posed',on);sync()};
+    if(!on&&bar.classList.contains('open'))lift();else snap(lift);
+    notes();
+  }
+  new MutationObserver(()=>{sync();pose()}).observe(bar,{attributes:true,attributeFilter:['class'],subtree:true});
+  ['focusin','focusout'].forEach(t=>field.addEventListener(t,()=>setTimeout(sync)));
+  field.addEventListener('transitionend',pose);field.addEventListener('transitioncancel',pose);
+  ['input','scroll'].forEach(t=>input.addEventListener(t,sync));
+
+  // ---- Notes: the markup holds the default words; reduced motion swaps them (and back), writing only when the words change
+  const reduced=matchMedia('(prefers-reduced-motion:reduce)');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const DEF={inside:noteIn.textContent,compare:noteCmp.textContent};
+  const RM={
+    inside:'Inside, the dashed box is the search field, always full size, and only the outlined part shows; with reduced motion that part opens at once. Click the icon, or press Show me.',
+    still:'Shown still: Opens at once is already fully open; Grows from icon is caught part of the way, uncovered from the icon outward. Click the icon, or press Show me.',
+    live:'With reduced motion both open at once, so Grows from icon looks like Opens at once. Click the icon, or press Show me.'
+  };
+  function put(el,t){if(el.textContent!==t)el.textContent=t}
+  function notes(){
+    put(noteIn,reduced.matches?RM.inside:DEF.inside);
+    put(noteCmp,reduced.matches?(posed?RM.still:RM.live):DEF.compare);
+  }
+  reduced.addEventListener('change',()=>{notes();place()});
+
+  // ---- See inside: four labels around the toolbar, put where their parts are drawn. The field's dashed box, the rim and the arrow
+  // are CSS in the toolbar; only the labels need measuring, again on a new size, a new font, a mode or a setting.
+  const tags={a:$('tag-a'),b:$('tag-b'),c:$('tag-c'),d:$('tag-d')};
+  const SAY=[[160,'about a sixth of a second'],[280,'about a quarter of a second'],[450,'almost half a second'],[480,'about half a second'],[840,'under a second'],[1350,'almost a second and a half']];
+  const spoken=ms=>SAY.reduce((a,b)=>Math.abs(b[0]-ms)<Math.abs(a[0]-ms)?b:a)[1];
+  function fit(t,cap){
+    t.style.cssText=`left:0;top:0;width:auto;max-width:${cap}px`;
+    const r=document.createRange();r.selectNodeContents(t);
+    t.style.width=Math.min(cap,Math.ceil(r.getBoundingClientRect().width)+19)+'px';
+    return [t.offsetWidth,t.offsetHeight];
+  }
+  function place(){
+    app.style.marginTop='';
+    if(mode!=='inside')return;
+    tags.c.textContent=reduced.matches?'Opens this way at once':'Opens this way in '+spoken(dur*(slowTog.checked?3:1));
+    tags.d.textContent=leaveTog.checked?'Closes when you click away':'Stays open until Escape or ×';
+    const W=stage.clientWidth,GAP=6,cap=Math.min(210,Math.floor((W-2*4-GAP)/2));
+    const [wa,ha]=fit(tags.a,cap),[wb,hb]=fit(tags.b,cap),[wc,hc]=fit(tags.c,cap),[wd,hd]=fit(tags.d,cap);
+    // The toolbar sits lower or higher so that the labels above and below it are centered in the box together
+    app.style.marginTop=(Math.max(ha,hb)-Math.max(hc,hd))+'px';
+    const S=stage.getBoundingClientRect(),x0=S.left+stage.clientLeft,y0=S.top+stage.clientTop;
+    const A=app.getBoundingClientRect(),T=tools.getBoundingClientRect(),I=sbtn.getBoundingClientRect();
+    const tl=T.left-x0,tr=T.right-x0,top=T.top-y0,ic=I.left-x0+22,right=bar.classList.contains('to-right');
+    const cl=(x,w)=>Math.max(4,Math.min(W-4-w,x));
+    // Two labels side by side: the right one keeps its place if it can, the left one gives way to the left, then the right to the right
+    const apart=(x1,w1,x2,w2)=>{
+      x1=cl(x1,w1);x2=cl(x2,w2);
+      if(x1+w1+GAP>x2)x1=cl(x2-GAP-w1,w1);
+      if(x1+w1+GAP>x2)x2=cl(x1+w1+GAP,w2);
+      return[x1,x2];
+    };
+    // Above: the field's label at the end away from the icon, the rim's at the icon's end; below: Opens this way, then Closes
+    const [xa,xb]=right?apart(tl-4,wb,tr-wa,wa).reverse():apart(tl,wa,tr+4-wb,wb);
+    const [xc,xd]=apart(tl,wc,tr+4-wd,wd);
+    const up=A.top-y0-GAP,down=A.bottom-y0+GAP;
+    const at=(t,x,y)=>{t.style.left=x+'px';t.style.top=y+'px'};
+    at(tags.a,xa,up-ha);at(tags.b,xb,up-hb);at(tags.c,xc,down);at(tags.d,xd,down);
+    const lead=(t,x,w,px,to)=>{t.style.setProperty('--lx',Math.max(8,Math.min(w-8,px-x))+'px');t.style.setProperty('--ll',(to-up)+'px')};
+    lead(tags.a,xa,wa,Math.max(tl+16,Math.min(tr-16,xa+wa/2)),top);
+    lead(tags.b,xb,wb,ic,top-2);
+  }
+  addEventListener('resize',place);
+  document.fonts.ready.then(place);
+
+  // The mode switch: draws the mode at once (the shared script sends this before it presses Show me, which plays the view)
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    letThrough=true;queueMicrotask(()=>{letThrough=false});
+    place();pose();notes();
+  });
+  notes();
 </script>
 </body>
 </html>
