@@ -170,7 +170,7 @@
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
     </div>
     <div class="hb-mode-notes" aria-live="polite">
-      <p data-hb-for="inside" hidden>Inside, the gray blocks are lifted off the card: each has the shape and size of a piece of the content, which fades in underneath, in the same place.</p>
+      <p data-hb-for="inside" hidden>Inside, the gray blocks are lifted off the card: each is shaped like a piece of the content, which fades in underneath, in the same place.</p>
       <p data-hb-for="compare" hidden>Blank, then jumps: the empty card grows when the content arrives and pushes the next item down; Holds the space: gray blocks keep its size, so nothing moves.</p>
     </div>
   </section>
@@ -330,7 +330,7 @@
   twin.insertAdjacentHTML('beforeend','<i class="full"></i><i class="jump"></i>');
   card.before(twin);
   if(!motionOk)document.querySelector('[data-hb-for="inside"]').textContent=
-    'Inside, the gray blocks are lifted off the card, shown still: each has the shape and size of a piece of the content, which appears underneath, in the same place.';
+    'Inside, the gray blocks are lifted off the card, shown still: each is shaped like a piece of the content, which appears underneath, in the same place.';
 
   function shown(on){revealed=on;stage.classList.toggle('shown',on);syncTwin()}
   function syncTwin(){twin.classList.toggle('on',revealed&&!stage.classList.contains('posed'))}
@@ -415,8 +415,11 @@
   }
   document.addEventListener('hb:mode',e=>{
     const was=mode;mode=e.detail.mode;
-    // Leaving See inside while the content is still to come puts it back to see-through at once
-    if(was==='inside'&&!realEl.classList.contains('visible')){realEl.style.transition='none';void realEl.offsetWidth;realEl.style.transition=''}
+    // Entering or leaving See inside shows its picture at once: the content see-through (or hidden) while it is still to come,
+    // and the blocks faint once it has arrived; the page's own fades run only in a play
+    const snap=el=>{el.style.transition='none';void el.offsetWidth;el.style.transition=''};
+    if((was==='inside'||mode==='inside')&&!realEl.classList.contains('visible'))snap(realEl);
+    if(was!=='inside'&&mode==='inside'&&revealed)snap(skelEl);
     drawMode();
   });
   new ResizeObserver(()=>{if(mode!=='normal')drawMode()}).observe(stage);
