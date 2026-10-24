@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--shim-dur:1500ms;--shim-bright:0.25;--shim-angle:90deg;--shim-color:255,255,255}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;background:#0b0b0d}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;background:#0b0b0d}
     /* On a short stage (a phone held sideways) the card and row keep their full height and use the padding instead of shrinking */
     .stage>*{flex-shrink:0}
     /* Skeleton card */
@@ -44,6 +44,56 @@
     .skel-row{width:100%;max-width:320px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px;padding:14px 16px;display:flex;align-items:center;gap:12px;position:relative;overflow:hidden}
     .sk-circle{width:36px;height:36px;border-radius:50%;background:#1a1f28;flex-shrink:0}
     .sk-row-lines{flex:1;display:flex;flex-direction:column;gap:6px}
+    /* See inside and Compare. What they add sits unseen in Normal, out of the flow and never display:none, so every band keeps the page's time */
+    .sstrip,.shim-copy{position:absolute;visibility:hidden;pointer-events:none}
+    .shim-copy::after{content:none}
+    .sstrip{left:0;right:0;top:var(--cy);height:var(--ch);overflow:hidden;background:rgba(255,255,255,.04)}
+    /* A band that slides by transform, with the card's own gradient: a tile twice the card's width, one band in it, one tile per half cycle */
+    .sband,.bandl{position:absolute;top:0;height:100%;animation:bandslide calc(var(--shim-dur) / 2) linear infinite;background:linear-gradient(var(--shim-angle),transparent 25%,rgba(var(--shim-color),var(--shim-bright)) 50%,transparent 75%)}
+    .sband{left:calc(var(--cx) - 4 * var(--cw));width:calc(8 * var(--cw));background-size:25% 100%;--slide:25%;opacity:.6}
+    .bandl{left:-200%;width:400%;background-size:50% 100%}
+    .bandl.rev{animation-direction:reverse}
+    @keyframes bandslide{to{transform:translateX(var(--slide,50%))}}
+    .dash,.cbox,.half{display:none}
+    .dash{position:absolute;top:calc(var(--cy) - 7px);height:calc(var(--ch) + 14px);border-left:2px dashed #f4f4f2;pointer-events:none}
+    .dl{left:calc(var(--cx) - 2px)}
+    .dr{left:calc(var(--cx) + var(--cw))}
+    /* an arrow beside each edge shows the way the band slides: in on one side, out on the other */
+    .dash::before{content:'';position:absolute;top:calc(50% - 6px)}
+    .dl::before{right:6px}
+    .dr::before{left:6px}
+    .lbl{padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 12px/1.2 var(--hb-font);white-space:nowrap}
+    .cbox{position:absolute;left:6px;right:6px;flex-wrap:wrap;justify-content:center;gap:3px 6px}
+    .ctop{top:5px}
+    .cbot{bottom:5px}
+    /* See inside: the band's whole track behind the card, the row steps aside to make room for the captions */
+    .stage[data-hb-mode="inside"] .sstrip{visibility:visible}
+    .stage[data-hb-mode="inside"] .dash{display:block}
+    .stage[data-hb-mode="inside"] .cbox{display:flex}
+    .stage[data-hb-mode="inside"] .skel-row{position:absolute;left:0;top:0;visibility:hidden}
+    @media(max-width:600px){.stage[data-hb-mode="inside"] .skel-card{width:60%}}
+    /* Compare: the same card and row twice, the mistake (the row's light goes the other way) and the page's own */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;justify-items:center;gap:8px;padding:10px}
+    .stage[data-hb-mode="compare"] .half{display:block;grid-row:1}
+    .stage[data-hb-mode="compare"] .h1{grid-column:1}
+    .stage[data-hb-mode="compare"] .h2{grid-column:2}
+    .stage[data-hb-mode="compare"] .skel-card{grid-area:2/2}
+    .stage[data-hb-mode="compare"] .skel-row{grid-area:3/2}
+    .stage[data-hb-mode="compare"] .shim-copy{position:relative;visibility:visible}
+    .stage[data-hb-mode="compare"] .skel-card.shim-copy{grid-area:2/1}
+    .stage[data-hb-mode="compare"] .skel-row.shim-copy{grid-area:3/1}
+    .stage[data-hb-mode="compare"] .sk-img{height:40px}
+    @media(min-width:601px) and (max-height:620px){.stage[data-hb-mode="compare"] .sk-img{display:none}}
+    /* an arrow at the top edge of every placeholder shows the way its band sweeps */
+    .dash::before,.stage[data-hb-mode="compare"] .skel-card::before,.stage[data-hb-mode="compare"] .skel-row::before{width:24px;height:12px;background:var(--ui-accent);clip-path:polygon(0 36%,58% 36%,58% 0,100% 50%,58% 100%,58% 64%,0 64%)}
+    .stage[data-hb-mode="compare"] .skel-card::before,.stage[data-hb-mode="compare"] .skel-row::before{content:'';position:absolute;top:4px;right:6px}
+    .stage[data-hb-mode="compare"] .skel-row.shim-copy::before{transform:scaleX(-1)}
+    /* Reduced motion starts paused at time zero, with each band's middle on an edge: these start the bands part way in, in the modes only */
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] .skel-card::after,.stage[data-hb-mode="inside"] .sband{animation-delay:calc(var(--shim-dur) * -.41)}
+      .stage[data-hb-mode="compare"] .skel-card::after,.stage[data-hb-mode="compare"] .skel-row::after,.stage[data-hb-mode="compare"] .bandl{animation-delay:calc(var(--shim-dur) * -.375)}
+      .stage[data-hb-mode="compare"] .bandl.rev{animation-delay:calc(var(--shim-dur) * -.125)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,7 +116,13 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <div class="sstrip" aria-hidden="true" inert><div class="sband"></div></div>
       <div class="skel-card">
         <div class="sk-header">
           <div class="sk sk-avatar"></div>
@@ -86,10 +142,19 @@
           <div class="sk sk-line w50" style="margin:0"></div>
         </div>
       </div>
+      <span class="dash dl" aria-hidden="true"></span><span class="dash dr" aria-hidden="true"></span>
+      <div class="cbox ctop" aria-hidden="true"><p class="lbl cap" data-hb-caption>Light slides across, again and again</p><p class="lbl cap" data-hb-caption data-cap="bright">A soft band: brightest in the middle</p></div>
+      <div class="cbox cbot" aria-hidden="true"><p class="lbl cap" data-hb-caption>Cut off at the dashed edges (faint here)</p><p class="lbl cap" data-hb-caption data-cap="speed">A sweep every three quarters of a second</p></div>
+      <p class="lbl cap half h1" aria-hidden="true" data-hb-caption>Mixed directions</p>
+      <p class="lbl cap half h2" aria-hidden="true" data-hb-caption>One direction</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the band of light is shown past the card too, faint: it slides across again and again, and the card's edges cut it off.</p>
+      <p data-hb-for="compare" hidden>Mixed directions: the card's light and the row's cross each other, which looks restless; One direction: every placeholder sweeps the same way, like content streaming in.</p>
     </div>
   </section>
 
@@ -185,6 +250,61 @@
   const stage=document.querySelector('.stage');
   const vars=document.documentElement.style;
   let shimMs=1500;
+  const card=stage.querySelector('.skel-card'),slow=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  // The notes say the markup's words while the band moves; under reduced motion the loop starts paused, and while it is paused
+  // they describe the still. A note is rewritten only when its words change, as its box is read out loud.
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
+    "Inside, shown still: the band of light is caught where it stopped, and the faint strip shows its track past the card's edges, which cut it off.",
+    "Shown still: the arrows show where each band would sweep; in Mixed directions the card's and the row's go opposite ways, in One direction the same way."];
+  let paused=reduceMQ.matches,held=null;
+  function describe(){
+    notes.forEach((n,i)=>{const words=reduceMQ.matches&&paused?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+  }
+  describe();
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused)held=null;describe()});
+  reduceMQ.addEventListener('change',describe);
+  // Two captions follow the settings: how often the band crosses (Speed, Slow motion) and how strong it is (Brightness)
+  const sweeps={2400:['every second or so','every three and a half seconds'],1500:['every three quarters of a second','every two and a quarter seconds'],900:['about twice a second','every second and a third']};
+  const strengths={'0.12':'faint','0.25':'soft','0.45':'bright'};
+  let bright='0.25';
+  function captions(){
+    stage.querySelector('[data-cap="speed"]').textContent='A sweep '+sweeps[shimMs][+slow.checked];
+    stage.querySelector('[data-cap="bright"]').textContent='A '+strengths[bright]+' band: brightest in the middle';
+  }
+  slow.addEventListener('change',captions);
+  // Copies for Compare, made once with the page so their bands start with the page's own: no band of their own, a layer that slides by transform
+  [[card,''],[stage.querySelector('.skel-row'),' rev']].forEach(([el,rev])=>{
+    const copy=el.cloneNode(true),band=document.createElement('div');
+    copy.classList.add('shim-copy');copy.inert=true;copy.setAttribute('aria-hidden','true');
+    band.className='bandl'+rev;copy.appendChild(band);stage.appendChild(copy);
+  });
+  // The card's measured box, for the strip and the dashed edges
+  function place(){
+    const s=stage.style,c=card.getBoundingClientRect(),o=stage.getBoundingClientRect();
+    s.setProperty('--cx',c.left-o.left-stage.clientLeft+card.clientLeft+'px');s.setProperty('--cy',c.top-o.top-stage.clientTop+card.clientTop+'px');
+    s.setProperty('--cw',c.width-2*card.clientLeft+'px');s.setProperty('--ch',c.height-2*card.clientTop+'px');
+  }
+  // Every added band keeps the card's time, so they stay in step
+  function syncBands(){
+    const ref=card.getAnimations({subtree:true})[0];
+    if(!ref||ref.currentTime==null)return;
+    stage.getAnimations({subtree:true}).forEach(a=>{
+      const t=a.effect&&a.effect.target;
+      if(t&&(t.classList.contains('sband')||t.classList.contains('bandl')))a.currentTime=ref.currentTime;
+    });
+  }
+  // Under reduced motion a mode pressed while the loop is paused shows its still, as on arrival (time zero, where the mode's rules
+  // lay each band across its placeholder), and Normal gets back the moment the visitor paused at
+  document.addEventListener('hb:mode',e=>{
+    if(reduceMQ.matches&&paused){
+      const all=stage.getAnimations({subtree:true});
+      if(e.detail.mode!=='normal'){if(!held)held=all.map(a=>[a,a.currentTime]);all.forEach(a=>{a.currentTime=0})}
+      else if(held){held.forEach(([a,t])=>{a.currentTime=t});held=null}
+    }
+    place();syncBands();
+  });
+  addEventListener('resize',place);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -198,10 +318,12 @@
   choices('speed-seg',d=>{
     const next=+d.ms;
     stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/shimMs});
+    if(held)held.forEach(h=>{h[1]=h[1]*next/shimMs});
     shimMs=next;
     vars.setProperty('--shim-dur',next+'ms');
+    captions();
   });
-  choices('bright-seg',d=>{vars.setProperty('--shim-bright',d.bright)});
+  choices('bright-seg',d=>{bright=d.bright;vars.setProperty('--shim-bright',d.bright);captions()});
   choices('angle-seg',d=>{vars.setProperty('--shim-angle',d.angle+'deg')});
   choices('color-sw',d=>{vars.setProperty('--shim-color',d.c)});
 </script>
