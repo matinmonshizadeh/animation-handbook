@@ -63,6 +63,7 @@
       border-radius:10px;background:rgba(8,8,10,.94);border:1px solid var(--ui-border)}
     /* The length of a turn sits in the page area's other corner, clear of the near edge in the middle; on a small box the map's
        title does too */
+    .cmap.up{width:min(340px,calc(50% - 14px))}
     .legend{display:none;position:absolute;z-index:5;left:8px;bottom:8px;max-width:calc(50% - 22px);flex-direction:column;align-items:flex-start;gap:4px}
     /* A turn up and down leaves the new page's text in the lower left, so the legend moves to the upper right */
     .legend.up{bottom:auto;top:8px;left:auto;right:8px;align-items:flex-end}
@@ -84,6 +85,10 @@
     .side.first{left:10px}
     .side.second{left:calc(50% + 10px)}
     @media(max-width:600px){
+      /* Turning up and down, the map sits in the lower right and the names in the upper right: the pages' text keeps to the left */
+      .stage[data-hb-mode="inside"] .cmap.up{width:calc(58% - 8px)}
+      .stage[data-hb-mode="inside"] .cmap.up~.page .pc{padding:20px calc(58% + 4px) 12px 12px}
+      .stage[data-hb-mode="inside"] .cmap.up~.page .ph{font-size:18px}
       .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
       .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
       .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
@@ -246,7 +251,7 @@
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let current=0,animating=false,axis='Y',dur=750,depth=1.6,afterMove=null,wayBack=0,timers=[];
-  let mode='normal',posed=false,poseAnims=[],persp0='',runFrom=-1;
+  let mode='normal',posed=false,poseAnims=[],persp0='',runFrom=-1,turn=null;
   const pages=[],dims=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
@@ -348,7 +353,7 @@
     }
     // Three times as long in slow motion
     const d=dur*(slowTog.checked?3:1);
-    swing(prev,next,d);
+    turn={prev,next,d,list:swing(prev,next,d)};
     later(()=>{rest(oldEl,false);rest(newEl,true);finish()},d+50);
   }
 
@@ -390,42 +395,57 @@
     say(capTitle,phone.matches?(above?'From above: two sides of a cube':'From the side: two sides of a cube')
       :(above?'Seen from above: the pages are two sides of a cube':'Seen from the side: the pages are two sides of a cube'));
     say(capLen,(phone.matches?'One turn: about ':'One turn takes about ')+about(dur*(slowTog.checked?3:1)));
-    // The title heads the map where the page area is tall enough, and joins the length of a turn in the other corner where it is not
-    legend.classList.toggle('up',!above);
-    const home=phone.matches||ah<250?legend:cmap;
+    // The title heads the map where the page area is tall enough, and joins the length of a turn in the other corner where it is
+    // not. A turn up and down puts the map in the half below the near edge, which runs across the middle, so its title always joins.
+    legend.classList.toggle('up',!above);cmap.classList.toggle('up',!above);
+    const home=above&&!phone.matches&&ah>=250?cmap:legend;
     if(capTitle.parentNode!==home)home.prepend(capTitle);
     let M=Math.round(Math.max(72,Math.min(132,ah*.45)));
     draw.style.height=M+'px';
-    const over=cmap.offsetHeight-(ah-16); // a short stage: the map gives back what the card is too tall by
+    const over=cmap.offsetHeight-(above?ah-16:ah/2-14); // a short stage: the map gives back what the card is too tall by
     if(over>0){M=Math.max(56,M-over);draw.style.height=M+'px'}
     const W=draw.clientWidth;
-    const s=Math.min(((above?M:W)-10)/(depth+1.207),above?W*.3:(M-52)/1.414);
-    const r=.707*s+2,E=above?{x:r+3,y:M-11}:{x:9,y:M/2},C=above?{x:E.x,y:E.y-(depth+.5)*s}:{x:E.x+(depth+.5)*s,y:E.y};
-    const at=(el,p,w)=>{el.style.left=p.x+'px';el.style.top=p.y+'px';if(w){el.style.width=el.style.height=w+'px'}};
-    at(dashEl,C,s);at(cubeEl,C,s);at(dotEl,C);at(eyeEl,E);
-    // A dotted line from the eye to the middle of the cube: where you look from
-    sightEl.style.cssText=above?`left:${C.x}px;top:${C.y}px;height:${E.y-C.y}px;border-left:1px dotted rgba(244,244,242,.4)`
-      :`left:${E.x}px;top:${C.y}px;width:${C.x-E.x}px;border-top:1px dotted rgba(244,244,242,.4)`;
     const OLD=PAGES[prev].c,NEW=PAGES[next].c,F='rgba(244,244,242,.3)';
     cubeEl.style.borderColor=(above?(sign>0?[F,NEW,OLD,F]:[F,F,OLD,NEW]):(sign>0?[F,F,NEW,OLD]:[NEW,F,F,OLD])).join(' ');
+    const at=(el,p,w)=>{el.style.left=p.x+'px';el.style.top=p.y+'px';if(w){el.style.width=el.style.height=w+'px'}};
+    capEye.style.whiteSpace='nowrap';capEye.style.width='max-content';
+    const ew=capEye.offsetWidth,wrapMin=above?60:100;
+    let taken;
     // The two names sit beside what they name, on the side with room: the first spot that is inside the map and clear of the
-    // cube, the eye and the other name
-    const taken=[[C.x-r,C.y-r,C.x+r,C.y+r],[E.x-10,E.y-10,E.x+10,E.y+10]];
+    // cube, the eye and the other name. It tells whether it found one.
     const put=(el,ob,order)=>{
       for(const k of order)for(const wrap of [false,true]){
         // A name that does not fit on one line wraps into the room beside what it names
         const room=k==='r'?W-ob[2]-4:k==='l'?ob[0]-4:100;
-        el.style.whiteSpace=wrap?'normal':'nowrap';el.style.width=wrap?Math.max(60,Math.min(110,room))+'px':'max-content';
+        el.style.whiteSpace=wrap?'normal':'nowrap';el.style.width=wrap?Math.max(wrapMin,Math.min(110,room))+'px':'max-content';
         const w=el.offsetWidth,h=el.offsetHeight,cx=(ob[0]+ob[2])/2,cy=(ob[1]+ob[3])/2;
-        const spot={r:[ob[2]+4,cy-h/2],l:[ob[0]-4-w,cy-h/2],b:[cx-w/2,ob[3]+4],a:[cx-w/2,ob[1]-4-h]};
+        const spot={r:[ob[2]+4,cy-h/2],l:[ob[0]-4-w,cy-h/2],b:[cx-w/2,ob[3]+4],a:[cx-w/2,ob[1]-4-h],B:[0,taken[0][3]+4]};
         const side=k==='r'||k==='l';
         const x=Math.max(0,Math.min(W-w,spot[k][0])),y=side?Math.max(0,Math.min(M-h,spot[k][1])):spot[k][1],box=[x,y,x+w,y+h];
         el.style.left=x+'px';el.style.top=y+'px';
-        if(y>=0&&y+h<=M&&!taken.some(t=>hit(box,t))){taken.push(box);return}
+        if(y>=0&&y+h<=M&&!taken.some(t=>hit(box,t))){taken.push(box);return true}
       }
+      return false;
     };
-    put(capEye,taken[1],above?'rlba':'brla');
-    put(capDot,taken[0],above?'rbal':'barl');
+    // Draws the cube s wide with the eye in front of it, and tells whether both names found a place
+    const lay=(s,ex,eyeAt)=>{
+      const r=.707*s+2,E=above?{x:r+3,y:M-11}:{x:ex,y:M/2},C=above?{x:E.x,y:E.y-(depth+.5)*s}:{x:E.x+(depth+.5)*s,y:E.y};
+      if(!above&&C.x+r>W)return false;
+      at(dashEl,C,s);at(cubeEl,C,s);at(dotEl,C);at(eyeEl,E);
+      // A dotted line from the eye to the middle of the cube: where you look from
+      sightEl.style.cssText=above?`left:${C.x}px;top:${C.y}px;height:${E.y-C.y}px;border-left:1px dotted rgba(244,244,242,.4)`
+        :`left:${E.x}px;top:${C.y}px;width:${C.x-E.x}px;border-top:1px dotted rgba(244,244,242,.4)`;
+      taken=[[C.x-r,C.y-r,C.x+r,C.y+r],[E.x-10,E.y-10,E.x+10,E.y+10]];
+      const a=put(capEye,taken[1],eyeAt),b=put(capDot,taken[0],'rbal');
+      return a&&b;
+    };
+    if(above)lay(Math.min((M-10)/(depth+1.207),W*.3),0,'rlba');
+    else{ // the side view is short and wide: the biggest cube whose two names still fit. A wide card may put the eye in far enough
+      // for its name to stand under it or beside it; a narrow one puts that name under the whole row.
+      const eyes=W<220?[[9,'bB']]:[[Math.ceil(ew/2)+1,'b'],[ew+14,'l']];
+      let s=Math.min((W-13)/(depth+1.207),(M-4)/1.414);
+      while(s>12&&!eyes.some(e=>lay(s,...e)))s-=3;
+    }
   }
   // The map's cube turns as the pages do: the same length and curve, started in the same step, clockwise for a later page
   function turnMap(prev,next,how){
@@ -466,8 +486,17 @@
       :motionOk?wordsCmp:'Switches at once simply changes page; with reduced motion, Cube turns fades the next page in instead of turning. Click Work or About, or press Show me.');
   }
   // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
-  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;pose()});
-  addEventListener('resize',()=>{if(mode!=='normal')pose()});
+  // A turn under way when a mode or a resize changes the box (Compare's half, or the whole box again) goes on from the same
+  // moment, aimed again at the box's new size
+  function reaim(){
+    if(!animating||!motionOk||!turn)return;
+    const t=turn.list[0].currentTime;if(t===null)return;
+    turn.list.forEach(a=>a.cancel());
+    turn.list=swing(turn.prev,turn.next,turn.d);
+    turn.list.forEach(a=>{a.currentTime=t});
+  }
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;reaim();pose()});
+  addEventListener('resize',()=>{if(mode!=='normal'){reaim();pose()}});
   if(document.fonts)document.fonts.ready.then(()=>{if(mode==='inside')pose()});
 
   function choices(id,pick){
