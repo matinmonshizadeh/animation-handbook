@@ -32,6 +32,43 @@
     .card-title{font-size:clamp(16px,2.3vw,20px);font-weight:bold;margin-bottom:8px}
     .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
     @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important;transform:none!important}}
+    /* See inside and Compare. Outlines and marks are drawn over the stage from the card's measured box; the words sit on a dark backing. */
+    :root{--c-pin:#f5b942}
+    .guide,.twin,.cap{display:none}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative}
+    .guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .stage[data-hb-mode="inside"] .guide,.stage[data-hb-mode="compare"] .guide{display:block}
+    .guide .v-in,.guide .v-cmp{display:none}
+    .stage[data-hb-mode="inside"] .guide .v-in,.stage[data-hb-mode="compare"] .guide .v-cmp{display:inline}
+    .k-start{--k:var(--ui-accent)}.k-pin{--k:var(--c-pin)}.k-full{--k:#f4f4f2}.k-faint{--k:rgba(244,244,242,.45)}
+    .guide rect{fill:none;stroke:var(--k,#f4f4f2);stroke-width:1.5;stroke-dasharray:6 4}
+    .guide .o-q{stroke-width:1;stroke-dasharray:none}
+    .guide .lead,.guide .cross,.guide .ring{fill:none;stroke:var(--k);stroke-width:1.5}
+    .guide .cross,.guide .ring{stroke-width:2}
+    .guide .end,.guide .dot{fill:var(--k)}
+    .cap{position:absolute;left:0;top:0;width:max-content;padding:3px 8px;border-radius:6px;border-left:3px solid var(--k,#f4f4f2);
+      background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.3 var(--hb-font)}
+    .stage[data-hb-mode="inside"] .cap.v-in,.stage[data-hb-mode="compare"] .cap.v-cmp{display:block}
+    /* Both views show a compact card (icon and title) so the words and outlines have room, the same size in both halves. */
+    .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:clamp(12px,4vw,40px) clamp(10px,2vw,24px)}
+    .stage[data-hb-mode="inside"] .card-sub,.stage[data-hb-mode="compare"] .card-sub{display:none}
+    .stage[data-hb-mode="inside"] .card-icon,.stage[data-hb-mode="compare"] .card-icon{font-size:24px;margin-bottom:10px}
+    .stage[data-hb-mode="inside"] .card-title,.stage[data-hb-mode="compare"] .card-title{margin-bottom:0;font-size:clamp(15px,2.3vw,20px);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .card{width:clamp(140px,46%,340px)}
+    /* Compare: the card twice, one on each side of a thin line. On the left a copy that never grows (it keeps the page's fade); on the
+       right the card itself. Between plays both rest halfway through growing: the same see-through, the right one half way from its start size to full. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;justify-items:center;
+      gap:0 12px;grid-template-rows:auto auto;align-content:center;padding:44px 8px 8px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .twin{display:block;transform:none!important}
+    .stage[data-hb-mode="compare"] .card{width:min(88%,300px)}
+    .cap.half{top:10px;transform:translateX(-50%)}
+    .cap.first{left:25%}
+    .cap.second{left:75%}
+    .cap.when{position:static;grid-area:2/1/3/3;margin-top:12px;white-space:nowrap;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .card{opacity:var(--pose-o)!important;transition:none!important}
+    .stage[data-hb-mode="compare"].posed .card:not(.twin){transform:scale(var(--pose-s))!important}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -54,17 +91,34 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="card" id="card">
         <div class="card-icon">◆</div>
         <div class="card-title">Scale Arrival</div>
         <div class="card-sub">A springy finish makes it land. Try growing it from a corner.</div>
       </div>
+      <svg class="guide" aria-hidden="true"></svg>
+      <span class="cap v-in k-start" aria-hidden="true" data-hb-caption></span>
+      <span class="cap v-in k-pin" aria-hidden="true" data-hb-caption>Grows from here</span>
+      <span class="cap v-in k-full" aria-hidden="true" data-hb-caption></span>
+      <span class="cap v-in k-faint" aria-hidden="true" data-hb-caption></span>
+      <span class="cap v-cmp half first" aria-hidden="true" data-hb-caption>No growing</span>
+      <span class="cap v-cmp half second" aria-hidden="true" data-hb-caption>Grows in</span>
+      <span class="cap v-cmp when" aria-hidden="true" data-hb-caption>Halfway through growing</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the outlines show where the card starts and ends, both pinned at the point it grows from. The faint outlines show its size each quarter of the time.</p>
+      <p data-hb-for="compare" hidden>No growing appears at full size; Grows in starts smaller and grows into place, so it seems to arrive. With Loop off, both rest halfway through growing.</p>
     </div>
   </section>
 
@@ -164,11 +218,36 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const card=document.getElementById('card');
+  const stage=card.parentElement,guide=stage.querySelector('.guide');
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const fadeTog=document.getElementById('fade-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let ms=500,ss=0.8,origin='center',ease='cubic-bezier(.34,1.56,.64,1)',timers=[];
+  // See inside and Compare. POSE is how far through its growing Compare rests; GAP the room between a word and the outlines, RING the pin's size
+  // and PIN_D how far a word that points at the center pin keeps from the middle, so its line clears the icon (all in pixels).
+  const POSE=.5,GAP=12,RING=8,PIN_D=44;
+  const BEZ={linear:[0,0,1,1],'ease-in-out':[.42,0,.58,1]};
+  let mode='normal',began=0;
+  // Compare's first card: a copy that never grows (it keeps the page's fade), out of reach of the keyboard and screen readers
+  const twin=card.cloneNode(true);
+  twin.removeAttribute('id');twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  card.before(twin);
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still: the outlines show where the card starts and ends, pinned at the point it grows from, and the faint ones its size each quarter of the time.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, halfway through growing: No growing fills its dashed outline, while Grows in is still smaller.';
+  }
+  const NS='http://www.w3.org/2000/svg',KEYS=['start','pin','full','faint'];
+  function mk(tag,cls){const e=document.createElementNS(NS,tag);e.setAttribute('class',cls);guide.append(e);return e}
+  const outQ=[0,1,2].map(()=>mk('rect','v-in o-q k-faint')),outFull=mk('rect','v-in k-full'),outStart=mk('rect','v-in k-start');
+  const caps={},lead={};
+  KEYS.forEach(k=>{
+    caps[k]=stage.querySelector('.cap.k-'+k);
+    lead[k]={line:mk('path','v-in lead k-'+k),end:mk('circle','v-in end k-'+k)};lead[k].end.setAttribute('r',3);
+  });
+  const ring=mk('circle','v-in ring k-pin'),dot=mk('circle','v-in dot k-pin'),cross=mk('path','v-in cross k-start');
+  ring.setAttribute('r',RING);dot.setAttribute('r',2.5);
+  const ghosts=[mk('rect','v-cmp k-full'),mk('rect','v-cmp k-full')];
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
@@ -179,33 +258,130 @@
     vars.setProperty('--fade-opacity',fadeTog.checked?'0':'1');
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){card.classList.toggle('in',on);twin.classList.toggle('in',on)}
   function scaleIn(){
+    began=performance.now();
     // snap back to the starting scale without a transition so every play grows from the beginning
-    card.style.setProperty('transition','none','important');
-    card.classList.remove('in');void card.offsetWidth;
-    card.style.removeProperty('transition');
-    card.classList.add('in');
+    [card,twin].forEach(c=>c.style.setProperty('transition','none','important'));
+    setIn(false);void card.offsetWidth;
+    [card,twin].forEach(c=>c.style.removeProperty('transition'));
+    setIn(true);
   }
+  // Compare's rest comes back once a play is over (the reduced fade is 300ms), if Compare is still on show
+  function holdLater(){later(()=>{if(mode==='compare')pose(true)},Math.max(0,began+(motionOk?dur():300)+700-performance.now()))}
   // One play scales in. While Loop is on it then holds, scales back down, waits and plays again;
   // switching Loop off lets the card finish at full size. Slow motion stretches the scales, not the waits.
   function cycle(){
-    apply();scaleIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();pose(false);scaleIn();
+    if(!loopTog.checked||!motionOk){holdLater();return}
     later(()=>{
       if(!loopTog.checked)return;
-      card.classList.remove('in');
+      setIn(false);
       later(cycle,dur()+400);
     },dur()+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The Feel's speed curve as four numbers, and its value at a share x of the time (the browser's own curve, found by halving)
+  const bez=e=>BEZ[e]||e.match(/[\d.]+/g).map(Number);
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  function words(t){return t<=400?'a third of a second':t<=700?'half a second':t<=1200?'a second':t<=1800?'a second and a half':'two seconds'}
+  // The card's box as the page lays it out, and the point it grows from; a rectangle of the card at a share s of its size, kept on that point
+  function geo(){
+    const w=card.offsetWidth,h=card.offsetHeight,x=card.offsetLeft,y=card.offsetTop;
+    const ax=/left/.test(origin)?0:/right/.test(origin)?1:.5,ay=/top/.test(origin)?0:/bottom/.test(origin)?1:.5;
+    return {w,h,ax,ay,px:x+ax*w,py:y+ay*h};
+  }
+  const rectAt=(g,s)=>({l:g.px-g.ax*g.w*s,t:g.py-g.ay*g.h*s,r:g.px+(1-g.ax)*g.w*s,b:g.py+(1-g.ay)*g.h*s});
+  function draw(el,c,s){
+    el.setAttribute('x',c.l);el.setAttribute('y',c.t);el.setAttribute('width',c.r-c.l);el.setAttribute('height',c.b-c.t);el.setAttribute('rx',16*s);
+  }
+  // See inside: outlines of where the card starts, ends and is on the way (the Feel's own curve at each quarter of the time), the pin on
+  // the point it grows from, and four words, one in each corner around the card, each with a line to what it names. The words are
+  // measured and kept inside the box; the ones that point at the middle of the card come in at a slant so the line clears the icon.
+  function drawInside(){
+    const g=geo(),curve=bez(ease),F=rectAt(g,1),S=rectAt(g,ss),A=rectAt(g,0),none=ss<.01;
+    const sizes=[1,2,3].map(k=>ss+(1-ss)*curveAt(curve,k/4)),big=Math.max(...sizes),over=(big-1)*g.w>1;
+    const Q=rectAt(g,over?big:sizes[1]),W=stage.clientWidth,H=stage.clientHeight,cx=W/2;
+    outQ.forEach((r,i)=>draw(r,rectAt(g,sizes[i]),sizes[i]));
+    draw(outFull,F,1);draw(outStart,S,ss);outStart.style.display=none?'none':'';
+    ring.setAttribute('cx',g.px);ring.setAttribute('cy',g.py);
+    dot.setAttribute('cx',g.px);dot.setAttribute('cy',g.py);dot.style.display=none?'none':'';
+    cross.setAttribute('d',`M${g.px-5} ${g.py}H${g.px+5}M${g.px} ${g.py-5}V${g.py+5}`);cross.style.display=none?'':'none';
+    caps.start.textContent=(ss>.65?'Starts a bit smaller':ss>.25?'Starts at half size':'Starts as a dot')+(fadeTog.checked?', see-through':', already solid');
+    caps.full.textContent='Full size after about '+words(dur());
+    caps.faint.textContent=over?'Grows a little too big, then settles':'Faint outlines: its size each quarter of the time';
+    const all=[F,A,...sizes.map(s=>rectAt(g,s))];
+    const U={l:Math.min(...all.map(r=>r.l))-RING,t:Math.min(...all.map(r=>r.t))-RING,r:Math.max(...all.map(r=>r.r))+RING,b:Math.max(...all.map(r=>r.b))+RING};
+    // which corner of the card each word sits in (the pin's side flips for a card that grows from its bottom edge)
+    const up=g.ay<1,slot=none?(up?{pin:'TL',start:'TR',faint:'BL',full:'BR'}:{pin:'BL',start:'BR',faint:'TL',full:'TR'})
+      :(up?{pin:'TL',start:'BL',faint:'TR',full:'BR'}:{pin:'BL',start:'TL',faint:'TR',full:'BR'});
+    const named={start:S,pin:A,full:F,faint:Q};
+    KEYS.forEach(k=>{
+      const el=caps[k],sl=slot[k],isT=sl[0]==='T',isL=sl[1]==='L',toPin=k==='pin'||(none&&k==='start');
+      const inner=toPin&&g.ay===.5?PIN_D:6,r=named[k],near=isL?r.l:r.r;
+      el.style.left='0px';el.style.top='0px';el.style.maxWidth='none';
+      // its edge nearest the middle stands close to what it names where one line fits there, else it keeps to the middle
+      let edge=isL?Math.min(cx-inner,near+16):Math.max(cx+inner,near-16);
+      if((isL?edge:W-edge)-4<el.offsetWidth)edge=isL?cx-inner:cx+inner;
+      el.style.maxWidth=Math.max(60,(isL?edge:W-edge)-4)+'px';
+      const w=el.offsetWidth,h=el.offsetHeight,left=isL?edge-w:edge;
+      const y=Math.min(Math.max(isT?U.t-GAP-h:U.b+GAP,3),H-3-h);
+      el.style.left=left+'px';el.style.top=y+'px';
+      let tx=near,ty=isT?r.t:r.b;
+      const x0=Math.min(Math.max(tx,left+8),left+w-8),y0=isT?y+h:y;
+      if(toPin){const d=Math.hypot(tx-x0,ty-y0)||1;tx+=(x0-tx)*(RING+1)/d;ty+=(y0-ty)*(RING+1)/d}
+      lead[k].line.setAttribute('d',`M${x0} ${y0}L${tx} ${ty}`);
+      lead[k].end.setAttribute('cx',tx);lead[k].end.setAttribute('cy',ty);lead[k].end.style.display=toPin?'none':'';
+    });
+  }
+  // Compare: a dashed outline of the full size around each card
+  function drawCompare(){
+    [twin,card].forEach((c,i)=>draw(ghosts[i],{l:c.offsetLeft,t:c.offsetTop,r:c.offsetLeft+c.offsetWidth,b:c.offsetTop+c.offsetHeight},1));
+  }
+  // Compare's rest: both cards equally see-through, the right one half way from its start size to full. It is a share of the change,
+  // not a time or a curve, so Speed, Feel and Slow motion leave it alone (they show in a play).
+  function pose(on){
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    stage.style.setProperty('--pose-s',ss+(1-ss)*POSE);
+    stage.style.setProperty('--pose-o',fadeTog.checked?POSE:1);
+  }
+  function refresh(){
+    if(mode==='inside')drawInside();
+    else if(mode==='compare'){drawCompare();if(stage.classList.contains('posed'))pose(true)}
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    // Leaving Compare's rest shows the cards as they now are, at once, with no transition (a play under way goes on)
+    if(was==='compare'&&mode!=='compare'&&stage.classList.contains('posed')){
+      [card,twin].forEach(c=>c.style.setProperty('transition','none','important'));
+      pose(false);void card.offsetWidth;
+      [card,twin].forEach(c=>c.style.removeProperty('transition'));
+    }
+    pose(mode==='compare'&&!(loopTog.checked&&motionOk));
+    refresh();
+  });
+  // The box changes size with the window, and its words with the site font once it has loaded: the views are drawn again
+  const redraw=new ResizeObserver(refresh);redraw.observe(stage);redraw.observe(card);
+  if(document.fonts)document.fonts.ready.then(refresh);
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else if(card.classList.contains('in'))holdLater()});
+  slowTog.addEventListener('change',refresh);
+  fadeTog.addEventListener('change',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('ss-seg',d=>{ss=+d.ss});
