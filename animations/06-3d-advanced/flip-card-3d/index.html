@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#3fd6c4;--perspective:1200px;--flip-dur:650ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{background:radial-gradient(120% 120% at 50% 0%,#141018,#08070a);display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px);perspective:var(--perspective)}
+    .stage{position:relative;background:radial-gradient(120% 120% at 50% 0%,#141018,#08070a);display:flex;align-items:center;justify-content:center;padding:clamp(20px,4vw,48px);perspective:var(--perspective)}
     /* A window under 657px tall gives the stage 260 to 326px, so the stage gives up padding as the window shrinks and the card
        keeps the 156×218 it has on a 1366×657 laptop, the smallest size that holds its text on one line */
     @media(min-width:601px) and (max-height:656px){.stage{padding:clamp(14px,calc(50vh - 281px),48px);padding:clamp(14px,calc(50svh - 281px),48px)}}
@@ -74,6 +74,46 @@
       .card.flipped .front{opacity:0}
       .card.flipped .back{opacity:1}
     }
+    /* See inside and Compare. The tilt sits in a box that takes no part in the layout until a mode needs it. */
+    .half{display:contents}
+    .half.copy,.cap,.lead,.dash,.axis,.arrow{display:none}
+    .cap{position:absolute;z-index:2;padding:2px 7px;border-radius:6px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 12px/15px var(--hb-font);white-space:nowrap;pointer-events:none}
+    .lead{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .lead path{fill:none;stroke:rgba(244,244,242,.75);stroke-width:1.5}
+    .lead circle{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1}
+    .dash{position:absolute;inset:0;border:2px dashed rgba(244,244,242,.85);border-radius:16px;backface-visibility:visible;-webkit-backface-visibility:visible}
+    .axis{position:absolute;left:50%;top:50%;translate:-50% -50%;border-radius:2px;background:#ffcf5c}
+    .arrow{position:absolute;left:50%;top:50%;width:40px;height:24px;fill:none;stroke:#ffcf5c;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+    /* See inside: the card pulled apart, seen from three quarters (the script sets the view, the gap and the gold line's size) */
+    .stage[data-hb-mode="inside"] .half.real{display:flex;flex:none;width:100%;height:100%;transform-style:preserve-3d;pointer-events:none}
+    .stage[data-hb-mode="inside"] .tilt{position:relative}
+    .stage[data-hb-mode="inside"] .dash,.stage[data-hb-mode="inside"] .axis,.stage[data-hb-mode="inside"] .arrow,.stage[data-hb-mode="inside"] .in-cap,.stage[data-hb-mode="inside"] .lead{display:block}
+    .stage[data-hb-mode="inside"] .face{box-shadow:none}
+    .stage[data-hb-mode="inside"] .front,.stage[data-hb-mode="inside"] .d-f{transform:translateZ(var(--gap))}
+    .stage[data-hb-mode="inside"] .card:not(.axis-x) .back,.stage[data-hb-mode="inside"] .card:not(.axis-x) .d-b{transform:rotateY(180deg) translateZ(var(--gap))}
+    .stage[data-hb-mode="inside"] .card.axis-x .back,.stage[data-hb-mode="inside"] .card.axis-x .d-b{transform:rotateX(180deg) translateZ(var(--gap))}
+    .stage[data-hb-mode="inside"].xturn .arrow{rotate:-90deg}
+    /* Compare: two halves, each with its own perspective; "Back shows through" is the copy, which leaves the back face visible from
+       behind, so the back is painted over the front (mirrored). Each card keeps the 156 x 218 layout that holds its text on one line
+       and is scaled to its half. */
+    .stage[data-hb-mode="compare"]{perspective:none;padding:0 8px;--cmp-top:34px}
+    .stage[data-hb-mode="compare"] .half{display:flex;flex:1 1 0;min-width:0;align-self:stretch;padding-top:var(--cmp-top);perspective:var(--perspective);perspective-origin:50% calc(50% + var(--cmp-top)/2);pointer-events:none}
+    .stage[data-hb-mode="compare"] .half.real{box-shadow:inset 1px 0 0 rgba(255,255,255,.12)}
+    .stage[data-hb-mode="compare"] .card{width:156px;height:218px;scale:var(--cs,1)}
+    .stage[data-hb-mode="compare"] .copy .face{backface-visibility:visible;-webkit-backface-visibility:visible}
+    .stage[data-hb-mode="compare"] .cmp-name{display:block;top:8px;left:calc(8px + (100% - 16px)/4);translate:-50% 0}
+    .stage[data-hb-mode="compare"] .cmp-name.two{left:calc(8px + (100% - 16px)*.75)}
+    @media(prefers-reduced-motion:reduce){
+      /* See inside shows the turn as a still, a third of the way: the pose outranks the rules above, which pose nothing */
+      .stage[data-hb-mode="inside"] .card{--r:0 1 0;--a:60deg;rotate:var(--r) var(--a)}
+      .stage[data-hb-mode="inside"] .card.flipped{--a:120deg}
+      .stage[data-hb-mode="inside"] .card.axis-x{--r:1 0 0}
+      .stage[data-hb-mode="inside"] .card .face{backface-visibility:hidden;-webkit-backface-visibility:hidden;opacity:1}
+      /* Compare: the copy shows its back over its front, mirrored, until it is turned over */
+      .stage[data-hb-mode="compare"] .copy .face{opacity:1}
+      .stage[data-hb-mode="compare"] .copy .card:not(.axis-x):not(.flipped) .back{transform:rotateY(180deg)}
+      .stage[data-hb-mode="compare"] .copy .card.axis-x:not(.flipped) .back{transform:rotateX(180deg)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -96,9 +136,14 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap the card to turn it over, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
-      <div class="tilt" id="tilt">
-        <div class="card" id="card" tabindex="0" role="button" aria-pressed="false" aria-label="Flip card to see details">
+      <div class="half real" id="half"><div class="tilt" id="tilt">
+        <div class="card" id="card" tabindex="0" role="button" aria-pressed="false">
           <div class="face front">
             <div class="avatar">AV</div>
             <div class="name">Ava Reyes</div>
@@ -116,12 +161,23 @@
             <div class="hint">← Flip back</div>
           </div>
         </div>
-      </div>
+      </div></div>
+      <span class="cap cmp-name" data-hb-caption>Back shows through</span>
+      <span class="cap cmp-name two" data-hb-caption>Back hidden</span>
+      <span class="cap in-cap" data-hb-caption>Two faces, back to back (pulled apart here)</span>
+      <span class="cap in-cap" data-hb-caption>The back starts turned away</span>
+      <span class="cap in-cap" data-hb-caption>Dashed: a face pointing away is hidden</span>
+      <span class="cap in-cap" data-hb-caption>Turns on this line in about two thirds of a second</span>
+      <svg class="lead" aria-hidden="true"><path/><path/><path/><path/><circle r="3"/><circle r="3"/><circle r="3"/><circle r="3"/></svg>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the two faces are pulled apart: the back starts turned away, the card turns around the gold line, and the face pointing away is hidden (dashed). Click the card or press Show me.</p>
+      <p data-hb-for="compare" hidden>Back shows through: without hiding the face pointing away, the back sits on top, mirrored; Back hidden: each face shows only from its own side. Click the card or press Show me.</p>
     </div>
   </section>
 
@@ -226,10 +282,29 @@
   const canHover=matchMedia('(hover:hover)');
   const FLAT='rotateX(0deg) rotateY(0deg)';
   let trigger='click',maxTilt=10,flipMs=650,runTimer=0;
+  // See inside and Compare. Compare's first half is a copy of the tilt and card, made once: no ids, no focus, hidden from screen
+  // readers and inert. It follows the real card's classes and the tilt's lean, so a click, Show me, Reset, a hover or a lean on the
+  // real card reaches both, and the turn runs by the same transition.
+  const half=document.getElementById('half');
+  const copy=half.cloneNode(true),copyCard=copy.querySelector('.card'),copyTilt=copy.querySelector('.tilt');
+  copy.classList.replace('real','copy');
+  [copy,...copy.querySelectorAll('*')].forEach(n=>{
+    ['id','tabindex','role'].forEach(a=>n.removeAttribute(a));
+    [...n.attributes].forEach(a=>{if(a.name.startsWith('aria-'))n.removeAttribute(a.name)});
+  });
+  copy.setAttribute('aria-hidden','true');copy.inert=true;half.before(copy);
+  card.insertAdjacentHTML('beforeend','<i class="dash d-f" aria-hidden="true"></i><i class="dash d-b" aria-hidden="true"></i>');
+  tilt.insertAdjacentHTML('beforeend','<i class="axis" aria-hidden="true"></i><svg class="arrow" viewBox="0 0 40 24" aria-hidden="true"><path d="M5 22C5 5 33 5 33 20M28.5 15.5L33 21l4.5-5.5"/></svg>');
+  const axis=tilt.querySelector('.axis'),arrow=tilt.querySelector('.arrow'),lead=stage.querySelector('.lead');
+  function syncCopy(){copyCard.className=card.className;copyTilt.className=tilt.className;copyTilt.style.transform=tilt.style.transform;}
+  new MutationObserver(syncCopy).observe(card,{attributes:true,attributeFilter:['class']});
+  new MutationObserver(syncCopy).observe(tilt,{attributes:true,attributeFilter:['class','style']});
+  let mode='normal',cs=1;
 
   function setFlipped(on){
     card.classList.toggle('flipped',on);
     card.setAttribute('aria-pressed',on?'true':'false');
+    if(mode!=='normal'&&reduce.matches)draw();
   }
   function toggle(){setFlipped(!card.classList.contains('flipped'));}
 
@@ -240,9 +315,9 @@
   function toFront(){
     if(!card.classList.contains('flipped'))return;
     // The card turns by its own transition, and under reduced motion the faces fade instead: hold both for this one change
-    const held=[card,...card.querySelectorAll('.face')];
+    const held=[card,copyCard,...card.querySelectorAll('.face'),...copyCard.querySelectorAll('.face')];
     held.forEach(el=>el.style.setProperty('transition','none','important'));
-    setFlipped(false);void card.offsetWidth;
+    setFlipped(false);syncCopy();void card.offsetWidth;void copyCard.offsetWidth;
     held.forEach(el=>el.style.removeProperty('transition'));
   }
   document.getElementById('btn-demo').addEventListener('click',()=>{
@@ -275,18 +350,26 @@
     if(trusted)stopRun();
     setFlipped(on);
   }
+  // The place the card sits in: the stage's middle, or in Compare the middle of a half (below its name)
+  function frame(h){
+    const r=(h||stage).getBoundingClientRect(),t=h?parseFloat(getComputedStyle(h).paddingTop):0;
+    return{left:r.left,top:r.top+t,width:r.width,height:r.height-t};
+  }
   function overCard(e,r){
-    return Math.abs(e.clientX-(r.left+r.width/2))<=card.offsetWidth/2&&Math.abs(e.clientY-(r.top+r.height/2))<=card.offsetHeight/2;
+    const k=mode==='compare'?cs:1;
+    return Math.abs(e.clientX-(r.left+r.width/2))<=card.offsetWidth*k/2&&Math.abs(e.clientY-(r.top+r.height/2))<=card.offsetHeight*k/2;
   }
 
   // Cursor-driven idle 3D tilt and Flips on hover, both via Pointer Events
   stage.addEventListener('pointermove',e=>{
     if(e.pointerType==='touch')return;
-    const r=stage.getBoundingClientRect();
+    const cmp=mode==='compare',r=frame(cmp?half:null);
     if(trigger==='hover')hoverFlip(overCard(e,r),e.isTrusted);
     if(reduce.matches||!canHover.matches||maxTilt===0)return;
-    const x=(e.clientX-r.left)/r.width-.5;
-    const y=(e.clientY-r.top)/r.height-.5;
+    // in Compare the lean follows the pointer across the half it is over
+    const l=cmp&&e.clientX<half.getBoundingClientRect().left?frame(copy):r;
+    const x=Math.max(-.5,Math.min(.5,(e.clientX-l.left)/l.width-.5));
+    const y=Math.max(-.5,Math.min(.5,(e.clientY-l.top)/l.height-.5));
     tilt.classList.add('tracking');
     tilt.style.transform=`rotateX(${(-y*maxTilt).toFixed(2)}deg) rotateY(${(x*maxTilt).toFixed(2)}deg)`;
   });
@@ -303,15 +386,96 @@
       pick(b.dataset);
     }));
   }
-  choices('axis-seg',d=>{card.classList.toggle('axis-x',d.axis==='x');});
-  choices('speed-seg',d=>{flipMs=+d.ms;root.setProperty('--flip-dur',flipMs+'ms');});
-  choices('depth-seg',d=>{root.setProperty('--perspective',d.px+'px');});
+  choices('axis-seg',d=>{card.classList.toggle('axis-x',d.axis==='x');stage.classList.toggle('xturn',d.axis==='x');draw();});
+  choices('speed-seg',d=>{flipMs=+d.ms;root.setProperty('--flip-dur',flipMs+'ms');draw();});
+  choices('depth-seg',d=>{root.setProperty('--perspective',d.px+'px');draw();});
   choices('tilt-seg',d=>{maxTilt=+d.deg;if(maxTilt===0)tilt.style.transform=FLAT;});
   document.getElementById('hover-tog').addEventListener('change',e=>{
     trigger=e.target.checked?'hover':'click';
     hovering=false;
     if(e.target.checked)setFlipped(false);
   });
+  // The two views, drawn from the page's own numbers: the card's measured size, the stage's perspective and, for the caption that
+  // says how long a turn takes, the speed and Slow motion.
+  // See inside turns the whole card, pulled apart, three quarters toward the viewer (VX, VY) and moves each face GAP of the card's
+  // width off the turning line. The captions are placed from the same projection the browser applies, so they point at what they name.
+  const VX=12,VY=-28,GAP=.2,AW=40,AH=24;
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const NOTE={inside:notes.inside.textContent,compare:notes.compare.textContent};
+  const STILL={inside:['Shown still, a third of the way through a turn: the two faces are pulled apart, the back starts turned away, and the face pointing away is hidden (dashed).',
+      'Shown still, a third of the way back through a turn: the two faces are pulled apart, the back now faces you, and the face pointing away is hidden (dashed).'],
+    compare:['Shown still: Back shows through has the back on top of the front, mirrored, since nothing hides the face pointing away; Back hidden shows the front.',
+      'Shown still, turned over: both cards show the details facing the right way. Turn it back, and Back shows through covers its front with the back, mirrored.']};
+  function say(el,t){if(el.textContent!==t)el.textContent=t}
+  const SECONDS=[[500,'under half a second'],[800,'about two thirds of a second'],[1100,'about a second'],[1500,'just over a second'],[2500,'about two seconds']];
+  const seconds=ms=>(SECONDS.find(([m])=>ms<m)||[0,'about three seconds'])[1];
+  function draw(){
+    if(mode!=='inside'){half.style.transform=half.style.translate='';stage.style.removeProperty('--gap')}
+    if(mode!=='compare')[half,copy].forEach(h=>h.style.removeProperty('--cs'));
+    if(mode==='compare')sizeCompare();
+    if(mode==='inside')placeInside();
+    if(notes[mode])say(notes[mode],reduce.matches?STILL[mode][+card.classList.contains('flipped')]:NOTE[mode]);
+  }
+  // Compare: each card keeps its 156 x 218 layout and is scaled to what its half leaves (the half names sit above the cards)
+  function sizeCompare(){
+    cs=Math.min(1.2,(half.clientWidth-12)/156,(half.clientHeight-parseFloat(getComputedStyle(half).paddingTop)-10)/218);
+    [half,copy].forEach(h=>h.style.setProperty('--cs',cs));
+  }
+  const rotate=(p,x,d)=>{const c=Math.cos(d*Math.PI/180),s=Math.sin(d*Math.PI/180);return x?[p[0],p[1]*c-p[2]*s,p[1]*s+p[2]*c]:[p[0]*c+p[2]*s,p[1],-p[0]*s+p[2]*c]};
+  function placeInside(){
+    const W=stage.clientWidth,H=stage.clientHeight,cw=card.offsetWidth,ch=card.offsetHeight,xt=stage.classList.contains('xturn');
+    const P=parseFloat(getComputedStyle(stage).perspective)||1200,rm=reduce.matches,vy=rm?0:VY,turn=rm?(card.classList.contains('flipped')?120:60):0;
+    const g=cw*GAP,ext=Math.max(10,ch*.05),caps=[...stage.querySelectorAll('.in-cap')];
+    say(caps[3],'Turns on this line in '+seconds(flipMs*(slowTog.checked?3:1)));
+    // a point of the card (x right, y down, z toward the viewer; t: it turns with the card) as the viewer sees it, from the stage's middle
+    const pr=(x,y,z,s,t)=>{let p=[x*s,y*s,z*s];if(t&&turn)p=rotate(p,xt,turn);p=rotate(rotate(p,0,vy),1,VX);const k=P/(P-p[2]);return[p[0]*k,p[1]*k]};
+    // the gold line and its arrow stand in front of the faces (z), shifted so that, seen from here, they run through the card's middle
+    const z=g+2,ox=xt?0:-z*Math.tan(vy*Math.PI/180),oy=xt?z*Math.cos(vy*Math.PI/180)*Math.tan(VX*Math.PI/180):0,L=xt?cw/2+ext:ch/2+ext;
+    const on=(x,y)=>[x+ox,y+oy,z,0],e=xt?on(-L,0):on(0,-L),f=[[-1,-1],[1,-1],[1,1],[-1,1]].map(([a,b])=>[a*cw/2,b*ch/2]);
+    const ab=xt?[-L-AH/2-2,-AW-4,-L+AH/2-2,-4]:[8,-L-AH/2-2,8+AW,-L+AH/2-2];
+    const pts=[...f.map(a=>[...a,g,1]),...f.map(a=>[...a,-g,1]),e,xt?on(L,0):on(0,L),on(ab[0],ab[1]),on(ab[2],ab[1]),on(ab[0],ab[3]),on(ab[2],ab[3])];
+    const box=s=>{const q=pts.map(a=>pr(a[0],a[1],a[2],s,a[3])),x=q.map(a=>a[0]),y=q.map(a=>a[1]);return[Math.min(...x),Math.min(...y),Math.max(...x),Math.max(...y)]};
+    const nat=[];caps.forEach((c,i)=>{c.style.cssText='left:0;top:0';nat[i]=[c.offsetWidth,c.offsetHeight]});
+    // a caption that is wider than its room wraps to it
+    const fit=(i,room)=>{if(nat[i][0]>room)caps[i].style.cssText=`left:0;top:0;white-space:normal;width:${room}px`;nat[i]=[caps[i].offsetWidth,caps[i].offsetHeight]};
+    // room for a column of captions each side of the drawing, else captions above and below it
+    const b1=box(1),bh=b1[3]-b1[1],s1=Math.min(1,(H-12)/bh),side=(W-(b1[2]-b1[0])*s1)/2>=150;
+    if(!side)caps.forEach((c,i)=>fit(i,W-12));
+    const top=nat[3][1]+nat[0][1]+14,bot=nat[1][1]+nat[2][1]+14;
+    const s=side?s1:Math.min(1,(H-top-bot)/bh,(W-12)/(b1[2]-b1[0])),b=box(s);
+    const tx=-(b[0]+b[2])/2,ty=(side?0:(top-bot)/2)-(b[1]+b[3])/2;
+    half.style.transform=`rotateX(${VX}deg) rotateY(${vy}deg) scale3d(${s},${s},${s})`;half.style.translate=`${tx}px ${ty}px`;
+    stage.style.setProperty('--gap',g+'px');
+    axis.style.width=(xt?2*L:3)+'px';axis.style.height=(xt?3:2*L)+'px';axis.style.translate=`calc(-50% + ${ox}px) calc(-50% + ${oy}px) ${z}px`;
+    arrow.style.translate=`${(ab[0]+ab[2]-AW)/2+ox}px ${(ab[1]+ab[3]-AH)/2+oy}px ${z}px`;
+    lead.style.visibility=side?'':'hidden';
+    if(!side){
+      let y=6;[3,0].forEach(i=>{caps[i].style.left=(W-nat[i][0])/2+'px';caps[i].style.top=y+'px';y+=nat[i][1]+4});
+      y=H-6;[2,1].forEach(i=>{y-=nat[i][1];caps[i].style.left=(W-nat[i][0])/2+'px';caps[i].style.top=y+'px';y-=4});
+      return;
+    }
+    // what each caption points at: the front's left edge, the back's top right corner, its right edge, and the line's end
+    const at=[[-cw/2,xt?ch*.3:0,g,1],[cw/2,-ch/2,-g,1],[cw/2,ch/4,-g,1],e].map(a=>{const q=pr(a[0],a[1],a[2],s,a[3]);return[W/2+tx+q[0],H/2+ty+q[1]]});
+    const cols=[[],[]];
+    at.forEach((a,i)=>cols[+(a[0]>W/2)].push(i));
+    cols.forEach((col,c)=>{
+      const room=c?W-6-(W/2+(b[2]-b[0])/2+16):W/2-(b[2]-b[0])/2-16-6,items=col.sort((i,j)=>at[i][1]-at[j][1]);
+      items.forEach(i=>fit(i,room));
+      let end=0;const ys=items.map(i=>{const y=Math.max(at[i][1]-nat[i][1]/2,end+6,6);end=y+nat[i][1];return y}),up=Math.max(0,end-(H-6));
+      items.forEach((i,k)=>{
+        const w=nat[i][0],h=nat[i][1],yy=Math.max(6,ys[k]-up),xx=c?W/2+(b[2]-b[0])/2+16:W/2-(b[2]-b[0])/2-16-w;
+        caps[i].style.left=xx+'px';caps[i].style.top=yy+'px';
+        lead.children[i].setAttribute('d',`M${c?xx:xx+w} ${yy+h/2}L${at[i][0]} ${at[i][1]}`);
+        lead.children[i+4].setAttribute('cx',at[i][0]);lead.children[i+4].setAttribute('cy',at[i][1]);
+      });
+    });
+  }
+  // A mode press draws the mode at once and nothing else: the shared script plays Show me after it (never under reduced motion)
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;if(mode==='compare')syncCopy();draw()});
+  addEventListener('resize',draw);
+  reduce.addEventListener('change',draw);
+  slowTog.addEventListener('change',draw);
+  document.fonts.ready.then(draw);
 </script>
 </body>
 </html>
