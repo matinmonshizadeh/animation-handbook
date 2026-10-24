@@ -47,7 +47,7 @@
     .stage{position:relative}
     .vfi,.vfc{position:absolute;z-index:2;pointer-events:none;visibility:hidden}
     .vfc{inset:0}
-    .vfi{left:var(--vp);right:var(--vp);bottom:var(--vp);display:flex;flex-direction:column;gap:10px}
+    .vfi{left:var(--vp);right:var(--vp);bottom:var(--vp);display:flex;flex-direction:column;gap:10px;overflow:clip}
     .vfl{padding:3px 7px;border-radius:5px;background:rgba(4,6,12,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-wrap:balance}
     /* the twins of the word: the holder keeps Normal's layout; Jumps reads the same variables with no easing */
     .vfh,.vfjump{display:none}
@@ -62,9 +62,10 @@
     .vftrack{position:relative;flex:1;min-width:0;height:24px}
     .vfwedge{position:absolute;left:0;right:0;top:50%;height:12px;margin-top:-6px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.62));clip-path:polygon(0 40%,100% 0,100% 100%,0 60%)}
     .vftk{position:absolute;top:50%;width:2px;height:22px;margin:-11px 0 0 -1px;border-radius:1px;background:#f4f4f2}
-    .vfdot{position:absolute;left:0;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #04060c;background:var(--ui-accent);
-      transform:translateX(calc((var(--wght) - 400) / 500 * var(--tw,0px)));transition:transform var(--morph-dur) cubic-bezier(.4,0,.2,1)}
-    @media(prefers-reduced-motion:reduce){.vfdot{transition:none}}
+    /* the rail is as wide as the bar and moves by a share of its own width, so a resize changes nothing the dot is easing */
+    .vfrail{position:absolute;inset:0;transform:translateX(calc((var(--wght) - 400) / 500 * 100%));transition:transform var(--morph-dur) cubic-bezier(.4,0,.2,1)}
+    .vfdot{position:absolute;left:0;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #04060c;background:var(--ui-accent)}
+    @media(prefers-reduced-motion:reduce){.vfrail{transition:none}}
     .vfcaps{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px}
     .vfcaps .vfl{max-width:100%}
     .vflean{position:relative;display:inline-block;width:24px;height:20px;margin-right:6px;vertical-align:-5px}
@@ -123,7 +124,7 @@
       <div class="vfi" aria-hidden="true" inert>
         <div class="vfrow">
           <span class="vfl vfend vfreg" data-hb-caption>Regular</span>
-          <div class="vftrack"><i class="vfwedge"></i><i class="vftk" style="left:0"></i><i class="vftk" style="left:20%"></i><i class="vftk" style="left:60%"></i><i class="vftk" style="left:100%"></i><i class="vfdot"></i></div>
+          <div class="vftrack"><i class="vfwedge"></i><i class="vftk" style="left:0"></i><i class="vftk" style="left:20%"></i><i class="vftk" style="left:60%"></i><i class="vftk" style="left:100%"></i><i class="vfrail"><i class="vfdot"></i></i></div>
           <span class="vfl vfend vfblk" data-hb-caption>Black</span>
         </div>
         <div class="vfcaps">
@@ -230,7 +231,8 @@
     {wght:400,slnt:0},{wght:900,slnt:0},{wght:700,slnt:-15},
     {wght:500,slnt:0},{wght:400,slnt:-15},{wght:900,slnt:0}
   ];
-  let morph=600,idx=0,current=PRESETS[0];
+  let morph=600,idx=0,current=PRESETS[0],from={w:400,k:0};
+  const num=n=>+vars.getPropertyValue(n);
 
   function curDur(){return slowTog.checked?morph*3:morph}
 
@@ -249,6 +251,7 @@
   // one already drawn.
   function step(){
     const d=curDur();
+    from={w:num('--wght')||400,k:num('--slnt')}; // where this change starts, for Compare's pose
     vars.setProperty('--morph-dur',d+'ms');
     current=PRESETS[idx%PRESETS.length];
     idx++;
@@ -279,12 +282,12 @@
   // ── See inside and Compare ──
   // Both are drawn from the loop's own numbers. See inside: the dot rides the bar by the word's own --wght with its easing, so Pause
   // and Slow motion reach it with the word. Compare: Jumps is a twin that reads the same variables with no easing; while the
-  // loop rests paused, the next change is posed half way by inline styles on the word and on the twin, and lifted at once.
+  // loop is paused, the change next or under way is posed half way (a script animation on the word, a style on the twin), and lifted at once.
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
   const $=s=>stage.querySelector(s);
-  const vfi=$('.vfi'),vfm=$('.vfm'),jump=$('.vfjump'),track=$('.vftrack');
+  const vfi=$('.vfi'),vfm=$('.vfm'),jump=$('.vfjump');
   const twins=[...stage.querySelectorAll('.vf-text:not(#vf-text)')];
-  const tipA=$('.vfp.vfa'),tipB=$('.vfp.vfb'),glide=$('.vfg'),leanCap=$('.vfcap'),leanWords=$('.vflt');
+  const glide=$('.vfg'),leanCap=$('.vfcap'),leanWords=$('.vflt');
   const notes=[...document.querySelectorAll('[data-hb-for]')],plain=notes.map(n=>n.textContent);
   // Under reduced motion the loop starts paused, so both views are stills; once Play has moved it on, the words say so
   const still=[
@@ -321,7 +324,6 @@
   let broken=false;
   // Where the word goes: above the bar in See inside, and one line in the right half in Compare, both scaled alike to fit
   function layout(){
-    track.style.setProperty('--tw',track.clientWidth+'px');
     if(broken&&mode!=='compare'){vfText.textContent=jump.textContent=src();broken=false}
     if(mode==='normal')return;
     const st=getComputedStyle(stage),W=stage.clientWidth,H=stage.clientHeight,fs=parseFloat(getComputedStyle(vfText).fontSize);
@@ -332,14 +334,15 @@
       s=Math.min(1,(H-parseFloat(st.paddingTop)-parseFloat(st.paddingBottom)-low)/vfm.offsetHeight);
       ty=-low/2;
     }else{
-      // the largest size at which the text, broken to fit a half, still fits between the names and the notes (a word is broken
-      // only when even half size does not hold it); the lines it breaks into at its black weight are kept in both halves, so the
-      // two never wrap apart
-      const room=W/2-24-.3*fs;
-      for(const least of [.5,.13]){
-        vfm.style.overflowWrap=least===.5?'normal':'anywhere';
-        for(s=1;s>least;s-=.04){vfm.style.width=room/s+'px';if(vfm.offsetHeight*s<=H-96&&vfm.scrollWidth<=room/s+1)break}
-        if(s>least)break;
+      // the largest size at which the text, broken to fit a half, still fits between the names and the notes (a word is kept
+      // whole down to a third of its size; a word that is longer than that holds is broken, at that size or smaller, into the
+      // fewest pieces); the lines it breaks into at its black weight are kept in both halves, so the two never wrap apart
+      const room=W/2-24-.3*fs,WHOLE=.35,fits=()=>vfm.offsetHeight*s<=H-96&&vfm.scrollWidth<=room/s+1;
+      vfm.style.overflowWrap='normal';
+      for(s=1;;s=Math.max(WHOLE,s-.04)){vfm.style.width=room/s+'px';if(fits()||s===WHOLE)break}
+      if(!fits()){
+        vfm.style.overflowWrap='anywhere';
+        for(;;s=Math.max(.13,s-.04)){vfm.style.width=room/s+'px';if(fits()||s===.13)break}
       }
       const lines=linesOf(vfm);
       fill(vfText,lines);fill(jump,lines);broken=true;
@@ -347,28 +350,24 @@
     }
     stage.style.setProperty('--vs',s);stage.style.setProperty('--vty',ty+'px');stage.style.setProperty('--vt',at+'px');
   }
-  const num=n=>+vars.getPropertyValue(n);
+  // The pose is a finished script animation laid over the word, so the transitions Pause holds stay alive under it: lifting it
+  // (Play, Normal, See inside) shows the true frame again, and nothing eases from the pose
+  let poseAnim=null;
   function unpose(){
-    if(!vfText.style.transition)return;
-    vfText.style.fontWeight=vfText.style.fontVariationSettings=vfText.style.transform='';
-    void vfText.offsetWidth; // the true style is drawn with the easing off, then the easing comes back
-    vfText.style.transition='';
+    if(poseAnim){poseAnim.cancel();poseAnim=null}
     jump.style.cssText='';
   }
   function pose(){
-    // Paused: the labels say where the word is. At rest the next change is posed half way; caught in the middle of one, the true
-    // frames already differ, so nothing is posed
-    const stopped=mode==='compare'&&paused,on=stopped&&!held.length;
-    stage.classList.toggle('vfposed',stopped);
-    put(tipA,on?'At the next style':'Already at the new style');
-    put(tipB,on?'Half way through a change':'Still on its way');
+    // Paused in Compare, the two halves never rest alike. Paused between two changes, the next change is posed half way; paused in
+    // the middle of one, that change is: Jumps at the style it goes to, Glides half way from the style it left
+    const on=mode==='compare'&&paused;
+    stage.classList.toggle('vfposed',on);
     if(!on)return unpose();
-    const w=num('--wght'),k=num('--slnt'),to=PRESETS[idx%PRESETS.length],k2=leanTog.checked?to.slnt:0,mid=(w+to.wght)/2;
-    vfText.style.transition='none';
-    vfText.style.fontWeight=mid;
-    vfText.style.fontVariationSettings="'wght' "+mid;
-    vfText.style.transform='skewX('+(k+k2)/2+'deg)';
-    jump.style.cssText='--cw:'+to.wght+';--cs:'+k2;
+    const caught=held.length>0,here={w:num('--wght'),k:num('--slnt')},to=PRESETS[idx%PRESETS.length];
+    const a=caught?from:here,b=caught?here:{w:to.wght,k:leanTog.checked?to.slnt:0},w=(a.w+b.w)/2;
+    jump.style.cssText=caught?'':'--cw:'+b.w+';--cs:'+b.k;
+    if(poseAnim)poseAnim.cancel();
+    poseAnim=vfText.animate({fontWeight:w,fontVariationSettings:"'wght' "+w,transform:'skewX('+(a.k+b.k)/2+'deg)'},{duration:0,fill:'forwards'});
   }
   document.addEventListener('hb:mode',e=>{mode=e.detail.mode;layout();pose()});
   document.addEventListener('hb:pause',()=>{describe();pose()});
