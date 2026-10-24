@@ -23,7 +23,7 @@
   <style>
     :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
@@ -44,6 +44,61 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none!important}}
+    /* The small site: its nav row over its page area. In Compare a copy of it, the twin, sits beside it. */
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.frame,.caps,.side{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .cap{padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font)}
+    /* See inside: the two pages of the next change pulled apart, each at 60% size, the old one behind toward the top left and the
+       new one in front toward the bottom right. They are the real pages, so their own fades play. A thin frame (not faded) keeps a
+       page that has faded out in view, and the page not in the change is hidden. */
+    .stage[data-hb-mode="inside"] .page{visibility:hidden}
+    .stage[data-hb-mode="inside"] .page.r-old,.stage[data-hb-mode="inside"] .page.r-new{visibility:visible;scale:.6;border-radius:10px;overflow:hidden}
+    .stage[data-hb-mode="inside"] .r-old,.stage[data-hb-mode="inside"] .fo{translate:-19% -19%}
+    .stage[data-hb-mode="inside"] .r-new,.stage[data-hb-mode="inside"] .fn{translate:19% 19%}
+    .stage[data-hb-mode="inside"] .r-old{z-index:1}
+    .stage[data-hb-mode="inside"] .fo{z-index:2}
+    .stage[data-hb-mode="inside"] .r-new{z-index:3}
+    .stage[data-hb-mode="inside"] .fn{z-index:4}
+    .stage[data-hb-mode="inside"] .frame{display:block;position:absolute;inset:0;scale:.6;border-radius:10px;pointer-events:none;
+      outline:3px solid rgba(244,244,242,.6);outline-offset:-3px;background:rgba(244,244,242,.04)}
+    /* Two labels in each free corner: the old page's at the top right, beside its sheet; the new page's at the bottom left */
+    .stage[data-hb-mode="inside"] .caps{display:flex;flex-direction:column;gap:4px;position:absolute;z-index:6;width:36%}
+    .stage[data-hb-mode="inside"] .g-old{top:2%;right:2%;align-items:flex-start}
+    .stage[data-hb-mode="inside"] .g-new{bottom:2%;left:2%;align-items:flex-end}
+    .caps .cap{width:max-content;max-width:100%;text-wrap:balance}
+    /* A small arrow points each sheet label at its sheet */
+    .g-old .cap:first-child,.g-new .cap:first-child{display:flex;align-items:center;gap:6px}
+    .g-old .cap:first-child::before,.g-new .cap:first-child::after{content:"";flex:none;border:5px solid transparent}
+    .g-old .cap:first-child::before{border-left-width:0;border-right-color:#f4f4f2}
+    .g-new .cap:first-child::after{border-right-width:0;border-left-color:#f4f4f2}
+    /* Compare: on the left the copy, which changes page at once; on the right the real site, fading across. At rest the real
+       site stands at 40% of its next change (the pose), so the still picture shows the blend. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .box{background:var(--bg)}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .side{position:absolute;bottom:10px;z-index:11;white-space:nowrap}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    /* Phones and short windows leave the page area short: a page keeps only its eyebrow and heading in both views */
+    @media(max-width:600px),(max-height:650px){
+      .stage[data-hb-mode="inside"] .pp,.stage[data-hb-mode="inside"] .pgrid,.stage[data-hb-mode="inside"] .pstat{display:none}
+      .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .side.first{bottom:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .side.second{left:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,14 +121,31 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area">
+          <span class="frame fo" aria-hidden="true"></span><span class="frame fn" aria-hidden="true"></span>
+          <div class="caps g-old" aria-hidden="true"><span class="cap" data-hb-caption>Old page: fades out</span><span class="cap" id="l-order" data-hb-caption>They fade at the same time</span></div>
+          <div class="caps g-new" aria-hidden="true"><span class="cap" data-hb-caption>New page: fades in</span><span class="cap" id="l-len" data-hb-caption>The fade takes half a second</span></div>
+        </div>
+      </div>
+      <p class="cap side first" aria-hidden="true" data-hb-caption>Switches at once</p>
+      <p class="cap side second" aria-hidden="true" data-hb-caption>Fades across</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the old and new page are pulled apart, so each one's own fade shows; with Together, where they overlap you see the blend. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Switches at once simply changes page; Fades across fades the old page out and the new one in. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -165,12 +237,36 @@
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let current=0,animating=false,dur=500,mode='true',ease='ease-in-out',afterMove=null,wayBack=0,timers=[];
   const pages=[],navBtns=[];
+  const box=document.getElementById('box');
+  // The views: view is what the box shows (normal, inside or compare); posed says the pose below is on the pages; home is where
+  // a running Show me began
+  let view='normal',posed=false,home=-1;
 
   PAGES.forEach((p,i)=>{
     const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;area.appendChild(d);pages.push(d);
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+
+  // Compare's first half: the same small site, changing page at once. A copy built from the same pages, with no ids and no
+  // buttons, out of the Tab order and hidden from screen readers; it changes page the moment a change of the real site starts (a
+  // click, Show me, Reset), so one input drives both halves.
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  function showTwin(n){twinPages.forEach((el,i)=>el.classList.toggle('active',i===n));twinNav.forEach((b,i)=>b.classList.toggle('active',i===n))}
+  const lblOrder=document.getElementById('l-order'),lblLen=document.getElementById('l-len');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  // Under reduced motion both views are still pictures, and their notes say so
+  const STILL={
+    inside:{true:'Shown still: the old and new page pulled apart, each caught part way through its fade, and their blend where they overlap.',
+      seq:'Shown still: the old and new page pulled apart; the old one has almost faded out, and the new one, an empty frame, waits its turn.'},
+    compare:{true:'Shown still: Switches at once shows just one page; Fades across is caught part way, the old page fading out as the new one fades in.',
+      seq:'Shown still: Switches at once shows just one page; Fades across is caught part way, the old page almost gone before the new one starts.'}};
+  function write(el,text){if(el.textContent!==text)el.textContent=text}
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -201,6 +297,7 @@
   function showPage(n){
     pages.forEach((el,i)=>{rest(el,i===n);el.getAnimations().forEach(a=>a.cancel())});
     updateNav(n);
+    showTwin(n);
   }
 
   // Ends a fade: the demo is idle again, and a Show me run goes on to its next step
@@ -208,17 +305,21 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
     animating=false;
     showPage(current);
+    pose();
   }
 
   function navigate(next,then){
     if(next===current||animating)return;
     const prev=current;current=next;updateNav(next);
+    // The pose goes and the pages take their places in the change; the copy changes page at once
+    lift();roles(prev,next);showTwin(next);
     afterMove=then||null;
     if(!motionOk){showPage(next);finish();return}
     animating=true;
@@ -250,29 +351,69 @@
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // A press during a run starts it over from where it began, so the demo always ends on the page it started on
   function showMe(){
+    if(home<0)home=current;else current=home;
     settle();
     const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{home=-1})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){home=-1;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A fade already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;home=-1;pose()});
+
+  // The two pages of a change take their places in See inside: the old one behind, the new one in front
+  function roles(o,n){pages.forEach((el,i)=>{el.classList.toggle('r-old',i===o);el.classList.toggle('r-new',i===n)})}
+  // How far the page's own fade (its Feel curve) has got at share x of its time, read from a paused animation of that curve
+  function share(x){
+    const a=pages[0].animate({opacity:[0,1]},{duration:1000,easing:ease,fill:'both'});
+    a.pause();a.currentTime=x*1000;
+    const v=parseFloat(getComputedStyle(pages[0]).opacity);
+    a.cancel();
+    return v;
+  }
+  // The pose: in See inside and Compare the pages rest at 40% of the next change (the page on show to the next page), as an
+  // opacity on each. Together: both on the way. One after the other: the old page is in its half, almost gone, and the new one
+  // still waits. A change lifts it, and it comes back when no change or way back is pending.
+  function lift(){
+    if(!posed)return;
+    posed=false;
+    pages.forEach(el=>{el.style.opacity=''});
+    void area.offsetWidth; // the browser sees the plain start before the change sets its fades
+  }
+  function pose(){
+    // The length of the whole fade in plain words, three times as long in slow motion
+    const ms=dur*(slowTog.checked?3:1);
+    write(lblLen,'The fade takes '+(ms===500?'half a second':(ms/1000).toFixed(1)+' seconds'));
+    write(lblOrder,mode==='true'?'They fade at the same time':'The new one waits its turn');
+    if(!motionOk){write(noteIn,STILL.inside[mode]);write(noteCmp,STILL.compare[mode])}
+    if(view==='normal'||animating||wayBack){lift();return}
+    posed=true;
+    const nxt=(current+1)%PAGES.length,p=share(mode==='true'?.4:.8);
+    roles(current,nxt);
+    pages.forEach((el,i)=>{el.style.opacity=i===current?String(1-p):i===nxt&&mode==='true'?String(p):''});
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{view=e.detail.mode;pose()});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      pose();
     }));
   }
   choices('order-seg',d=>{mode=d.mode});
   choices('speed-seg',d=>{dur=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
+  slowTog.addEventListener('change',pose);
+  roles(0,1);
   showPage(0);
+  pose();
 </script>
 </body>
 </html>
