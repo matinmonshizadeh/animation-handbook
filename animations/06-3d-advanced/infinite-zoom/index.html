@@ -272,15 +272,21 @@ function render(){
   if(EDGES)edges(seen,0,0,false);
 }
 // The pictures from the outside in: picture j is drawn at base * R^(j - pp) about the middle of the box whose top left is (ox, oy),
-// from the soft lights `soft`; one under `cut` pixels is left out. Each is clipped to its own rectangle, less the window the next fills
-function chain(base,pp,ox,oy,soft,cut){
-  const seen=[];for(let j=0;j<9;j++){const s=base*Math.pow(R,j-pp);if(s*Math.max(W,H)<cut)break;seen.push([s,(at+j)%COUNT]);}
+// from the soft lights `soft`; one under `cut` pixels is left out, and no more than `max` are drawn. Each is clipped to its own
+// rectangle, less the window the next fills. A chain that `max` cuts short fills its last window with the next picture's flat color,
+// at that picture's own size about the middle of the box, so the window is not left dark
+function chain(base,pp,ox,oy,soft,cut,max=9){
+  const seen=[];for(let j=0;j<max;j++){const s=base*Math.pow(R,j-pp);if(s*Math.max(W,H)<cut)break;seen.push([s,(at+j)%COUNT]);}
+  const fill=max<9&&seen.length===max;
   seen.forEach(([s,n],j)=>{
     ctx.setTransform(kx*s,0,0,ky*s,kx*W/2*(1-s)+kx*ox,ky*H/2*(1-s)+ky*oy);
     ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);if(j<seen.length-1)ctx.rect(X,Y,w,h);ctx.clip('evenodd');
     if(phone.matches)box(0,0,W,H,FLAT[n]);else ctx.drawImage(soft[n],0,0,W,H);
-    SCENES[n]();ctx.restore();
+    SCENES[n]();
+    if(fill&&j===seen.length-1)box(W*(1-R)/2,H*(1-R)/2,W*R,H*R,FLAT[(n+1)%COUNT]);
+    ctx.restore();
   });
+  if(fill){const [s,n]=seen[max-1];seen.push([s*R,(n+1)%COUNT]);}
   return seen;
 }
 // Each picture's edge, dashed over a dark line, with its number in the chain (at its right corner in See inside, where "Your view" rides
@@ -320,7 +326,8 @@ function inside(){
 
 // Compare: the chain twice, in two boxes side by side under their names (a band tall), each half clipped to its box. The globals the
 // pictures read are set for each half and put back after. In the first half every window, frame and clip sits off the middle, while the
-// next picture is still shrunk about the middle, as the page does it: it misses its window. Phones leave the tiniest pictures out sooner.
+// next picture is still shrunk about the middle, as the page does it: it misses its window. Phones draw three pictures a frame in each half
+// (together no more than Normal draws in the whole box), the last window filled with the next picture's flat color.
 const OFF=[[.12,.1],[0,0]],keep=()=>[W,H,u,X,Y,w,h,cx,cy],back=g=>{[W,H,u,X,Y,w,h,cx,cy]=g;};
 let band=28,pairKey='';
 function compare(){
@@ -329,7 +336,7 @@ function compare(){
   for(let i=0;i<2;i++){
     const ox=i*(bw+2);geom(bw,bh,...OFF[i]);
     ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.beginPath();ctx.rect(kx*ox,ky*band,kx*bw,ky*bh);ctx.clip();
-    const seen=chain(1,p,ox,band,PAIR[i],phone.matches?10:3);
+    const seen=chain(1,p,ox,band,PAIR[i],3,phone.matches?3:9);
     if(EDGES)edges(seen,ox,band,false);
     ctx.restore();
   }
