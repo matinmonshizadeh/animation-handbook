@@ -46,6 +46,35 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none}}
+    /* See inside and Compare: over the page area a dark veil, with the logo drawn large from the same points as the small one.
+       The views are made once and hidden in Normal. */
+    .vin,.vcmp{display:none;position:absolute;inset:0;z-index:5;pointer-events:none}
+    .stage[data-hb-mode="inside"] .vin{display:block;background:rgba(11,11,13,.8)}
+    .stage[data-hb-mode="compare"] .vcmp{display:flex;gap:2px;background:#2a2a30}
+    .half{position:relative;flex:1 1 0;min-width:0;overflow:hidden;background:rgba(11,11,13,.8)}
+    .big{position:absolute;left:50%;top:50%;height:70%;max-width:90%;aspect-ratio:1;transform:translate(-50%,-50%);overflow:visible}
+    .half .big{max-width:86%}
+    .big *{vector-effect:non-scaling-stroke}
+    /* See inside keeps its logo a little high, so the two bottom labels stay clear of it where they wrap on narrow or short boxes */
+    .vin .big{top:47%}
+    @media(max-height:650px){.vin .big{height:64%}}
+    @media(max-width:600px){.vin .big{height:60%;top:45%}}
+    .o-from,.o-to{fill:none;stroke-width:2;stroke-dasharray:6 5}
+    .half .o-from{stroke:rgba(244,244,242,.55)}
+    .o-live{stroke-linejoin:round}
+    .vin .o-live{stroke:#f4f4f2;stroke-width:1.5;fill-opacity:.3}
+    .half .o-live{stroke-width:2;fill-opacity:.9}
+    .pl{stroke:rgba(244,244,242,.6);stroke-width:1.5}
+    .pd{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1}
+    .ring{fill:none;stroke:var(--ui-accent);stroke-width:2}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);
+      border-left:3px solid var(--c,transparent)}
+    .vin .lbl{max-width:calc(50% - 12px)}
+    .l-tl,.nm{left:8px;top:8px}
+    .l-tr{right:8px;top:8px}
+    .l-bl{left:8px;bottom:8px}
+    .l-br{right:8px;bottom:8px}
+    .nm{white-space:nowrap}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -68,6 +97,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Gallery or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="mini-nav">
         <div class="nav-logo">
@@ -75,12 +109,26 @@
         </div>
         <div id="nav"></div>
       </div>
-      <div class="page-area" id="page-area"></div>
+      <div class="page-area" id="page-area">
+        <div class="vin" aria-hidden="true" inert>
+          <svg class="big" viewBox="0 0 100 100"><path class="o-from"/><path class="o-to"/><g class="lines"></g><path class="o-live"/><g class="dots"></g><circle class="ring" r="5"/></svg>
+          <p class="lbl l-tl" data-hb-caption></p><p class="lbl l-tr" data-hb-caption></p>
+          <p class="lbl l-bl" data-hb-caption>Each of 12 points slides straight to its partner</p><p class="lbl l-br" data-hb-caption></p>
+        </div>
+        <div class="vcmp" aria-hidden="true" inert>
+          <div class="half"><svg class="big" viewBox="0 0 100 100"><path class="o-from"/><path class="o-live"/></svg><p class="lbl nm" data-hb-caption>Order reversed</p></div>
+          <div class="half"><svg class="big" viewBox="0 0 100 100"><path class="o-from"/><path class="o-live"/></svg><p class="lbl nm" data-hb-caption>Same order</p></div>
+        </div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the logo is drawn large: each of its 12 points slides straight to its partner in the next shape, from one dashed outline to the other. Click Gallery or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Order reversed lists the new shape's points backward, so the outline folds through itself; Same order gives each point its partner and it flows. Click Gallery or About, or press Show me.</p>
     </div>
   </section>
 
@@ -171,7 +219,15 @@
   const morphPath=document.getElementById('morph-path'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let current=0,animating=false,dur=700,ease='ease-in-out',morphRaf=null,currentPts=[...circle12],afterMove=null,wayBack=0,timers=[];
+  // mode: Normal, See inside or Compare. chg: the change under way, or just finished (a Show me hold), as shapes a to b (indexes in
+  // SHAPES) and the eased share et of the way. runFrom: the page a Show me run started from, until its way back ends.
+  let mode='normal',chg=null,runFrom=null;
   const pages=[],navBtns=[];
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still and large: the logo caught during a change, each of its 12 points on the straight line to its partner in the next shape.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, part way through a change: Order reversed is pulled out of shape as its points cross over; Same order keeps the outline whole.';
+  }
 
   PAGES.forEach((p,i)=>{
     const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;area.appendChild(d);pages.push(d);
@@ -198,7 +254,8 @@
   function lerp(a,b,t){return a+(b-a)*t}
   function easeFn(t,e=ease){if(e==='linear')return t;if(e==='ease-out')return 1-(1-t)**3;if(e==='springy'){const ov=1.2;return t<0.5?ov*(1-(1-2*t)**2):(t<0.8?ov-(ov-1)*(t-0.5)/0.3:1);}return t<0.5?2*t*t:1-(-2*t+2)**2/2}
 
-  function render(pts){morphPath.setAttribute('d',pts2path(pts));currentPts=pts}
+  function blend(from,to,et){return from.map(([ax,ay],i)=>[lerp(ax,to[i][0],et),lerp(ay,to[i][1],et)])}
+  function render(pts){morphPath.setAttribute('d',pts2path(pts));currentPts=pts;paint()}
   function drawShape(s){render([...s.pts]);morphPath.setAttribute('fill',s.color)}
   function startMorph(from,to,done){
     if(morphRaf)cancelAnimationFrame(morphRaf);
@@ -207,7 +264,8 @@
     const start=performance.now(),d=dur*(slowTog.checked?3:1),ez=ease;
     function tick(now){
       const t=Math.min((now-start)/d,1),et=easeFn(t,ez);
-      render(from.map(([ax,ay],i)=>[lerp(ax,to[i][0],et),lerp(ay,to[i][1],et)]));
+      if(chg)chg.et=et;
+      render(blend(from,to,et));
       if(t<1)morphRaf=requestAnimationFrame(tick);else{morphRaf=null;done?.();}
     }
     morphRaf=requestAnimationFrame(tick);
@@ -229,10 +287,11 @@
     animating=false;
     const then=afterMove;afterMove=null;
     if(then)then();
+    paint();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
-    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;chg=null;
     if(morphRaf){cancelAnimationFrame(morphRaf);morphRaf=null}
     animating=false;
     showPage(current);
@@ -247,27 +306,92 @@
     pages[prev].classList.remove('active');pages[prev].inert=true;pages[next].classList.add('active');pages[next].inert=false;
     const target=SHAPES[PAGES[next].shape];
     animating=true;
-    startMorph(currentPts,target.pts,()=>{drawShape(target);finish()});
+    chg={a:PAGES[prev].shape,b:PAGES[next].shape,et:0,done:false};paint();
+    startMorph(currentPts,target.pts,()=>{if(chg)chg.done=true;drawShape(target);finish()});
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
   function showMe(){
+    if(runFrom!==null)current=runFrom;
     settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=current;runFrom=start;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{runFrom=null;paint()})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){runFrom=null;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A morph already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;runFrom=null;paint()});
+
+  // See inside and Compare. Both are drawn from SHAPES with the same blend() as the logo, in the frame step that moves it (render).
+  // At rest, or under reduced motion, they hold a pose: the shape on show changing to the star (About: to the circle), POSE of the
+  // way along the Feel's curve. A change under way, and the hold of a Show me run, shows that change itself.
+  const NAMES=['circle','hexagon','star'],POSE=.4,NS='http://www.w3.org/2000/svg';
+  // The new shape's points listed the other way round: the top and the bottom one stay, every other point swaps with its mirror image
+  SHAPES.forEach(s=>{s.rev=s.pts.map((_,i)=>s.pts[(12-i)%12])});
+  const vin=area.querySelector('.vin'),halves=[...area.querySelectorAll('.half')];
+  const cFrom=halves.map(h=>h.querySelector('.o-from')),cLive=halves.map(h=>h.querySelector('.o-live'));
+  const sel=(root,q)=>[...root.querySelectorAll(q)];
+  const [iFrom,iTo,iLive,iRing]=['.o-from','.o-to','.o-live','.ring'].map(q=>vin.querySelector(q));
+  const [lFrom,lTo,,lTime]=sel(vin,'.lbl');
+  const lines=[],dots=[];
+  for(let i=0;i<12;i++){
+    for(const [list,tag,g] of [[lines,'line','.lines'],[dots,'circle','.dots']]){
+      const e=document.createElementNS(NS,tag);vin.querySelector(g).appendChild(e);list.push(e);
+      e.setAttribute('class',tag==='line'?'pl':'pd');
+    }
+    dots[i].setAttribute('r',2.6);
+  }
+  let drawn=-1,colored='',coloredIn='';
+  function words(ms){return ms<=450?'about half a second':ms<=800?'about three quarters of a second':ms<=1300?'about a second':ms<=2400?'about two seconds':'about three seconds'}
+  function paint(){
+    if(mode==='normal')return;
+    const posed=!motionOk||!chg||(!animating&&!wayBack);
+    const a=posed?PAGES[current].shape:chg.a,b=posed?(PAGES[current].shape===2?0:2):chg.b;
+    const A=SHAPES[a],B=SHAPES[b],et=posed?easeFn(POSE):chg.et,color=(posed||!chg.done?A:B).color;
+    const key=((mode==='inside'?1:2)*3+a)*3+b;
+    if(drawn!==key){
+      drawn=key;
+      const from=pts2path(A.pts);
+      if(mode==='inside'){
+        iFrom.setAttribute('d',from);iFrom.setAttribute('stroke',A.color);
+        iTo.setAttribute('d',pts2path(B.pts));iTo.setAttribute('stroke',B.color);
+        A.pts.forEach(([x,y],i)=>{
+          const moves=Math.hypot(B.pts[i][0]-x,B.pts[i][1]-y)>.5;
+          lines[i].style.display=moves?'':'none';
+          lines[i].setAttribute('x1',x);lines[i].setAttribute('y1',y);lines[i].setAttribute('x2',B.pts[i][0]);lines[i].setAttribute('y2',B.pts[i][1]);
+        });
+        iRing.setAttribute('cx',A.pts[0][0]);iRing.setAttribute('cy',A.pts[0][1]);
+        lFrom.textContent='From: '+NAMES[a];lFrom.style.setProperty('--c',A.color);
+        lTo.textContent='To: '+NAMES[b];lTo.style.setProperty('--c',B.color);
+        // Under reduced motion the page snaps, and its words say so
+        lTime.textContent=motionOk?'Takes '+words(dur*(slowTog.checked?3:1)):'Reduced motion: it snaps at once';
+      }else cFrom.forEach(e=>e.setAttribute('d',from));
+    }
+    const live=blend(A.pts,B.pts,et);
+    if(mode==='inside'){
+      iLive.setAttribute('d',pts2path(live));
+      live.forEach(([x,y],i)=>{dots[i].setAttribute('cx',x);dots[i].setAttribute('cy',y)});
+    }else{
+      cLive[0].setAttribute('d',pts2path(blend(A.pts,B.rev,et)));
+      cLive[1].setAttribute('d',pts2path(live));
+    }
+    if(colored!==color||coloredIn!==mode){
+      colored=color;coloredIn=mode;
+      (mode==='inside'?[iLive]:cLive).forEach(e=>{e.setAttribute('fill',color);if(mode==='compare')e.setAttribute('stroke',color)});
+    }
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;drawn=-1;colored='';paint()});
+  slowTog.addEventListener('change',()=>{drawn=-1;paint()});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      drawn=-1;paint();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms});
