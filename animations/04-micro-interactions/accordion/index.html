@@ -53,7 +53,63 @@
     /* The five questions need 266px plus the stage's padding: on a phone the stage keeps a 12px padding, and in a window 590 to 645px tall (a stage of 260 to 315px) it gives up some spacing, while the questions keep their 44px */
     @media(max-width:600px){.stage{padding:12px}}
     @media(min-width:601px) and (max-height:645px){.stage{padding:8px 12px}.acc-list{gap:2px}.acc-trigger{min-height:44px}}
-    @media(prefers-reduced-motion:reduce){.acc-body,.acc-chevron,.acc-body.stagger .acc-inner>*{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.acc-body,.acc-chevron,.acc-bar,.acc-body.stagger .acc-inner>*{transition:none!important}}
+    /* See inside and Compare: the parts they add are hidden in Normal */
+    .acc-copy,.acc-name,.acc-legend,.acc-brk,.acc-push,.acc-end{display:none}
+    .acc-lbl,.acc-name{padding:2px 8px;border:1px solid var(--ui-border);border-radius:5px;background:#111114;color:var(--ui-text);font:600 12px/16px var(--hb-font)}
+    .acc-lbl{display:flex;gap:7px}
+    /* The copy is the same list with no movement: its answers appear and go at once */
+    .acc-copy *{transition:none!important}
+    .acc-copy .acc-body{display:none}
+    .acc-copy .open .acc-body{display:block}
+    /* The bracket is the answer's full height and its bar the box now; the arrow shows the push; the bracket on Compare's right shows the rest of the way */
+    .acc-brk{position:absolute;left:calc(100% + 12px);top:var(--hd);width:9px;height:var(--h)}
+    .acc-brk::before,.g-brk::before{content:"";position:absolute;inset:0;border:2px dashed var(--ui-text);border-left:0;border-radius:0 3px 3px 0}
+    .acc-bar{position:absolute;inset:0 auto 0 0;width:5px;background:var(--ui-accent);transform:scaleY(0);transform-origin:top;transition:transform var(--acc-dur) var(--acc-ease)}
+    .acc-item.open .acc-bar{transform:scaleY(1)}
+    .acc-push{position:absolute;left:calc(100% + 32px);top:100%;width:2px;height:22px;margin-top:8px}
+    .g{position:relative;flex:none;width:9px;height:14px;margin-top:1px}
+    .g-bar{background:linear-gradient(var(--ui-accent),var(--ui-accent)) 0 0/5px 100% no-repeat}
+    .g-push{width:2px;height:10px;margin:2px 3.5px 0}
+    .acc-push,.g-push{background:var(--ui-text)}
+    .acc-push::after,.g-push::after{content:"";position:absolute;left:-4px;bottom:-4px;border:5px solid transparent;border-top:6px solid var(--ui-text);border-bottom:0}
+    .acc-end{position:absolute;left:-12px;top:100%;width:6px;height:calc((1 - var(--p))*var(--h));border:2px dashed rgba(244,244,242,.6);border-right:0;border-radius:3px 0 0 3px}
+    .g-dot{width:6px;height:6px;margin:4px 1.5px 0;border-radius:50%;background:var(--ui-muted)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{display:grid;align-content:start;gap:8px 10px}
+    .stage[data-hb-mode="inside"] .acc-item,.stage[data-hb-mode="compare"] .acc-item{position:relative;overflow:visible}
+    /* The posed first answer stands part open, its arrow part turned and its text part faded in; a press or a run takes the pose away */
+    .stage[data-hb-mode="inside"] .acc-item.pose,.stage[data-hb-mode="compare"] .acc-item.pose{border-color:rgba(255,157,92,.35)}
+    .stage[data-hb-mode="inside"] .acc-item.pose .js-method,.stage[data-hb-mode="compare"] .acc-item.pose .js-method{height:calc(var(--target-h)*var(--p));transition:none}
+    .stage[data-hb-mode="inside"] .acc-item.pose .grid-method,.stage[data-hb-mode="compare"] .acc-item.pose .grid-method{grid-template-rows:var(--rows);transition:none}
+    .stage[data-hb-mode="inside"] .acc-item.pose .acc-chevron,.stage[data-hb-mode="compare"] .acc-item.pose .acc-chevron{transform:rotate(calc(var(--p)*180deg));transition:none}
+    .stage[data-hb-mode="inside"] .acc-item.pose .stagger .acc-inner>*,.stage[data-hb-mode="compare"] .acc-item.pose .stagger .acc-inner>*{opacity:var(--p);transform:translateY(calc((1 - var(--p))*4px));transition:none}
+    /* See inside: the list, then a gutter for the bracket and the arrow, then the four labels (under the list on phones) */
+    .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr) minmax(0,420px) minmax(220px,1fr)}
+    .stage[data-hb-mode="inside"] .acc-list{grid-column:2;margin:0}
+    .stage[data-hb-mode="inside"] .acc-legend{display:flex;flex-direction:column;gap:4px;padding-left:38px}
+    .stage[data-hb-mode="inside"] .acc-brk,.stage[data-hb-mode="inside"] .acc-push{display:block;visibility:hidden}
+    .stage[data-hb-mode="inside"] .acc-item.last .acc-brk,.stage[data-hb-mode="inside"] .acc-item.last .acc-push{visibility:visible}
+    .stage[data-hb-mode="inside"] .acc-item.last:last-child .acc-push{visibility:hidden}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr) 34px}
+      .stage[data-hb-mode="inside"] .acc-list{grid-column:1}
+      .stage[data-hb-mode="inside"] .acc-legend{grid-area:2/1/auto/-1;padding-left:0}
+      .stage[data-hb-mode="inside"] .acc-item:nth-child(n+3){display:none}
+      .stage[data-hb-mode="inside"] .acc-trigger{min-height:44px}
+      .stage[data-hb-mode="inside"] .acc-item.last:nth-child(2) .acc-push{visibility:hidden}
+    }
+    /* Compare: the copy beside the real list, each under its name; four questions (three on phones and short windows) */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));gap:6px 16px}
+    .stage[data-hb-mode="compare"] .acc-copy{display:flex}
+    .stage[data-hb-mode="compare"] .acc-name{display:block;justify-self:center}
+    .stage[data-hb-mode="compare"] .acc-item:nth-child(n+5){display:none}
+    .stage[data-hb-mode="compare"] .acc-item.pose .acc-end{display:block}
+    @media(max-width:600px),(max-height:645px){.stage[data-hb-mode="compare"] .acc-item:nth-child(n+4){display:none}}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .acc-trigger{padding:0 10px;gap:6px;font-size:12px}
+      .stage[data-hb-mode="compare"] .acc-inner{padding:0 10px}
+    }
+    .stage[data-hb-mode="inside"] .acc-item.pose .acc-bar{transform:scaleY(var(--p));transition:none}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -76,7 +132,14 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press a question to open its answer and again to close it, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
+      <p class="acc-name" data-hb-caption aria-hidden="true">Snaps open</p>
+      <p class="acc-name" data-hb-caption aria-hidden="true">Grows open</p>
       <div class="acc-list">
         <div class="acc-item">
           <button class="acc-trigger" type="button" id="at0" aria-expanded="false" aria-controls="ab0"><span>What is an accordion?</span><span class="acc-chevron" aria-hidden="true">▼</span></button>
@@ -109,10 +172,20 @@
           </div>
         </div>
       </div>
+      <div class="acc-legend" aria-hidden="true">
+        <p class="acc-lbl" data-hb-caption><i class="g g-brk"></i><span>Full height, measured before it opens</span></p>
+        <p class="acc-lbl" data-hb-caption><i class="g g-bar"></i><span>Its box grows to meet it: about a third of a second, easing in and out</span></p>
+        <p class="acc-lbl" data-hb-caption><i class="g g-push"></i><span>The questions below are pushed down</span></p>
+        <p class="acc-lbl" data-hb-caption><i class="g g-dot"></i><span>Opening another closes this one</span></p>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the bracket is the answer's full height, found before it opens; its box grows to meet it and pushes the questions below down. Press a question, or Show me.</p>
+      <p data-hb-for="compare" hidden>Snaps open: the answer appears at once and the questions below jump; Grows open: its box grows and the questions below slide down, so you keep your place. Press a question, or Show me.</p>
     </div>
   </section>
 
@@ -212,7 +285,9 @@
   const slowTog=document.getElementById('slow-tog');
   const vars=document.documentElement.style;
   const multiTog=document.getElementById('multi-tog'),chevronTog=document.getElementById('chevron-tog'),staggerTog=document.getElementById('stagger-tog');
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
   let method='js',multiOpen=multiTog.checked,dur=300,openSet=new Set(),runTimers=[];
+  let mode='normal',curve='ease-in-out',saved=null,posedItem=null,poseTimer=0;
 
   const getBody=item=>item.querySelector('.acc-body');
   const getTrigger=item=>item.querySelector('.acc-trigger');
@@ -229,6 +304,7 @@
     if(method==='js')measure(item);
     body.classList.add('open');
     openSet.add(item);
+    sync();
   }
   function closeItem(item){
     const body=getBody(item);
@@ -236,12 +312,18 @@
     body.classList.remove('open');
     body.inert=true; // a closed answer cannot be reached with Tab
     openSet.delete(item);
+    sync();
   }
   // Pressing a question, with the mouse, a finger or Enter and Space, and Show me both call this
   function toggle(item){
+    const posed=posedItem;
+    lift(); // a posed box goes on from where it is, or closes by its own transition
+    if(multiOpen&&posed&&posed!==item)openItem(posed); // with several open it stays open, as an open answer would
     const wasOpen=openSet.has(item);
     if(!multiOpen)openSet.forEach(i=>{if(i!==item)closeItem(i)});
     wasOpen?closeItem(item):openItem(item);
+    setLast(item);notes();
+    if(!openSet.size)poseSoon();
   }
   items.forEach(item=>getTrigger(item).addEventListener('click',()=>toggle(item)));
 
@@ -249,11 +331,8 @@
   function applyStagger(){items.forEach(item=>getBody(item).classList.toggle('stagger',staggerTog.checked))}
   // Every answer closes without its transition, and the list is back at the top
   function toRest(){
-    stage.classList.add('no-anim');
-    [...openSet].forEach(closeItem);
-    stage.scrollTop=0;
-    void stage.offsetWidth;
-    stage.classList.remove('no-anim');
+    quiet(()=>{lift();[...openSet].forEach(closeItem);stage.scrollTop=0});
+    setLast(items[0]);notes();
   }
   function switchMethod(m){
     method=m;
@@ -262,7 +341,12 @@
     applyStagger();
   }
   // Measured again when the window is resized and once the site font is in, so an open answer never clips its text
-  function remeasure(){if(method==='js')openSet.forEach(measure)}
+  function remeasure(){
+    if(method==='js')openSet.forEach(measure);
+    if(mode==='normal')return;
+    [...openSet].filter(item=>!item.offsetParent).forEach(closeItem); // a question this view hides stays closed
+    place();pose();
+  }
   addEventListener('resize',remeasure);
   if(document.fonts){document.fonts.ready.then(remeasure);document.fonts.addEventListener('loadingdone',remeasure)}
 
@@ -285,6 +369,88 @@
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the answer stays open.
   document.addEventListener('hb:input',()=>{ if(running()) stopRun(); });
 
+  // ── See inside and Compare ──
+  // The parts they draw are made once: a bracket, bar, arrow and end line in each real question, and an inert copy of the list.
+  items.forEach(item=>item.insertAdjacentHTML('beforeend','<span class="acc-brk" aria-hidden="true"><i class="acc-bar"></i></span><span class="acc-push" aria-hidden="true"></span><span class="acc-end" aria-hidden="true"></span>'));
+  const copy=document.createElement('div');
+  copy.className='acc-list acc-copy';copy.inert=true;copy.setAttribute('aria-hidden','true');
+  copy.innerHTML=items.map(item=>`<div class="acc-item"><div class="acc-trigger"><span>${getTrigger(item).firstElementChild.textContent}</span><span class="acc-chevron">▼</span></div><div class="acc-body"><div class="acc-inner">${getBody(item).querySelector('.acc-inner').innerHTML}</div></div></div>`).join('');
+  stage.querySelector('.acc-list').before(copy);
+  const copies=[...copy.children];
+  const lbl=[...stage.querySelectorAll('.acc-lbl span')];
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const CURVES={'ease-in-out':[.42,0,.58,1],'ease-out':[0,0,.58,1],linear:null};
+  const FEEL={'ease-in-out':'easing in and out','ease-out':'slowing at the end',linear:'at one steady speed'};
+  const TIME={180:['about a fifth of a second','about half a second'],300:['about a third of a second','about a second'],500:['half a second','a second and a half']};
+
+  const quiet=fn=>{stage.classList.add('no-anim');fn();void stage.offsetWidth;stage.classList.remove('no-anim')};
+  const setLast=item=>items.forEach(i=>i.classList.toggle('last',i===item)); // the answer the bracket stands beside
+  // The copy opens and closes with the real list, by position; in the pose its first answer stands open
+  const sync=()=>copies.forEach((c,i)=>c.classList.toggle('open',openSet.has(items[i])||items[i]===posedItem));
+  const say=(el,s)=>{if(el.textContent!==s)el.textContent=s};
+  // Each answer's full height and where its question ends, for the bracket, the arrow and the end line
+  const place=()=>items.forEach(item=>{
+    item.style.setProperty('--h',getBody(item).querySelector('.acc-inner').scrollHeight+'px');
+    item.style.setProperty('--hd',getTrigger(item).offsetHeight+'px');
+  });
+  function words(){
+    say(lbl[0],method==='js'?'Full height, measured before it opens':'Full height, found by a grid row, no measuring');
+    say(lbl[1],'Its box grows to meet it: '+TIME[dur][+slowTog.checked]+', '+FEEL[curve]);
+    say(lbl[3],multiOpen?'Stays open when you open another':'Opening another closes this one');
+  }
+  function notes(){
+    const found=method==='js'?'found before it opens':'found by a grid row with no measuring';
+    if(motionOk)return say(noteIn,`Inside, the bracket is the answer's full height, ${found}; its box grows to meet it and pushes the questions below down. Press a question, or Show me.`);
+    say(noteIn,`Inside, shown still: the bracket is the answer's full height, ${found}; with motion on, its box grows to meet it and pushes the questions below down.`);
+    say(noteCmp,posedItem?'Shown still, a moment after the same press: Snaps open is already open and the questions below have jumped; Grows open is still growing.':'Snaps open and Grows open now open at once, because your device is set to reduce motion; with motion on, Grows open slides the questions below down.');
+  }
+  // How far the real opening is a tenth of a second in: the Feel's curve at that share of Speed (never slowed, so Slow motion leaves the pose alone)
+  function ease(x){
+    const c=CURVES[curve];
+    if(!c)return x;
+    const at=(t,a,b)=>3*(1-t)*(1-t)*t*a+3*(1-t)*t*t*b+t*t*t;
+    let lo=0,hi=1;
+    for(let i=0;i<20;i++){const t=(lo+hi)/2;if(at(t,c[0],c[2])<x)lo=t;else hi=t}
+    return at((lo+hi)/2,c[1],c[3]);
+  }
+  // Takes the pose away without a reflow, so the posed box goes on from where it stands
+  function lift(){
+    clearTimeout(poseTimer);
+    if(posedItem){posedItem.classList.remove('pose');posedItem=null;sync()}
+  }
+  // At rest in a mode the first answer stands part open (half in See inside, a tenth of a second in for Compare). It comes back once every answer is closed and no run is waiting.
+  function pose(){
+    clearTimeout(poseTimer);
+    const want=mode!=='normal'&&!openSet.size&&!running();
+    if(want||posedItem)quiet(()=>{
+      lift();
+      if(!want)return;
+      const item=items[0],p=mode==='inside'?.5:ease(Math.min(1,100/dur));
+      if(method==='js')measure(item);
+      item.style.setProperty('--p',p);item.style.setProperty('--rows',p+'fr');
+      item.classList.add('pose');posedItem=item;setLast(item);sync();
+    });
+    notes();
+  }
+  function poseSoon(){
+    clearTimeout(poseTimer);
+    if(mode!=='normal')poseTimer=setTimeout(pose,motionOk?dur*(slowTog.checked?3:1)+60:0);
+  }
+  const redraw=()=>{words();pose()};
+  // A mode puts Normal's open answers aside and closes them without a movement; Normal brings them back as they were.
+  document.addEventListener('hb:mode',e=>{
+    const m=e.detail.mode;
+    if(m===mode&&m==='normal')return;
+    if(mode==='normal')saved={open:running()?[]:items.filter(item=>openSet.has(item)),top:stage.scrollTop};
+    stopRun();mode=m;
+    quiet(()=>{
+      lift();[...openSet].forEach(closeItem);
+      if(m==='normal'){saved.open.forEach(openItem);stage.scrollTop=saved.top}
+    });
+    if(m==='normal'){saved=null;return notes()}
+    place();words();pose();
+  });
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -292,14 +458,16 @@
       pick(b.dataset);
     }));
   }
-  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--acc-dur',d.ms+'ms')});
-  choices('feel-seg',d=>{vars.setProperty('--acc-ease',d.ease)});
-  choices('method-seg',d=>switchMethod(d.method));
-  multiTog.addEventListener('change',()=>{multiOpen=multiTog.checked});
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--acc-dur',d.ms+'ms');redraw()});
+  choices('feel-seg',d=>{vars.setProperty('--acc-ease',d.ease);curve=d.ease;redraw()});
+  choices('method-seg',d=>{switchMethod(d.method);redraw()});
+  multiTog.addEventListener('change',()=>{multiOpen=multiTog.checked;words()});
+  slowTog.addEventListener('change',words);
   chevronTog.addEventListener('change',()=>{
     stage.querySelectorAll('.acc-chevron').forEach(c=>{c.style.transform=chevronTog.checked?'':'none'});
   });
   staggerTog.addEventListener('change',applyStagger);
+  setLast(items[0]);redraw();
 </script>
 </body>
 </html>
