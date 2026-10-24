@@ -65,6 +65,40 @@
       .fg-title{margin-bottom:0}
       .fg-body{display:none}
     }
+    /* ── See inside and Compare: every view rule starts at the stage in that mode, and Normal has none ── */
+    .cap,.win,.ol-wrap,.cwrap,.cdiv,.arr{display:none}
+    .cap{position:absolute;z-index:12;left:50%;transform:translateX(-50%);width:max-content;max-width:calc(100% - 16px);padding:3px 8px;border-radius:6px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 12px/16px var(--hb-font);text-align:center;text-wrap:balance}
+    .bc,.bo,.bs{position:absolute;left:-30%;right:-30%;transform-origin:center bottom}
+    .bc{left:0;right:0;opacity:.75;filter:blur(35px)}
+    @media(max-width:600px){.bc{filter:blur(18px)}}
+    .ol-wrap .bo,.ol-wrap .bs{background:none;border:4px solid var(--c)}
+    .ol-wrap .bs{border-width:0 4px;border-style:dashed;opacity:.6;animation-play-state:paused}
+    .ol-wrap .arr{position:absolute;height:16px;background:linear-gradient(var(--c),var(--c)) center/100% 6px no-repeat}
+    .arr::before,.arr::after{content:"";position:absolute;top:0;border:solid transparent;border-width:8px 10px}
+    .arr::before{left:0;border-left-width:0;border-right-color:var(--c)}
+    .arr::after{right:0;border-right-width:0;border-left-color:var(--c)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{background:#04070c}
+    .stage[data-hb-mode="inside"] .fg-card,.stage[data-hb-mode="compare"] .fg-card{display:none}
+    /* See inside: the sky, the stars, the bands (their clip opened) and the ground strip at half size around the box's middle,
+       a dashed window where the box's own picture is, a veil outside it, and the bands' outlines above the veil */
+    .stage[data-hb-mode="inside"] .sky,.stage[data-hb-mode="inside"] .stars-layer,.stage[data-hb-mode="inside"] .aurora-wrap,.stage[data-hb-mode="inside"] .horizon{scale:.5}
+    .stage[data-hb-mode="inside"] .horizon{transform-origin:50% calc(-22 / 28 * 100%)}
+    .stage[data-hb-mode="inside"] .aurora-wrap{overflow:visible}
+    .stage[data-hb-mode="inside"] .win{display:block;position:absolute;left:25%;top:25%;width:50%;height:50%;outline:2px dashed #f4f4f2;box-shadow:0 0 0 100vmax rgba(2,5,10,.62)}
+    .stage[data-hb-mode="inside"] .ol-wrap{display:block;position:absolute;inset:0;scale:.5}
+    .stage[data-hb-mode="inside"].still .arr{display:block}
+    .stage[data-hb-mode="inside"] .cap-in{display:block}
+    .stage[data-hb-mode="inside"] .cap-up{bottom:calc(75% + 32px)}
+    .stage[data-hb-mode="inside"] .cap-win{bottom:calc(75% + 6px)}
+    .stage[data-hb-mode="inside"] .cap-cyc{top:calc(75% + 8px)}
+    /* Compare: on the left bands only as wide as the half, on the right the real ones, wider than it; each half starts under its name */
+    .stage[data-hb-mode="compare"] .aurora-wrap{left:50%;top:36px}
+    .stage[data-hb-mode="compare"] .cwrap{display:block;position:absolute;left:0;right:50%;top:36px;bottom:0;overflow:hidden}
+    .stage[data-hb-mode="compare"] .cdiv{display:block;position:absolute;left:50%;top:0;bottom:0;z-index:12;width:2px;margin-left:-1px;background:rgba(244,244,242,.45)}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;z-index:11;left:0;right:0;top:36px;height:28px;background:linear-gradient(rgb(1,6,11),transparent)}
+    .stage[data-hb-mode="compare"] .cap-cmp{display:block;top:8px;max-width:calc(50% - 16px)}
+    .stage[data-hb-mode="compare"] .cap-l{left:8px;transform:none}
+    .stage[data-hb-mode="compare"] .cap-r{left:calc(50% + 8px);transform:none}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -87,6 +121,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="sky" aria-hidden="true"></div>
       <div class="stars-layer" id="stars-layer" aria-hidden="true"></div>
@@ -107,6 +146,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, shown at half size: each band is a wide, blurred strip of color, wider than the box so its ends never show. Each sways and leans on its own slow cycle.</p>
+      <p data-hb-for="compare" hidden>Too narrow shows bands only as wide as the box, so their soft ends show and leave dark gaps at the sides. Wide enough, as in Normal, keeps the ends out of sight.</p>
     </div>
   </section>
 
@@ -230,6 +273,7 @@
   function applyPalette(){
     const on=new Set(PALETTES[palette].slice(0,count));
     bands.forEach((b,i)=>{b.style.display=on.has(i)?'block':'none'});
+    syncViews();
   }
 
   function choices(id,pick){
@@ -247,13 +291,93 @@
     bands.forEach(b=>b.getAnimations().forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs}));
     secs=next;
     vars.setProperty('--dur',next+'s');
+    syncViews();
   });
   choices('pal-seg',d=>{palette=d.pal;applyPalette()});
-  choices('bri-seg',d=>{bands.forEach(b=>{b.style.opacity=d.op})});
+  choices('bri-seg',d=>{bands.forEach(b=>{b.style.opacity=d.op});syncViews()});
   document.getElementById('stars-tog').addEventListener('change',e=>{
     if(e.target.checked){buildStars();starsLayer.style.display='block'}
     else starsLayer.style.display='none';
   });
+
+  // ── See inside and Compare: built once, from the real bands ──
+  const stage=document.querySelector('.stage'),wrap=document.querySelector('.aurora-wrap'),slow=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const COLORS=['#34e68c','#5aa8ff','#b87cff','#ff7ec2','#ff6b6b'];
+  const ARROW_Y=[.18,.555,.055,.305,.43]; // where each band's sway arrow sits (a share of the box's height), spread so they never meet
+  const part=(cls,parent,css)=>{const e=document.createElement('div');e.className=cls;if(css)e.style.cssText=css;parent.appendChild(e);return e};
+  const cwrap=part('cwrap',stage);cwrap.setAttribute('inert','');cwrap.setAttribute('aria-hidden','true');wrap.after(cwrap);
+  const win=part('win',stage),ols=part('ol-wrap',stage),cdiv=part('cdiv',stage);
+  [win,ols,cdiv].forEach(e=>{e.setAttribute('aria-hidden','true');e.setAttribute('inert','')});
+  const caption=(cls,text)=>{const c=document.createElement('span');c.className='cap '+cls;c.textContent=text;c.setAttribute('data-hb-caption','');c.setAttribute('aria-hidden','true');stage.appendChild(c);return c};
+  caption('cap-in cap-up','Each band: a wide, blurred strip, wider than the box');
+  caption('cap-in cap-win','The box shows only this part');
+  const capCyc=caption('cap-in cap-cyc','');
+  caption('cap-cmp cap-l','Too narrow');caption('cap-cmp cap-r','Wide enough');
+  // Each band's copy, its moving outline, its outline at the start and its sway arrow share the band's number class, so they
+  // take its place and its keyframes; none has the class band, which the settings act on
+  const view=bands.map((b,i)=>{
+    const n='band'+(i+1),v={bc:part('bc '+n,cwrap),bo:part('bo '+n,ols),bs:part('bs '+n,ols),arr:part('arr',ols)};
+    for(const k of ['bo','bs','arr'])v[k].style.setProperty('--c',COLORS[i]);
+    return v;
+  });
+  // How far each band's left end sways, from its own keyframes: the left edge is the band's center, moved by its translate,
+  // less half its width at its stretch (as a share of the box's width)
+  const sway=bands.map((b,i)=>{
+    const L=getComputedStyle(b).left,w=1-2*(L.endsWith('%')?parseFloat(L)/100:parseFloat(L)/stage.clientWidth),xs=[];
+    for(const sheet of document.styleSheets){
+      let rules;try{rules=sheet.cssRules}catch(e){continue}
+      for(const r of rules)if(r.name==='drift'+(i+1))for(const k of r.cssRules){
+        const t=k.style.transform,sx=/scaleX\(([\d.]+)/.exec(t);
+        xs.push(.5+parseFloat(/translateX\((-?[\d.]+)%/.exec(t)[1])/100*w-(sx?+sx[1]:1)*w/2);
+      }
+    }
+    return [Math.min(...xs),Math.max(...xs)];
+  });
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
+  const stillWords=['Inside, shown still at half size: each band is a wide, blurred strip, wider than the box. The arrows show how far each would sway.'];
+  let paused=reduceMQ.matches;
+  // Under reduced motion with the loop paused, See inside is a still and says so (its arrows show); after Play the moving words
+  // come back and the arrows go. A note is rewritten only when its words change, as its box reads changes out loud.
+  function describe(){
+    const shown=reduceMQ.matches&&paused;
+    stage.classList.toggle('still',shown);
+    notes.forEach((n,i)=>{const words=shown&&stillWords[i]||moving[i];if(n.textContent!==words)n.textContent=words});
+    const on=bands.filter(b=>b.style.display!=='none').map(b=>parseFloat(getComputedStyle(b).animationDuration)*(slow.checked?3:1));
+    const lo=Math.round(Math.min(...on)),hi=Math.round(Math.max(...on)),t=lo===hi?lo+' seconds':lo+' to '+hi+' seconds';
+    const words=shown?'Each can sway and lean: a full cycle takes '+t:'Each sways and leans on its own cycle: '+t;
+    if(capCyc.textContent!==words)capCyc.textContent=words;
+  }
+  // The views show the real bands: the same ones on, the same glow, and each moving part at the real band's place in its cycle
+  // (a part just shown starts a frame later than asked, so it is set again once it runs)
+  function syncViews(){
+    const live=stage.hasAttribute('data-hb-mode')&&stage.getAttribute('data-hb-mode')!=='normal';
+    bands.forEach((b,i)=>{
+      const v=view[i],a=b.getAnimations()[0];
+      for(const k of ['bc','bo','bs'])v[k].style.display=b.style.display;
+      v.arr.style.visibility=b.style.display==='none'?'hidden':'';
+      v.bc.style.opacity=b.style.opacity;
+      if(live&&a)for(const x of [v.bc.getAnimations()[0],v.bo.getAnimations()[0]]){
+        if(!x)continue;
+        const go=()=>{if(a.currentTime!=null){x.currentTime=a.currentTime;x.playbackRate=a.playbackRate}};
+        go();x.ready.then(go,()=>{});
+      }
+    });
+    describe();
+  }
+  function layout(){
+    const W=stage.clientWidth;
+    view.forEach((v,i)=>{
+      v.arr.style.left=sway[i][0]*W+'px';v.arr.style.width=(sway[i][1]-sway[i][0])*W+'px';
+      v.arr.style.top='calc('+ARROW_Y[i]*100+'% - 8px)';
+    });
+  }
+  document.addEventListener('hb:mode',()=>{layout();syncViews()});
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  reduceMQ.addEventListener('change',describe);
+  slow.addEventListener('change',describe);
+  addEventListener('resize',layout);
+  layout();
 
   applyPalette();
 </script>
