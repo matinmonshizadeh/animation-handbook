@@ -36,6 +36,35 @@
     @media(hover:hover){.seg-opt:not([aria-checked="true"]):hover{color:var(--ui-text)}}
     @media(max-width:600px){.stage{padding-left:10px;padding-right:10px}}
     @media(prefers-reduced-motion:reduce){.seg-ind,.seg-opt{transition:none!important}}
+    /* See inside and Compare. See inside draws around the real control (outlines, an arrow and four words on dark pills) from
+       numbers the script measures; Compare is the control twice, a copy that jumps first and the real one that slides second. */
+    .seg-track.cp,.sc-over,.cp-name{display:none}
+    .cap{position:absolute;left:0;top:0;width:max-content;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.92);border:1px solid rgba(255,255,255,.16);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-wrap:balance}
+    .seg-track.cp{pointer-events:none}
+    .seg-track.cp .seg-ind,.seg-track.cp .seg-opt{transition:none}
+    .seg-track.cp .seg-opt.on{color:#0b0b0d;font-weight:500}
+    .seg-track.cp.underline .seg-opt.on{color:var(--ui-accent)}
+    .sc-svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .sc-svg path{fill:none;stroke:#f4f4f2;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+    .ol{position:absolute;box-sizing:border-box;border:2px dashed #f4f4f2;border-radius:9px}
+    .ol.to{border-style:dotted}
+    .sc-over.line .ol{border:0;border-radius:0;background:repeating-linear-gradient(90deg,#f4f4f2 0 5px,transparent 5px 9px)}
+    .sc-over.line .ol.to{background:repeating-linear-gradient(90deg,#f4f4f2 0 2px,transparent 2px 5px)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative}
+    .stage[data-hb-mode="inside"] .sc-over,.stage[data-hb-mode="compare"] .sc-over{display:block;position:absolute;inset:0;pointer-events:none}
+    .stage[data-hb-mode="compare"] .sc-over>:not(.from){display:none}
+    .stage[data-hb-mode="compare"] .ol.from{opacity:.55}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));align-items:center;justify-items:center;padding:12px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;left:12px;right:12px;top:50%;border-top:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .seg-track.cp{display:inline-flex;grid-area:1/1}
+    .stage[data-hb-mode="compare"] #seg{grid-area:2/1}
+    .stage[data-hb-mode="compare"] .cp-name{display:block;position:static;align-self:start;grid-area:1/1}
+    .stage[data-hb-mode="compare"] .cp-name.n1{grid-area:2/1}
+    @media(min-width:1000px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr)}
+      .stage[data-hb-mode="compare"]::after{left:50%;right:auto;top:12px;bottom:12px;border-top:0;border-left:1px solid rgba(244,244,242,.14)}
+      .stage[data-hb-mode="compare"] #seg,.stage[data-hb-mode="compare"] .cp-name.n1{grid-area:1/2}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -58,12 +87,21 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press an option or move with the arrow keys, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="seg-track" id="seg" role="radiogroup" aria-label="View mode"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, one highlight is shared by all the options: to change option it slides over from where it was and stretches to the new option's width. Press an option, or Show me.</p>
+      <p data-hb-for="compare" hidden>Jumps: the highlight is simply on the new option; Slides: it glides over and stretches to fit, so you see where it came from. Press an option, or Show me.</p>
     </div>
   </section>
 
@@ -162,6 +200,9 @@
   const slowTog=document.getElementById('slow-tog');
   const vars=document.documentElement.style;
   let opts=[],current=0,dur=340,runTimers=[];
+  // For See inside and Compare (below): which view is on, Normal's own choice while one is, the highlight's resting place,
+  // whether the pose is drawn, and the last choice (from, to)
+  let mode='normal',kept=0,last=null,posed=false,trail=null;
 
   function build(n){
     seg.innerHTML='';seg.appendChild(ind);opts=[];
@@ -173,19 +214,23 @@
       seg.appendChild(b);opts.push(b);
     }
     current=Math.min(current,n-1);
+    posed=false;trail=current?{from:0,to:current}:null;
     // mark the selection before the first style resolution (no label crossfade on a rebuild), then put the highlight on it
-    paint();move(current,false);
+    paint();move(current,false);draw();
   }
 
+  // Where option i sits in the track: its offset, its width and the first option's width (the reference width)
+  function spot(i){
+    const g=opts[i].getBoundingClientRect(),base=opts[0].getBoundingClientRect();
+    return{x:g.left-base.left+opts[0].offsetLeft,w:g.width,bw:base.width}; // sub-pixel offset inside the track
+  }
   // Measure the chosen option and move the highlight with transform only: translateX puts it there, scaleX stretches a fixed reference width to the option's width.
   function move(i,animate){
-    const g=opts[i].getBoundingClientRect(),base=opts[0].getBoundingClientRect();
-    const x=g.left-base.left+opts[0].offsetLeft;         // sub-pixel offset inside the track
-    const sx=g.width/base.width;                          // scaleX to match differing widths
+    const s=spot(i);last=s;
     if(!animate)ind.style.transition='none';
-    ind.style.width=base.width+'px';                      // fixed reference width; scaleX does the rest
-    ind.style.setProperty('--x',x+'px');
-    ind.style.setProperty('--sx',sx);
+    ind.style.width=s.bw+'px';                           // fixed reference width; scaleX does the rest
+    ind.style.setProperty('--x',s.x+'px');
+    ind.style.setProperty('--sx',s.w/s.bw);               // scaleX to match differing widths
     if(!animate){void ind.offsetWidth;ind.style.transition=''} // flush the snap before re-enabling transitions
   }
 
@@ -198,10 +243,16 @@
   }
 
   // A click, a key and Show me all choose an option here. It paints before it measures: the chosen label is heavier, so widths change.
-  function choose(i){current=i;paint();move(i,true)}
+  function choose(i){
+    const was=current;
+    if(posed)unpose(); // the highlight goes on from where the pose drew it
+    current=i;trail={from:was,to:i};paint();move(i,true);draw();
+  }
   // The visitor's own choice also moves the keyboard focus onto the option
   function select(i){
+    if(mode!=='normal')kept=i;
     if(i!==current)choose(i);
+    else if(posed){unpose();move(current,true)} // the first option pressed while the pose is drawn: the highlight slides back to it
     opts[i].focus();
   }
 
@@ -218,7 +269,7 @@
   });
 
   // Measure again when the box reflows or a font swaps in: the widths depend on the text. A slide under way is aimed anew, not cut short.
-  const remeasure=()=>move(current,ind.getAnimations().length>0);
+  const remeasure=()=>{move(current,sliding());draw()};
   addEventListener('resize',remeasure);
   if(document.fonts){
     document.fonts.ready.then(remeasure);
@@ -235,16 +286,16 @@
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
   // A run starts on the first option, put there without animating: the transitions are turned off, the option is chosen,
   // a reflow makes it stick, and the transitions come back.
-  function toRest(){
+  function toRest(i=0){
     opts.forEach(b=>{b.style.transition='none'});
-    current=0;paint();move(0,false);
+    trail=null;current=i;paint();move(i,false);
     void seg.offsetWidth;
     opts.forEach(b=>{b.style.transition=''});
   }
   // The highlight slides to the last option, rests there for 1200ms once it has arrived, and slides back. The run moves no focus.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
-    toRest();
+    if(!posed)toRest(); // from the pose, the run goes on from where the highlight is drawn
     choose(opts.length-1);
     later(()=>choose(0),dur,1200);
   });
@@ -255,13 +306,171 @@
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);draw();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
   choices('feel-seg',d=>{vars.setProperty('--ease',d.ease)});
-  choices('hl-seg',d=>{seg.classList.toggle('underline',d.style==='underline');requestAnimationFrame(()=>move(current,false))});
+  choices('hl-seg',d=>{seg.classList.toggle('underline',d.style==='underline');requestAnimationFrame(()=>{move(current,false);draw()})});
   choices('count-seg',d=>build(+d.n));
+
+  // ── See inside and Compare ──
+  // See inside draws outlines, an arrow and four words around the real control, from the numbers spot() measures. Compare is the
+  // control twice: a copy that jumps, then the real one that slides. At rest both stand posed a tenth of a second into a slide from
+  // the first option to the third, drawn on the highlight and two labels without changing the choice.
+  const stage=seg.parentElement,motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const CURVES={'cubic-bezier(.5,1.6,.4,1)':[.5,1.6,.4,1],'ease-out':[0,0,.58,1],linear:[0,0,1,1]}; // the Feel choices' speed curves
+  const FEEL={'cubic-bezier(.5,1.6,.4,1)':'running a little past, then back','ease-out':'slowing to a stop',linear:'at one steady speed'};
+  const POSE_MS=100;
+  const STILL='Shown still, a moment after the same choice: Jumps is already on the new option; Slides is part way there, stretching as it goes.';
+  const JUMPED='Motion is reduced, so Slides also jumps to the new option; with motion on it glides over and stretches to fit. The faint outline marks where it started.';
+  const over=document.createElement('div'),copy=document.createElement('div');
+  over.className='sc-over';over.setAttribute('aria-hidden','true');
+  over.innerHTML='<svg class="sc-svg"><path class="stem" stroke-width="1.5" opacity=".6"/><path class="arrow"/></svg><span class="ol from"></span><span class="ol to"></span>'+
+    ['hi','from','to','speed'].map(k=>`<span class="cap c-${k}" data-hb-caption></span>`).join('');
+  // Compare's first half: the track without roles, tab stops or ids, out of reach of the keyboard and screen readers
+  copy.className='seg-track cp';copy.setAttribute('aria-hidden','true');copy.inert=true;
+  copy.innerHTML='<span class="seg-ind"></span>';
+  const cind=copy.firstChild,q=s=>over.querySelector(s),easeNow=()=>getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();
+  stage.prepend(copy);stage.append(over);
+  stage.insertAdjacentHTML('beforeend','<span class="cap cp-name n0" data-hb-caption aria-hidden="true">Jumps</span><span class="cap cp-name n1" data-hb-caption aria-hidden="true">Slides</span>');
+  function say(k,t){const el=k.nodeType?k:document.querySelector('[data-hb-for="'+k+'"]');if(el.textContent!==t)el.textContent=t}
+  if(!motionOk){
+    say('inside','Inside, shown still: one highlight is shared by all the options; with motion on, it slides over from where it was and stretches to the new option\'s width.');
+    say('compare',STILL);
+  }
+  function sliding(){return ind.getAnimations().length>0}
+  function unpose(){opts.forEach(b=>{b.style.color=''});posed=false}
+
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  function words(){
+    const ms=dur*(slowTog.checked?3:1);
+    const t=ms<=250?'a fifth of a second':ms<=400?'about a third of a second':ms<=700?'over half a second':ms<=1200?'about a second':'about a second and a half';
+    const s=(motionOk?'':'with motion on: ')+t+', '+FEEL[easeNow()];
+    return s[0].toUpperCase()+s.slice(1);
+  }
+  // An option's place as it is when chosen (the chosen label is heavier, so wider): the choice is put on it for a moment, with no fade
+  function asChosen(i){
+    if(i===current)return spot(i);
+    opts.forEach(b=>{b.style.transition='none'});
+    const keep=current;current=i;paint();
+    const s=spot(i);
+    current=keep;paint();void seg.offsetWidth;
+    opts.forEach(b=>{b.style.transition=''});
+    return s;
+  }
+  // The pose: the highlight at H (its offset and width part way from the first option's to the landing's) and the two labels'
+  // colors as far across as the highlight, with the choice still on the first option
+  function pose(S,H,v,under,T){
+    const ck=under?'var(--ui-accent)':'var(--bg)',c=Math.round(Math.min(Math.max(v,0),1)*100),els=[ind,opts[0],opts[T]];
+    els.forEach(el=>{el.style.transition='none'});
+    ind.style.width=S.bw+'px';ind.style.setProperty('--x',H.x+'px');ind.style.setProperty('--sx',H.w/S.bw);
+    opts[0].style.color=`color-mix(in srgb,var(--ui-muted) ${c}%,${ck})`;
+    opts[T].style.color=`color-mix(in srgb,${ck} ${c}%,var(--ui-muted))`;
+    void seg.offsetWidth;
+    els.forEach(el=>{el.style.transition=''});
+    posed=true;
+  }
+  function putCopy(i){
+    const n=opts.length;
+    if(copy.querySelectorAll('.seg-opt').length!==n){
+      copy.querySelectorAll('.seg-opt').forEach(o=>o.remove());
+      copy.insertAdjacentHTML('beforeend',LABELS.slice(0,n).map(t=>`<span class="seg-opt">${t}</span>`).join(''));
+    }
+    const o=[...copy.querySelectorAll('.seg-opt')];
+    o.forEach((b,k)=>b.classList.toggle('on',k===i));
+    const g=o[i].getBoundingClientRect(),base=o[0].getBoundingClientRect();
+    if(!base.width)return;
+    cind.style.width=base.width+'px';
+    cind.style.setProperty('--x',g.left-base.left+o[0].offsetLeft+'px');cind.style.setProperty('--sx',g.width/base.width);
+  }
+  // Puts the outlines, the arrow and the words where the parts are, in the stage's own pixels. S, Lg and H are the start, the
+  // landing and the highlight. Above the track: the arrow, then the start's and the landing's words on stems that drop past it.
+  // Below: the highlight's words on a stem, then the speed words. In each stack the row nearest the track is the one furthest
+  // right, so every stem drops past the rows nearer than it.
+  function place(S,Lg,H,under){
+    const sr=stage.getBoundingClientRect(),tr=seg.getBoundingClientRect(),W=stage.clientWidth,cap=k=>q('.c-'+k);
+    const Tt=tr.top-sr.top-stage.clientTop,Tb=Tt+tr.height,ox=tr.left-sr.left-stage.clientLeft+seg.clientLeft,th=seg.clientHeight;
+    const g=under?3:2,box=(k,s)=>{q('.'+k).style.cssText=`left:${ox+s.x+g}px;top:${Tt+seg.clientTop+(under?th-4:4+g)}px;width:${s.w-2*g}px;height:${under?2:th-8-2*g}px`}; // inset, so outlines of neighbors stay apart
+    box('from',S);
+    if(mode!=='inside')return;
+    box('to',Lg);
+    say(cap('hi'),under?'One line, under the labels':'One highlight, behind the labels');
+    say(cap('from'),motionOk?'Slides over from here':'Starts here');
+    say(cap('to'),'Lands here, stretched to fit this option');
+    say(cap('speed'),words());
+    let stems='';
+    const stack=(list,y,side)=>{
+      let far=-1e9;
+      list.sort((a,b)=>a.x-b.x).forEach(r=>{
+        const min=Math.max(8,far+6);
+        r.el.style.cssText=`left:0;top:0;max-width:${Math.max(W-8-min,110)}px`;
+        r.w=r.el.offsetWidth;r.h=r.el.offsetHeight;r.l=Math.min(Math.max(r.x-10,min),W-8-r.w);far=r.x;
+      });
+      list.reverse().forEach(r=>{
+        const t=side<0?y-r.h:y;
+        r.el.style.left=r.l+'px';r.el.style.top=t+'px';
+        stems+=`M${r.x} ${side<0?t+r.h:t}V${side<0?Tt:Tb}`;
+        y+=side*(r.h+5);
+      });
+      return y;
+    };
+    // the stems go on the outer ends of the start and the landing, so they stay clear of the arrow between their centers
+    const dir=Lg.x<S.x?-1:1,ay=Tt-12,xs=ox+S.x+S.w/2,xe=ox+Lg.x+Lg.w/2;
+    stack([{el:cap('from'),x:ox+(dir>0?S.x+10:S.x+S.w-10)},{el:cap('to'),x:ox+(dir>0?Lg.x+Lg.w-10:Lg.x+10)}],ay-12,-1);
+    const y=stack([{el:cap('hi'),x:ox+H.x+H.w/2}],Tb+10,1),sp=cap('speed');
+    sp.style.cssText=`left:0;top:${y}px;max-width:${W-16}px`;
+    sp.style.left=Math.max(8,Math.min(ox+seg.clientWidth/2-sp.offsetWidth/2,W-8-sp.offsetWidth))+'px';
+    q('svg').setAttribute('viewBox',`0 0 ${W} ${stage.clientHeight}`);
+    q('.stem').setAttribute('d',stems);
+    q('.arrow').setAttribute('d',`M${xs} ${ay-4}V${ay+4}M${xs} ${ay}H${xe}`+(Math.abs(xe-xs)>14?`M${xe-dir*7} ${ay-4}L${xe} ${ay}L${xe-dir*7} ${ay+4}`:''));
+  }
+  // Draws the view for the state now: the pose when nothing is sliding or pending and the choice is on the first option, else the
+  // last choice (where the highlight started and where it landed). Safe to run again; Normal draws nothing.
+  function draw(){
+    if(mode==='normal')return;
+    const calm=!sliding(),under=seg.classList.contains('underline'),T=Math.min(2,opts.length-1);
+    const posing=calm&&!running()&&current===0;
+    copy.classList.toggle('underline',under);over.classList.toggle('line',under);
+    let S,Lg,H;
+    if(posing){
+      S=last;Lg=asChosen(T);
+      const v=curveAt(CURVES[easeNow()],Math.min(1,POSE_MS/dur));
+      H={x:S.x+(Lg.x-S.x)*v,w:S.w+(Lg.w-S.w)*v};
+      pose(S,H,v,under,T);
+    }else{
+      if(posed)unpose();
+      const t=trail||{from:0,to:current};
+      S=calm?asChosen(t.from):spot(t.from);Lg=t.to===current?last:spot(t.to);H=Lg;
+    }
+    if(mode==='compare'){putCopy(posing?T:current);if(!motionOk)say('compare',posing?STILL:JUMPED)}
+    place(S,Lg,H,under);
+  }
+  // The mode switch: draws the mode at once (the shared script then presses Show me, not under reduced motion). Normal's own choice
+  // is kept while a view shows and put back when Normal is pressed, whatever the views' runs chose. It goes back as a slide from the
+  // first option, started a moment after the first option is drawn: the browser keeps the highlight's drawing at the scale of its
+  // last jump, so a jump straight to a stretched place would not look like the slide that first put it there.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='normal'){
+      if(was!=='normal'){
+        stopRun();unpose();toRest(0);
+        if(kept)setTimeout(()=>{if(mode==='normal'&&!current&&!running())choose(kept)},160);
+      }
+      return;
+    }
+    if(was==='normal'){kept=running()?0:current;stopRun();toRest(0)}
+    draw();
+  });
+  ind.addEventListener('transitionend',()=>{if(!sliding())draw()});
+  ind.addEventListener('transitioncancel',()=>{if(!sliding())draw()});
+  slowTog.addEventListener('change',draw);
 
   build(4);
 </script>
