@@ -21,10 +21,14 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Infinite Zoom", "name": "Infinite Zoom", "description": "The view keeps zooming into pictures inside pictures. Best for page intros.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/06-3d-advanced/infinite-zoom/", "inLanguage": "en", "articleSection": "3D & Advanced", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, 3D & Advanced, Infinite Zoom"}</script>
   <style>
-    :root{--ui-accent:#3fd6c4;--edge:#3fd6c4}
+    :root{--ui-accent:#3fd6c4;--edge:#3fd6c4;--view:#ffd84d}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{--bg:#0b0b0d;position:relative;overflow:hidden;background:var(--bg)}
     canvas{display:block;width:100%;height:100%}
+    /* See inside and Compare: plain words over the picture, put in place by the script; the canvas draws everything else */
+    .cap{display:none;position:absolute;left:0;top:0;padding:2px 8px;border-radius:999px;background:rgba(5,6,10,.92);color:#f4f4f2;font:600 12px/1.2 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .cap.vw{color:var(--view)}
+    .stage[data-hb-mode="inside"] .cap.si,.stage[data-hb-mode="compare"] .cap.sc{display:block}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -47,12 +51,26 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each picture take over.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" aria-label="Framed pictures nested inside each other, each holding the next one, as the view zooms through them without end"></canvas>
+      <p class="cap si vw" id="c-view" aria-hidden="true" data-hb-caption>Your view</p>
+      <p class="cap si" id="c-top" aria-hidden="true" data-hb-caption>Reaching the window, it starts over one picture in</p>
+      <p class="cap si" id="c-bot" aria-hidden="true" data-hb-caption>Each picture holds the next, two fifths the size</p>
+      <p class="cap sc" id="c-left" aria-hidden="true" data-hb-caption>Off-center window</p>
+      <p class="cap sc" id="c-right" aria-hidden="true" data-hb-caption>Centered window</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, your view (dashed) moves into a picture whose middle holds the next one; when it reaches that window, the drawing starts over one picture in, which looks exactly the same.</p>
+      <p data-hb-for="compare" hidden>Off-center window: the next picture is still shrunk toward the middle, so it misses its frame and leaves a gap; Centered window: each picture fits the next exactly.</p>
     </div>
   </section>
 
@@ -141,16 +159,19 @@
 <script>
 const cvs=document.getElementById('cvs'),main=cvs.getContext('2d');let ctx=main; // ctx: what the helpers draw on (main, or a soft light)
 const stage=document.getElementById('stage'),slowTog=document.getElementById('slow-tog');
-const EDGE=getComputedStyle(document.documentElement).getPropertyValue('--edge').trim();
+const EDGE=getComputedStyle(document.documentElement).getPropertyValue('--edge').trim(),VIEW=getComputedStyle(document.documentElement).getPropertyValue('--view').trim();
 // Phones are screens up to 600px wide, or up to 500px tall when held sideways: they draw 1.5 canvas pixels per screen pixel, not 2,
 // and each picture's wall, sky or table in one flat color, without the soft light
 const phone=matchMedia('(max-width:600px),(max-height:500px)');
 const R=.4,TAU=Math.PI*2; // the frame in the middle of each picture holds the next picture at 40% of its size
 let W=0,H=0,u=1,X=0,Y=0,w=0,h=0,dpr=1,kx=1,ky=1,raf=null,lastT=null; // kx, ky: canvas pixels per stage pixel
+let SW=0,SH=0,cx=0,cy=0; // SW, SH: the stage's size (W, H: the size of the box being drawn, which a half of Compare changes for a while); cx, cy: the middle of the window
 let p=0,at=0,clock=0; // p: how far the view has zoomed from picture `at` to the next one (0 to 1); clock: seconds played, for the stars
-let SECS=4.5,COUNT=5,DIR=1,EDGES=false;
+let SECS=4.5,COUNT=5,DIR=1,EDGES=false,mode='normal',paused=false;
 
 // Drawing helpers, in stage pixels. u is 1% of the stage's shorter side; X, Y, w, h are the window in the middle, 40% of the stage.
+// The box is the stage, or in Compare a half of it, with its window dx and dy boxes off the middle; what hangs on the window follows cx, cy.
+function geom(bw,bh,dx,dy){W=bw;H=bh;u=Math.min(W,H)/100;w=W*R;h=H*R;X=W*(1-R)/2+W*dx;Y=H*(1-R)/2+H*dy;cx=W/2+W*dx;cy=H/2+H*dy;}
 const grad=(g,c)=>{c.forEach((s,i)=>g.addColorStop(i/(c.length-1),s));return g;};
 const lin=(x0,y0,x1,y1,...c)=>grad(ctx.createLinearGradient(x0,y0,x1,y1),c);
 function box(x,y,bw,bh,f,r){ctx.fillStyle=f;ctx.beginPath();if(r&&ctx.roundRect)ctx.roundRect(x,y,bw,bh,r);else ctx.rect(x,y,bw,bh);ctx.fill();}
@@ -164,15 +185,15 @@ const frame=(m,f,r)=>box(X-m,Y-m,w+2*m,h+2*m,f,r),hole=()=>box(X,Y,w,h,'#0c0c10'
 
 // Five pictures, each drawn over the whole stage around its window. 1: a painting in a gallery, under a picture light
 function gallery(soft){
-  if(soft){box(0,0,W,H,lin(0,0,0,H,'#1b5563','#0b2a33'));light(W/2,Y,w*.8,'rgba(255,220,160,.3)');return;}
+  if(soft){box(0,0,W,H,lin(0,0,0,H,'#1b5563','#0b2a33'));light(cx,Y,w*.8,'rgba(255,220,160,.3)');return;}
   box(0,H*.84,W,H*.16,'#08212a');box(0,H*.84,W,.7*u,'#2b6f7c');
-  for(const s of [-1,1]){const x=W/2+s*(w/2+24*u),y=H/2-12*u;
+  for(const s of [-1,1]){const x=cx+s*(w/2+24*u),y=cy-12*u;
     box(x-9*u,y+1.5*u,20*u,22*u,'rgba(0,0,0,.3)');box(x-10*u,y,20*u,22*u,'#3a2717');box(x-8.5*u,y+1.5*u,17*u,19*u,s<0?'#efe1c2':'#22304a');
     oval(x-s*2*u,y+10*u,5*u,5*u,s<0?'#d6623b':'#e8b44a');box(x-8.5*u,y+15*u,17*u,5.5*u,s<0?'#3c6e8f':'#7a4f9a');}
   box(X-3.3*u,Y-2.5*u,w+9*u,h+9*u,'rgba(0,0,0,.35)');
   frame(4.5*u,lin(X,Y,X+w,Y+h,'#fbe7a6','#c9962f','#8c5b17','#e9c568'));frame(1.3*u,'#5e3f12');hole();
-  box(W/2-w*.17,Y-7.1*u,w*.34,1.6*u,'#2b2418',.8*u);box(X+w-8*u,Y+h+9*u,8*u,3.6*u,'#efe3c6',.4*u);
-  for(const x of [-.27,.27])box(W/2+w*x-.8*u,H*.88,1.6*u,H*.12,'#06171d');box(W/2-w*.3,H*.88,w*.6,2.4*u,'#06171d',u);
+  box(cx-w*.17,Y-7.1*u,w*.34,1.6*u,'#2b2418',.8*u);box(X+w-8*u,Y+h+9*u,8*u,3.6*u,'#efe3c6',.4*u);
+  for(const x of [-.27,.27])box(cx+w*x-.8*u,H*.88,1.6*u,H*.12,'#06171d');box(cx-w*.3,H*.88,w*.6,2.4*u,'#06171d',u);
 }
 // 2: a drive-in movie at night: the screen on its posts, twinkling stars, the moon, hills and parked cars
 const STARS=Array.from({length:44},(_,i)=>[(.5+i*.7548777)%1,(.5+i*.5698403)%1*.64,.25+i%3*.18,i]); // spread evenly, with no pattern
@@ -180,9 +201,9 @@ function drivein(soft){
   if(soft){box(0,0,W,H,lin(0,0,0,H*.86,'#070b24','#1f1850','#5b2c63'));light(W*.86,H*.18,15*u,'rgba(255,236,190,.3)');return;}
   for(const [sx,sy,r,i] of STARS){ctx.globalAlpha=.6+.4*Math.sin(clock*1.6+i*2.4);oval(sx*W,sy*H,r*u,r*u,'#fff');}ctx.globalAlpha=1;
   oval(W*.86,H*.18,4.6*u,4.6*u,'#fff2cf');poly('#1a1236',0,H*.86,0,H*.74,W*.18,H*.68,W*.36,H*.76,W*.62,H*.7,W*.82,H*.77,W,H*.71,W,H*.86);
-  box(0,H*.86,W,H*.14,'#0d0a1d');for(const x of [-.32,.3])box(W/2+w*x,Y+h,2.2*u,H,'#221b40');
+  box(0,H*.86,W,H*.14,'#0d0a1d');for(const x of [-.32,.3])box(cx+w*x,Y+h,2.2*u,H,'#221b40');
   frame(3.4*u,'#2b2350');frame(2*u,'#dcd6ee');hole();
-  poly('rgba(190,200,255,.07)',W/2-1.5*u,H,W/2+1.5*u,H,X+w,Y+h,X,Y+h);
+  poly('rgba(190,200,255,.07)',cx-1.5*u,H,cx+1.5*u,H,X+w,Y+h,X,Y+h);
   for(const c of [.1,.3,.7,.9]){const x=W*c,y=H*.94;
     box(x-9*u,y-4*u,18*u,5*u,'#231b42',2*u);box(x-5.5*u,y-7.5*u,11*u,4.4*u,'#231b42',2*u);box(x-4*u,y-6.6*u,8*u,2.4*u,'#3d3470',u);
     for(const s of [-1,1])oval(x+s*7*u,y-1.8*u,1.1*u,.7*u,'#ff4d6d');}
@@ -190,14 +211,14 @@ function drivein(soft){
 // 3: a living room in the evening: an old television on legs, a floor lamp and a plant
 function livingroom(soft){
   if(soft){box(0,0,W,H,lin(0,0,0,H,'#8c4b2f','#55291b'));
-    light(W/2,H/2,w*.95,'rgba(140,190,255,.22)');light(W*.12,H*.4,26*u,'rgba(255,200,120,.38)');return;}
+    light(cx,cy,w*.95,'rgba(140,190,255,.22)');light(W*.12,H*.4,26*u,'rgba(255,200,120,.38)');return;}
   for(let x=2*u;x<W;x+=7*u)box(x,0,2.4*u,H*.86,'rgba(255,230,200,.05)');
-  box(0,H*.86,W,H*.14,lin(0,H*.86,0,H,'#3b2216','#22130c'));oval(W/2,H*.95,w*.7,3.4*u,'#7a2e38');
+  box(0,H*.86,W,H*.14,lin(0,H*.86,0,H,'#3b2216','#22130c'));oval(cx,H*.95,w*.7,3.4*u,'#7a2e38');
   box(W*.12-.4*u,H*.4,.8*u,H*.52,'#1d120d');poly('#f3c77e',W*.12-5*u,H*.4,W*.12+5*u,H*.4,W*.12+3*u,H*.4-7*u,W*.12-3*u,H*.4-7*u);
   for(const a of [-1.1,-.6,-.15,.3,.8])oval(W*.88+Math.sin(a)*6*u,H*.8-Math.cos(a)*7*u,2.2*u,6.5*u,'#3f7a4a',a);
   poly('#c26b3c',W*.88-4*u,H*.9,W*.88+4*u,H*.9,W*.88+5*u,H*.8,W*.88-5*u,H*.8);
   line('#2a1a12',1.2*u,X+4*u,Y+h+8*u,X+u,H*.92);line('#2a1a12',1.2*u,X+w-4*u,Y+h+8*u,X+w-u,H*.92);
-  line('#c9c2b8',.5*u,W/2-9*u,Y-17*u,W/2,Y-4*u,W/2+8*u,Y-18*u);
+  line('#c9c2b8',.5*u,cx-9*u,Y-17*u,cx,Y-4*u,cx+8*u,Y-18*u);
   box(X-5*u,Y-4*u,w+10*u,h+12*u,lin(0,Y,0,Y+h,'#a06c3f','#6d4425'),2.5*u);frame(1.6*u,'#141418',1.4*u);hole();
   for(const k of [1,2])oval(X+w-k*4.5*u,Y+h+4.8*u,1.3*u,1.3*u,'#e2cfa3');
   for(let k=0;k<4;k++)box(X+2*u,Y+h+3*u+k*.9*u,10*u,.4*u,'#4a2c18');
@@ -211,7 +232,7 @@ function desk(soft){
   const top=Y+h+.5*u;box(0,top,W,H-top,lin(0,top,0,H,'#5e4634','#3a2a1f'));
   line('#cfd5e2',.9*u,X-16*u,Y+h+4*u,X-21*u,Y+h*.35,X-12*u,Y+h*.1);oval(X-16*u,Y+h+4*u,4*u,1.2*u,'#cfd5e2');
   poly('#cfd5e2',X-12*u,Y+h*.1-u,X-7*u,Y+h*.1+6*u,X-15*u,Y+h*.1+7*u);
-  frame(2.2*u,'#0e1118',1.8*u);hole();oval(W/2,Y-1.1*u,.35*u,.35*u,'#3a4458');
+  frame(2.2*u,'#0e1118',1.8*u);hole();oval(cx,Y-1.1*u,.35*u,.35*u,'#3a4458');
   poly(lin(0,Y+h+2.2*u,0,Y+h+6*u,'#c9cfdb','#7c8496'),X-2.2*u,Y+h+2.2*u,X+w+2.2*u,Y+h+2.2*u,X+w+7*u,Y+h+6*u,X-7*u,Y+h+6*u);
   box(X+w+12*u,Y+h+3*u,6*u,7*u,'#e9e4da',.8*u);
   ctx.strokeStyle='#e9e4da';ctx.lineWidth=u;ctx.beginPath();ctx.arc(X+w+18*u,Y+h+6.5*u,2*u,-1.4,1.4);ctx.stroke(); // its handle
@@ -233,9 +254,9 @@ function table(soft){
 const SCENES=[gallery,drivein,livingroom,desk,table];
 // Each picture's soft light (the shading of its wall, sky or table and the glow of its lamps) changes slowly across it, so it is drawn
 // once per resize at a quarter of the stage's size and stretched to fit every frame: copying a picture costs far less than a gradient
-const SOFT=SCENES.map(()=>document.createElement('canvas')),FLAT=['#134250','#1b1648','#743b26','#18253f','#643d22'];
-function soften(){
-  SOFT.forEach((c,i)=>{c.width=Math.ceil(W/4);c.height=Math.ceil(H/4);ctx=c.getContext('2d');ctx.scale(c.width/W,c.height/H);SCENES[i](true);});
+const mk=()=>SCENES.map(()=>document.createElement('canvas')),SOFT=mk(),PAIR=[mk(),mk()],FLAT=['#134250','#1b1648','#743b26','#18253f','#643d22'];
+function soften(set){
+  set.forEach((c,i)=>{c.width=Math.ceil(W/4);c.height=Math.ceil(H/4);ctx=c.getContext('2d');ctx.scale(c.width/W,c.height/H);SCENES[i](true);});
   ctx=main;
 }
 
@@ -243,28 +264,129 @@ function soften(){
 // R times the size of the one around it, from the outside in, so each fills the window of the one before. At p = 1 the next
 // picture fills the view at exactly its own size, which is where it starts as picture `at`: nothing jumps.
 function render(){
+  if(mode==='compare')return compare();
   // The pictures tile the canvas, but their edges are soft, so they go over a dark fill: no frame mixes in the one before it
   ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0c10';ctx.fillRect(0,0,cvs.width,cvs.height);
-  const seen=[];for(let j=0;j<9;j++){const s=Math.pow(R,j-p);if(s*Math.max(W,H)<3)break;seen.push([s,(at+j)%COUNT]);} // under 3px: left out
+  if(mode==='inside')return inside();
+  const seen=chain(1,p,0,0,SOFT,3);
+  if(EDGES)edges(seen,0,0,false);
+}
+// The pictures from the outside in: picture j is drawn at base * R^(j - pp) about the middle of the box whose top left is (ox, oy),
+// from the soft lights `soft`; one under `cut` pixels is left out, and no more than `max` are drawn. Each is clipped to its own
+// rectangle, less the window the next fills. A chain that `max` cuts short fills its last window with the next picture's flat color,
+// at that picture's own size about the middle of the box, so the window is not left dark
+function chain(base,pp,ox,oy,soft,cut,max=9){
+  const seen=[];for(let j=0;j<max;j++){const s=base*Math.pow(R,j-pp);if(s*Math.max(W,H)<cut)break;seen.push([s,(at+j)%COUNT]);}
+  const fill=max<9&&seen.length===max;
   seen.forEach(([s,n],j)=>{
-    ctx.setTransform(kx*s,0,0,ky*s,kx*W/2*(1-s),ky*H/2*(1-s));
-    // Each picture is clipped to its own rectangle, less the window the next picture fills: no picture paints over another
+    ctx.setTransform(kx*s,0,0,ky*s,kx*W/2*(1-s)+kx*ox,ky*H/2*(1-s)+ky*oy);
     ctx.save();ctx.beginPath();ctx.rect(0,0,W,H);if(j<seen.length-1)ctx.rect(X,Y,w,h);ctx.clip('evenodd');
-    if(phone.matches)box(0,0,W,H,FLAT[n]);else ctx.drawImage(SOFT[n],0,0,W,H);
-    SCENES[n]();ctx.restore();
+    if(phone.matches)box(0,0,W,H,FLAT[n]);else ctx.drawImage(soft[n],0,0,W,H);
+    SCENES[n]();
+    if(fill&&j===seen.length-1)box(W*(1-R)/2,H*(1-R)/2,W*R,H*R,FLAT[(n+1)%COUNT]);
+    ctx.restore();
   });
-  if(!EDGES)return;
-  // Each picture's edge, dashed over a dark line, with its number in the chain. save() and restore() undo the dash, the widths and
-  // the font afterwards, so the scenes' own lines are never drawn dashed
-  ctx.save();ctx.setTransform(kx,0,0,ky,0,0);ctx.font='700 13px "Schibsted Grotesk",system-ui,sans-serif';ctx.textAlign='center';
+  if(fill){const [s,n]=seen[max-1];seen.push([s*R,(n+1)%COUNT]);}
+  return seen;
+}
+// Each picture's edge, dashed over a dark line, with its number in the chain (at its right corner in See inside, where "Your view" rides
+// the left). save() and restore() undo the dash, the widths and the font afterwards, so the scenes' own lines are never drawn dashed
+function edges(seen,ox,oy,right){
+  ctx.save();ctx.setTransform(kx,0,0,ky,kx*ox,ky*oy);ctx.font='700 13px "Schibsted Grotesk",system-ui,sans-serif';ctx.textAlign='center';
   for(const [s,n] of seen){
     const x=W/2*(1-s),y=H/2*(1-s);
     ctx.setLineDash([]);ctx.lineWidth=4;ctx.strokeStyle='rgba(0,0,0,.45)';ctx.strokeRect(x,y,W*s,H*s);
     ctx.setLineDash([7,5]);ctx.lineWidth=2;ctx.strokeStyle=EDGE;ctx.strokeRect(x,y,W*s,H*s);
-    if(H*s>60){box(x+6,y+6,24,22,'rgba(8,10,14,.85)',5);ctx.fillStyle=EDGE;ctx.fillText(n+1,x+18,y+22);}
+    if(H*s>60){const bx=right?x+W*s-30:x+6;box(bx,y+6,24,22,'rgba(8,10,14,.85)',5);ctx.fillStyle=EDGE;ctx.fillText(n+1,bx+12,y+22);}
   }
   ctx.restore();
 }
+
+// See inside: picture `at` held still at K of the box with the pictures it holds, and your view (the box) as a dashed outline that
+// shrinks from its edge to its window as p grows (grows, zooming out). Where p wraps, the pictures are drawn one picture in (out) and
+// the outline starts again: the swap Normal hides. Faint outlines mark where the view starts and ends. Under reduced motion, paused,
+// it is posed half way, with an arrow as long as the move.
+const reduceMQ=matchMedia('(prefers-reduced-motion:reduce)'),K=.8,still=()=>reduceMQ.matches&&paused;
+const ring=(s,c,lw,dash)=>{ctx.setLineDash(dash);ctx.lineWidth=lw;ctx.strokeStyle=c;ctx.strokeRect(W/2*(1-s)-2,H/2*(1-s)-2,W*s+4,H*s+4);};
+function inside(){
+  const s=K*Math.pow(R,still()?.5:p),vx=Math.max(4,Math.min(W/2*(1-s)-2,SW-vw-4)),vy=Math.max(2,H/2*(1-s)-7-ch);
+  put(cV,vx,vy); // "Your view" rides the outline's top left corner, above it
+  const seen=chain(K,0,0,0,SOFT,3);
+  // The edges, the faint outlines and the arrow are left out under the caption, so it covers none of them
+  ctx.save();ctx.setTransform(kx,0,0,ky,0,0);ctx.beginPath();ctx.rect(0,0,W,H);ctx.rect(vx-3,vy-3,vw+6,ch+6);ctx.clip('evenodd');
+  if(EDGES)edges(seen,0,0,true);
+  ctx.lineCap='round';ring(K,'rgba(255,255,255,.5)',1.5,[3,4]);ring(K*R,'rgba(255,255,255,.5)',1.5,[3,4]);
+  if(still()){
+    const a=W/2*(1-K)-2,b=W/2*(1-K*R)-2,y=H/2,[f,t]=DIR>0?[a,b]:[b,a],d=t>f?-9:9;
+    for(const [c,lw] of [['rgba(0,0,0,.6)',6],[VIEW,3]]){ctx.setLineDash([]);ctx.strokeStyle=c;ctx.lineWidth=lw;ctx.beginPath();ctx.moveTo(f,y);ctx.lineTo(t,y);ctx.moveTo(t+d,y-6);ctx.lineTo(t,y);ctx.lineTo(t+d,y+6);ctx.stroke();}
+  }
+  ctx.restore();
+  ctx.save();ctx.setTransform(kx,0,0,ky,0,0);ring(s,'rgba(0,0,0,.6)',5,[]);ring(s,VIEW,2.5,[9,6]);ctx.restore();
+}
+
+// Compare: the chain twice, in two boxes side by side under their names (a band tall), each half clipped to its box. The globals the
+// pictures read are set for each half and put back after. In the first half every window, frame and clip sits off the middle, while the
+// next picture is still shrunk about the middle, as the page does it: it misses its window. Phones draw three pictures a frame in each half
+// (together no more than Normal draws in the whole box), the last window filled with the next picture's flat color.
+const OFF=[[.12,.1],[0,0]],keep=()=>[W,H,u,X,Y,w,h,cx,cy],back=g=>{[W,H,u,X,Y,w,h,cx,cy]=g;};
+let band=28,pairKey='';
+function compare(){
+  ctx.setTransform(1,0,0,1,0,0);ctx.fillStyle='#0c0c10';ctx.fillRect(0,0,cvs.width,cvs.height);
+  const bw=(SW-2)/2,bh=SH-band,g=keep();
+  for(let i=0;i<2;i++){
+    const ox=i*(bw+2);geom(bw,bh,...OFF[i]);
+    ctx.save();ctx.setTransform(1,0,0,1,0,0);ctx.beginPath();ctx.rect(kx*ox,ky*band,kx*bw,ky*bh);ctx.clip();
+    const seen=chain(1,p,ox,band,PAIR[i],3,phone.matches?3:9);
+    if(EDGES)edges(seen,ox,band,false);
+    ctx.restore();
+  }
+  back(g);ctx.fillStyle='#2a2b33';ctx.fillRect(kx*bw,0,kx*2,cvs.height);
+}
+// Each half's soft lights are drawn for its own box (and window) when Compare is shown, and again when that box changes
+function softPair(){
+  const key=SW+'x'+SH+'x'+band,g=keep();if(key===pairKey)return;pairKey=key;
+  PAIR.forEach((set,i)=>{geom((SW-2)/2,SH-band,...OFF[i]);soften(set);});
+  back(g);
+}
+
+// The captions: plain words, put in place from their measured sizes. Margin captions take shorter words where the long ones do not fit
+const el=id=>document.getElementById(id),cV=el('c-view'),cT=el('c-top'),cB=el('c-bot'),cL=el('c-left'),cR=el('c-right');
+const TOP=[['Reaching the window, it starts over one picture in','At the window it starts over','Restarts at the window'],['Reaching the edge, it starts over one picture out','At the edge it starts over','Restarts at the edge']];
+const BOT=['Each picture holds the next, two fifths the size','Each holds the next, two fifths the size'];
+const put=(e,x,y)=>{e.style.transform='translate('+Math.round(x)+'px,'+Math.round(y)+'px)';};
+const fit=(e,words,room)=>{for(const t of words){e.textContent=t;if(e.offsetWidth<=room)break;}};
+let ch=18,vw=60; // the height of a caption, the width of "Your view"
+function layout(){
+  if(mode==='inside'){
+    ch=cV.offsetHeight;vw=cV.offsetWidth;
+    // "Your view" can meet the top caption until its corner is a caption lower: the top caption stays right of where it gets to then
+    const s0=1-2*(2*ch+14)/SH,xr=Math.max(SW*.1-2,SW/2*(1-s0)-2)+vw+8;
+    fit(cT,TOP[DIR>0?0:1],SW-8-xr);fit(cB,BOT,SW-12);
+    const c=(SW-cT.offsetWidth)/2;
+    put(cT,c>=xr?c:SW-cT.offsetWidth-8,2);put(cB,(SW-cB.offsetWidth)/2,SH-ch-2);
+  }else if(mode==='compare'){
+    band=cL.offsetHeight+8;softPair();
+    const bw=(SW-2)/2;put(cL,(bw-cL.offsetWidth)/2,4);put(cR,bw+2+(bw-cR.offsetWidth)/2,4);
+  }
+}
+
+// The notes and the picture's name follow the mode, the direction and reduced motion (still: paused under reduced motion, when the
+// views hold a pose). A note is written only when its words change, as its box is read out loud.
+const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),NAME=cvs.getAttribute('aria-label');
+const SAY=[[[moving[0],'Shown still: your view (dashed) is moving into a picture whose middle holds the next one; on reaching that window, the drawing starts over one picture in, which looks the same.'],
+  ["Inside, your view (dashed) moves out from a picture's middle window toward its edge; when it reaches the edge, the drawing starts over one picture out, which looks exactly the same.",
+   "Shown still: your view (dashed) is moving out from a picture's middle window; on reaching the edge, the drawing starts over one picture out, which looks the same."]],
+  [moving[1],'Shown still: in Off-center window the next picture misses its frame and leaves a gap; in Centered window each picture fits the next exactly.']];
+function describe(){
+  const s=+still(),want=[SAY[0][DIR>0?0:1][s],SAY[1][s]];
+  notes.forEach((n,i)=>{if(n.textContent!==want[i])n.textContent=want[i];});
+  const name=mode==='inside'?'The nested pictures held still at a smaller size, with a dashed outline for your view moving '+(DIR>0?'into the middle picture and starting over one picture in':'out toward the edge and starting over one picture out')
+    :mode==='compare'?'Two zooms side by side: on the left each window sits off the middle, so the next picture misses its frame; on the right each picture fits the next exactly':NAME;
+  if(cvs.getAttribute('aria-label')!==name)cvs.setAttribute('aria-label',name);
+}
+function update(){describe();if(mode!=='normal')layout();render();}
+// At the top level, before the shared script runs: a mode draws at once, playing or paused, and changes nothing the page keeps
+document.addEventListener('hb:mode',e=>{mode=e.detail.mode;update();});
 
 // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again. At most one frame per 16 ms
 // zooms by the time since the last one (at most 50 ms, a third in slow motion); a first frame after a start only takes the time.
@@ -281,7 +403,11 @@ function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop);}
 
 // At the top level, before the deferred shared script runs: it pauses on arrival under reduced motion, and its Play starts the
 // loop. A paused picture stays as it is.
-document.addEventListener('hb:pause',e=>{if(e.detail.paused){cancelAnimationFrame(raf);raf=null;}else start();});
+document.addEventListener('hb:pause',e=>{
+  paused=e.detail.paused;
+  if(paused){cancelAnimationFrame(raf);raf=null;}else start();
+  if(mode!=='normal')update(); // reduced motion: the views hold a still pose while paused
+});
 // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame zooms by nothing
 document.addEventListener('visibilitychange',()=>{lastT=null;});
 
@@ -289,9 +415,11 @@ document.addEventListener('visibilitychange',()=>{lastT=null;});
 // playing or paused. A resize that leaves the stage as it was (a phone's address bar sliding in or out) does nothing.
 function resize(){
   const sw=stage.clientWidth,sh=stage.clientHeight,r=Math.min(devicePixelRatio||1,phone.matches?1.5:2);
-  if(sw===W&&sh===H&&r===dpr)return;
-  W=sw;H=sh;dpr=r;u=Math.min(W,H)/100;X=W*(1-R)/2;Y=H*(1-R)/2;w=W*R;h=H*R;
-  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);kx=cvs.width/W;ky=cvs.height/H;soften();render(); // the whole canvas, to the last pixel
+  if(sw===SW&&sh===SH&&r===dpr)return;
+  SW=sw;SH=sh;dpr=r;geom(SW,SH,0,0);
+  cvs.width=Math.round(W*dpr);cvs.height=Math.round(H*dpr);kx=cvs.width/W;ky=cvs.height/H;soften(SOFT);
+  if(mode!=='normal')layout();
+  render(); // the whole canvas, to the last pixel
 }
 
 function choices(id,pick){
@@ -305,13 +433,15 @@ function choices(id,pick){
 // Speed and Direction change the zoom from where it is; Number of scenes and the edges show at once, paused too
 choices('speed-seg',d=>{SECS=+d.secs;});
 choices('count-seg',d=>{COUNT=+d.n;at%=COUNT;render();});
-choices('dir-seg',d=>{DIR=+d.dir;});
+choices('dir-seg',d=>{DIR=+d.dir;if(mode!=='normal')update();});
 document.getElementById('edges-tog').addEventListener('change',e=>{EDGES=e.target.checked;render();});
 
+// The captions' sizes depend on the font, so they are placed again once it has arrived
+if(document.fonts)document.fonts.ready.then(()=>{if(mode!=='normal'){layout();render();}});
 resize();
 window.addEventListener('resize',resize);
 // A window that crosses the phone size changes how the walls are drawn, even when the stage keeps its size and pixel ratio
-const redo=()=>{W=0;resize();};if(phone.addEventListener)phone.addEventListener('change',redo);else if(phone.addListener)phone.addListener(redo);
+const redo=()=>{SW=0;resize();};if(phone.addEventListener)phone.addEventListener('change',redo);else if(phone.addListener)phone.addListener(redo);
 if(!matchMedia('(prefers-reduced-motion:reduce)').matches)start(); // under reduced motion the first picture stays still until Play
 </script>
 </body>
