@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#5fd88a;--ui-muted:#8a8a92;--dur:600ms;--ease:ease-out;--tx:0px;--ty:200px;--fade:0}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:#0b0b0d}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:#0b0b0d}
     .card{background:#161b22;border:1px solid #30363d;border-radius:12px;padding:clamp(28px,5vw,48px);text-align:center;max-width:300px;
       opacity:var(--fade);transform:translate(var(--tx),var(--ty));
       transition:transform var(--dur) var(--ease),opacity var(--dur) var(--ease);will-change:transform,opacity}
@@ -31,6 +31,39 @@
     .card-icon{font-size:28px;margin-bottom:12px;opacity:.6}
     .card-title{font-size:clamp(16px,2.3vw,21px);font-weight:bold;margin-bottom:8px}
     .card-sub{font-size:11px;color:var(--ui-muted);line-height:1.65}
+    /* See inside and Compare. Their labels are plain words on a dark backing; Normal shows none of this. */
+    .cmp,.route,.lbl{display:none}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;
+      font:600 13px/1.25 var(--hb-font);white-space:pre}
+    /* See inside: the card is drawn smaller and moved (--ss, --sx, --sy, worked out by the script) so its whole trip fits the box.
+       Over it go the start outline, the route with its dots, and the box's edge as Normal has it, all in the box's own pixels. */
+    .stage[data-hb-mode="inside"] .card{translate:var(--sx) var(--sy);scale:var(--ss)}
+    .stage[data-hb-mode="inside"] .route,.stage[data-hb-mode="inside"] .ilbl{display:block}
+    .route{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;fill:none;stroke-width:1.5}
+    .route .frame{stroke:rgba(244,244,242,.3);stroke-width:1}
+    .route .start{stroke:rgba(244,244,242,.85);stroke-dasharray:5 4}
+    .route .path{stroke:rgba(244,244,242,.6);stroke-dasharray:4 4}
+    .route .head{fill:rgba(244,244,242,.9);stroke:none}
+    .route circle{fill:var(--ui-accent);stroke:#0b0b0d;stroke-width:1.2}
+    /* Compare: two boxes side by side over the stage, each clipping its own copy of the card (the card itself stays where it is, under them). The first copy slides but stays solid; the second fades in as well. Between plays both rest a moment in (--qx, --qy,
+       --qo from the script), with their names at the end the card is not coming from. */
+    .stage[data-hb-mode="compare"] .cmp{display:grid;position:absolute;inset:0;grid-template-columns:repeat(2,minmax(0,1fr));
+      background:#0b0b0d radial-gradient(rgba(255,255,255,.075) 1px,transparent 1.5px) center/24px 24px}
+    .half{display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .name,.stage[data-hb-mode="compare"] .when{display:block;left:50%;translate:-50% 0}
+    .stage[data-hb-mode="compare"] .name{top:8px}
+    .stage[data-hb-mode="compare"][data-names="bottom"] .name{top:auto;bottom:8px}
+    .stage[data-hb-mode="compare"] .when{max-width:calc(100% - 16px);visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"] .twin{opacity:1!important}
+    .stage[data-hb-mode="compare"].posed .cmp .card{transform:translate(var(--qx),var(--qy))!important;transition:none!important}
+    .stage[data-hb-mode="compare"].posed .cmp .card:not(.twin){opacity:var(--qo)!important}
+    /* A box under about 370px tall (phones, short laptop windows): a compact card, icon and title, leaves room for the words */
+    .stage[data-hb-mode="inside"].tight .card,.stage[data-hb-mode="compare"].tight .cmp .card{padding:14px 16px}
+    .stage[data-hb-mode="inside"].tight .card-sub,.stage[data-hb-mode="compare"].tight .cmp .card-sub{display:none}
+    .stage[data-hb-mode="inside"].tight .card-icon,.stage[data-hb-mode="compare"].tight .cmp .card-icon{font-size:22px;margin-bottom:6px}
+    @media(max-width:600px),(max-height:500px){.lbl{font-size:12px}}
     @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -54,17 +87,32 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="card" id="card">
         <div class="card-icon">→</div>
         <div class="card-title">Slide Arrival</div>
         <div class="card-sub">Directional motion reads as arrival. Combined with a fade it feels natural; slide alone feels mechanical.</div>
       </div>
+      <svg class="route" aria-hidden="true"><rect class="frame"/><rect class="start"/><line class="path"/><g class="dots"></g><path class="head"/></svg>
+      <p class="lbl ilbl" id="l-start" aria-hidden="true" data-hb-caption></p>
+      <p class="lbl ilbl" id="l-route" aria-hidden="true" data-hb-caption></p>
+      <p class="lbl ilbl" id="l-dots" aria-hidden="true" data-hb-caption></p>
+      <p class="lbl ilbl" id="l-edge" aria-hidden="true" data-hb-caption></p>
+      <p class="lbl when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed outline is where the card starts, the line is its route, and the dots mark equal moments, so their spacing shows its pace.</p>
+      <p data-hb-for="compare" hidden>Slide alone stays solid and looks mechanical; Slide and fade fades in on the way, so it reads as an arrival. With Loop off, both rest a fifth of a second in.</p>
     </div>
   </section>
 
@@ -164,12 +212,42 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const card=document.getElementById('card');
+  const stage=card.parentElement;
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const fadeTog=document.getElementById('fade-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const ARROWS={top:'↑',bottom:'↓',left:'←',right:'→'};
   let ms=600,dist=200,dir='top',ease='ease-out',timers=[];
+  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own); M keeps a part off the
+  // box's edge and G a label off its part (pixels); N gaps make the route's N+1 dots, one per tenth of the play; the moment Compare
+  // rests at is POSE_MS into the play at the chosen Speed.
+  const CURVES={'ease-out':[0,0,.58,1],'cubic-bezier(.34,1.56,.64,1)':[.34,1.56,.64,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const PACE={'ease-out':['Crowd near the end:','slowing into place'],'cubic-bezier(.34,1.56,.64,1)':['Passes its spot,','then settles back'],
+    'ease-in-out':['Crowd at both ends:','eases in and out'],linear:['Evenly spaced:','one steady pace']};
+  const M=8,G=10,N=10,POSE_MS=200;
+  const phoneQ=window.matchMedia('(max-width:600px),(max-height:500px)');
+  // Compare's two cards: copies of the card, out of reach of the keyboard and screen readers. The first slides the same way but stays
+  // solid; the second fades in as well.
+  const copy=()=>{const c=card.cloneNode(true);c.removeAttribute('id');c.inert=true;c.setAttribute('aria-hidden','true');return c};
+  const twin=copy(),fader=copy(),cards=[card,twin,fader],cmp=document.createElement('div');
+  twin.classList.add('twin');cmp.className='cmp';cmp.setAttribute('aria-hidden','true');
+  cmp.innerHTML=['Slide alone','Slide and fade'].map(n=>'<div class="half"><p class="lbl name" data-hb-caption>'+n+'</p></div>').join('');
+  cmp.children[0].prepend(twin);cmp.children[1].prepend(fader);card.after(cmp);
+  const svg=stage.querySelector('.route'),part=c=>svg.querySelector('.'+c),when=stage.querySelector('.when');
+  const dots=Array.from({length:N+1},()=>part('dots').appendChild(document.createElementNS('http://www.w3.org/2000/svg','circle')));
+  const el={};['start','route','dots','edge'].forEach(k=>el[k]=document.getElementById('l-'+k));
+  const note=k=>document.querySelector('[data-hb-for="'+k+'"]');
+  const NOTE0={inside:note('inside').textContent,compare:note('compare').textContent};
+  let mode='normal',posed=false;
+  // Under reduced motion both views are still pictures, and their notes say so
+  const SAME='Fades in is off, so Slide alone and Slide and fade look the same. Turn on Fades in under More options in Try it to see the difference.';
+  const stillCompare=m=>'Shown still, '+m+' in: Slide alone is solid, while Slide and fade is only part of the way to solid.';
+  if(!motionOk){
+    note('inside').textContent='Shown still: the dashed outline is where the card starts, the line is its route, and the dots mark equal '+
+      'moments, so their spacing shows its pace.';
+    note('compare').textContent=stillCompare('a fifth of a second');
+  }
 
   function dur(){return slowTog.checked?ms*3:ms}
   function applyDir(){
@@ -178,7 +256,7 @@
     vars.setProperty('--tx',tx+'px');
     vars.setProperty('--ty',ty+'px');
     vars.setProperty('--fade',fadeTog.checked?'0':'1');
-    card.querySelector('.card-icon').textContent=ARROWS[dir];
+    cards.forEach(c=>c.querySelector('.card-icon').textContent=ARROWS[dir]);
   }
   function apply(){
     vars.setProperty('--dur',dur()+'ms');
@@ -186,33 +264,169 @@
     applyDir();
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){cards.forEach(c=>c.classList.toggle('in',on))}
   function slideIn(){
     // snap back to the starting offset without a transition so every play restarts from the edge
-    card.style.setProperty('transition','none','important');
-    card.classList.remove('in');void card.offsetWidth;
-    card.style.removeProperty('transition');
-    card.classList.add('in');
+    cards.forEach(c=>c.style.setProperty('transition','none','important'));
+    setIn(false);void card.offsetWidth;
+    cards.forEach(c=>c.style.removeProperty('transition'));
+    setIn(true);
   }
+  // Compare's resting moment comes back once a play is over (the reduced version is a 300ms fade), if Compare is still on show
+  function holdLater(){later(()=>{if(mode==='compare'&&!(loopTog.checked&&motionOk))pose(true)},(motionOk?dur():300)+700)}
   // One play slides in. While Loop is on it then holds, slides out, waits and plays again;
   // switching Loop off lets the card finish in place. Slow motion stretches the slides, not the waits.
+  // A play lifts Compare's resting moment, and the moment comes back when the play is over.
   function cycle(){
-    apply();slideIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();pose(false);slideIn();
+    if(!loopTog.checked||!motionOk){holdLater();return}
     later(()=>{
       if(!loopTog.checked)return;
-      card.classList.remove('in');
+      setIn(false);
       later(cycle,dur()+400);
     },dur()+800);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  const WORDS=[[60,'a twentieth of a second'],[130,'a tenth of a second'],[230,'a fifth of a second'],[300,'a quarter of a second'],
+    [420,'a third of a second'],[750,'half a second'],[1300,'a second'],[2200,'two seconds'],[1e9,'three seconds']];
+  const words=t=>WORDS.find(([top])=>t<=top)[1];
+  const up=s=>s[0].toUpperCase()+s.slice(1);
+  // Sets labels apart along one line, as near the center each wants (c) as the room from lo to hi allows; false if they do not fit
+  function spread(list,lo,hi){
+    list.sort((a,b)=>a.c-b.c);
+    let at=lo;
+    list.forEach(l=>{l.at=Math.max(l.c-l.n/2,at);at=l.at+l.n+4});
+    at=hi;
+    for(let i=list.length-1;i>=0;i--){list[i].at=Math.min(list[i].at,at-list[i].n);at=list[i].at-4}
+    return !list.length||list[0].at>=lo-.5;
+  }
+
+  // See inside: the whole trip in the box's own pixels. The card and the box's edge (as Normal clips it) are drawn smaller, by one
+  // factor, when the start would not fit, and moved so the start, the card's spot and the labels all stay inside. The route is the
+  // path of the card's near edge, so nothing is drawn over its words; its dots mark equal moments of the play, placed with the
+  // Feel's own curve, so their spacing is the pace.
+  function drawInside(){
+    const W=stage.clientWidth,H=stage.clientHeight;
+    stage.classList.toggle('tight',H<372);
+    const w=card.offsetWidth,h=card.offsetHeight;
+    if(!W||!w)return;
+    const vert=dir==='top'||dir==='bottom',ux=dir==='left'?-1:dir==='right'?1:0,uy=dir==='top'?-1:dir==='bottom'?1:0;
+    const phone=phoneQ.matches,D=dist,len=vert?h:w,unit=vert?'height':'width',times=D/len;
+    const P=dots.map((_,k)=>curveAt(CURVES[ease],k/N)),over=Math.max(1,...P)-1;
+    const how=times<.5?'a short way':(phone?'':'about ')+(times<1.5?'its own '+unit
+      :(times<2.5?'twice':['','','','three','four','five','six'][Math.min(Math.round(times),6)]+' times')+' its '+unit);
+    const frame=D+len/2>(vert?H:W)/2,edge=frame&&!phone;
+    const text={start:['Starts here,',fadeTog.checked?'see-through':'already solid'],route:[phone?up(how):'Travels '+how,'in '+words(dur())],
+      dots:PACE[ease],edge:['Edge of the box']};
+    for(const k in el)el[k].textContent=text[k].join('\n');
+    el.edge.style.display=edge?'':'none';
+    // what must fit around the card's spot: the start, the card, how far it overshoots, and the edge of the box
+    let x0=-w/2,x1=w/2,y0=-h/2,y1=h/2;
+    const grow=(a,b)=>{x0=Math.min(x0,a-w/2);x1=Math.max(x1,a+w/2);y0=Math.min(y0,b-h/2);y1=Math.max(y1,b+h/2)};
+    grow(ux*D,uy*D);grow(-ux*over*D,-uy*over*D);
+    if(frame){x0=Math.min(x0,-W/2);x1=Math.max(x1,W/2);y0=Math.min(y0,-H/2);y1=Math.max(y1,H/2)}
+    // labels go in a column on each side of the card for a route that runs up or down, in a row above and below for one that runs across
+    const colR=phone?['start','route','dots']:['start','route'],colL=phone?[]:edge?['dots','edge']:['dots'];
+    const room=a=>a.length?G+Math.max(...a.map(k=>el[k].offsetWidth)):0,gr=room(colR),gl=room(colL);
+    const lh=Math.max(...['start','route','dots'].map(k=>el[k].offsetHeight));
+    const fit=[(W-2*M)/(x1-x0),(H-2*M)/(y1-y0)];
+    if(vert)fit.push((W-2*M-gr)/(w/2-x0),(W-2*M-gl)/(w/2+x1),(W-2*M-gl-gr)/w);else fit.push((H/2-M-G-lh)*2/h);
+    const clamp=(v,lo,hi)=>Math.min(Math.max(v,lo),hi),s0=Math.min(1,...fit);
+    // the card's spot (cx, cy) and the labels' places for a factor s; ok says whether they all fit
+    const place=s=>{
+      const lo=Math.max(M-s*x0,M+s*w/2+gl),hi=Math.min(W-M-s*x1,W-M-s*w/2-gr);
+      const cx=vert?clamp(W/2,lo,hi):clamp(W/2,M-s*x0,W-M-s*x1),cy=vert?clamp(H/2,M-s*y0,H-M-s*y1):H/2;
+      const b=vert?cy+uy*s*len/2:cx+ux*s*len/2,a=b+(vert?uy:ux)*D*s,at=f=>b+(a-b)*f;
+      const item=(k,c)=>({k,c,n:vert?el[k].offsetHeight:el[k].offsetWidth});
+      const near=ease==='ease-out'||ease==='cubic-bezier(.34,1.56,.64,1)'?.12:.5,own=vert?cy+uy*s*H/2:cx+ux*s*W/2;
+      const lists=vert?[[item('start',cy+uy*D*s),item('route',at(.5))].concat(phone?[item('dots',at(near))]:[]),
+        phone?[]:[item('dots',at(near))].concat(edge?[item('edge',own)]:[])]
+        :[[item('start',cx+ux*D*s),item('dots',at(near))],[item('route',at(.5))].concat(edge?[item('edge',own)]:[])];
+      return {cx,cy,b,lists,ok:(!vert||lo<=hi+.5)&&lists.every(l=>spread(l,M,(vert?H:W)-M))};
+    };
+    let s=s0,pl=place(s);
+    for(let k=1;k<12&&!pl.ok;k++)pl=place(s=s0*(1-.05*k));
+    const {cx,cy}=pl,bx=vert?cx:pl.b,by=vert?pl.b:cy,ex=bx-ux*over*D*s,ey=by-uy*over*D*s;
+    pl.lists.forEach((l,i)=>l.forEach(t=>{
+      const b=el[t.k];
+      b.style.left=(vert?(i?cx-s*w/2-G-b.offsetWidth:cx+s*w/2+G):t.at)+'px';
+      b.style.top=(vert?t.at:(i?cy+s*h/2+G:cy-s*h/2-G-b.offsetHeight))+'px';
+    }));
+    stage.style.setProperty('--ss',s);stage.style.setProperty('--sx',cx-W/2+'px');stage.style.setProperty('--sy',cy-H/2+'px');
+    const set=(n,a)=>{for(const k in a)n.setAttribute(k,+a[k].toFixed(1))};
+    svg.setAttribute('viewBox','0 0 '+W+' '+H);
+    set(part('frame'),{x:cx-s*W/2,y:cy-s*H/2,width:s*W,height:s*H,rx:10});part('frame').style.display=frame?'':'none';
+    set(part('start'),{x:cx+ux*D*s-s*w/2,y:cy+uy*D*s-s*h/2,width:s*w,height:s*h,rx:12*s});
+    set(part('path'),{x1:bx+ux*D*s,y1:by+uy*D*s,x2:ex,y2:ey});
+    // the arrowhead sits on the card's near edge, where the card comes to rest; the line goes on past it for a springy card
+    part('head').setAttribute('d','M'+bx+' '+by+'L'+(bx+ux*10-uy*6)+' '+(by+uy*10+ux*6)+'L'+(bx+ux*10+uy*6)+' '+(by+uy*10-ux*6)+'Z');
+    dots.forEach((c,k)=>set(c,{cx:bx+ux*D*s*(1-P[k]),cy:by+uy*D*s*(1-P[k]),r:phone?2.5:3}));
+  }
+
+  // Compare: the moment both cards rest at between plays, a fifth of a second into the play at the chosen Speed (by its share of the
+  // play, so Slow motion does not move it). Where that would leave less than about half the card in its box (a far slide), the
+  // first moment more than half is in is used instead, and the words say so.
+  function drawCompare(){
+    const W=stage.clientWidth,H=stage.clientHeight;
+    stage.classList.toggle('tight',H<372);
+    const w=fader.offsetWidth,h=fader.offsetHeight;
+    if(!W||!w)return;
+    const vert=dir==='top'||dir==='bottom',uy=dir==='top'?-1:dir==='bottom'?1:0,ux=dir==='left'?-1:dir==='right'?1:0,C=CURVES[ease];
+    const F=(vert?H:fader.parentElement.clientWidth)/2,c=(vert?h:w)/2,need=1-(F-.2*c)/dist;
+    const reach=q=>{let lo=0,hi=1;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(curveAt(C,m)<q)lo=m;else hi=m}return hi};
+    let x=Math.min(1,POSE_MS/ms);
+    // too little of the card in view: later; the fade all but finished (a springy or fast play): earlier, while it still shows
+    if(need>curveAt(C,x))x=reach(need);else if(fadeTog.checked&&curveAt(C,x)>.72)x=reach(Math.max(.6,need));
+    const p=curveAt(C,x),t=x*ms,moment=t>170&&t<=230?'a fifth of a second':'about '+words(t),left=dist*(1-p);
+    stage.style.setProperty('--qx',ux*left+'px');stage.style.setProperty('--qy',uy*left+'px');
+    stage.style.setProperty('--qo',fadeTog.checked?Math.min(1,p):1);
+    stage.dataset.names=dir==='top'?'bottom':'top';
+    when.textContent=up(moment)+' in';
+    // the words go at whichever end is clear of the card as it rests, for a slide up or down the end it is not coming from first
+    const nh=cmp.querySelector('.name').offsetHeight,ch=when.offsetHeight,cardTop=H/2-h/2+uy*left;
+    const slots=vert?(dir==='top'?[H-M-nh-4-ch,M]:[M+nh+4,H-M-ch]):[H-M-ch,M+nh+4];
+    when.style.top=(slots.find(y=>vert?y+ch+4<cardTop||y>cardTop+h+4:true)??slots[0])+'px';
+    say('compare',!fadeTog.checked?SAME:motionOk?NOTE0.compare.replace('a fifth of a second',moment):stillCompare(moment));
+  }
+  function say(k,text){if(note(k).textContent!==text)note(k).textContent=text}
+  function pose(on){posed=on&&mode==='compare';stage.classList.toggle('posed',posed)}
+  function refresh(){
+    if(mode==='inside')drawInside();
+    if(mode==='compare')drawCompare();
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    refresh();
+    pose(mode==='compare'&&!(loopTog.checked&&motionOk));
+  });
+  // The box changes size with the window, and its words with the site font once it has loaded: the view is drawn again
+  new ResizeObserver(refresh).observe(stage);
+  document.fonts.ready.then(refresh);
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  // Loop off: a play still holding ends there (and Compare then rests); one sliding out or waiting plays on to its end
+  loopTog.addEventListener('change',()=>{
+    if(loopTog.checked)play();
+    else if(card.classList.contains('in'))holdLater();
+  });
+  slowTog.addEventListener('change',refresh);
+  fadeTog.addEventListener('change',refresh);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('dir-seg',d=>{dir=d.dir});
