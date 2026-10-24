@@ -66,6 +66,44 @@
     }
     @keyframes soft{50%{opacity:.7}}
     @keyframes soft-b{50%{opacity:.35}}
+    /* Compare's first half is a copy of the sign whose light never animates */
+    .stage .sign.steady .lit,.stage .sign.steady.broken .lit .b{animation:none;will-change:auto}
+
+    /* See inside and Compare: their parts stay hidden until a mode shows them, and Normal has no rule of its own */
+    .band{display:contents}
+    .vi,.vc{display:none}
+    .vi[hidden],.vc[hidden]{display:none!important}
+    .lbl{width:max-content;max-width:100%;padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .sign{--pull-x:.55;--pull-y:.6}
+    /* See inside: the unlit tubes up and left, the light down and right, the captions around them, the cycle strip below */
+    .stage[data-hb-mode="inside"]{position:relative;display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr) auto auto;
+      align-items:stretch;gap:5px;padding:6px 12px}
+    .stage[data-hb-mode="inside"] .band:not(.steady-band){grid-row:2;display:grid;place-items:center;min-height:0}
+    .stage[data-hb-mode="inside"] .cap-top{grid-row:1}
+    .stage[data-hb-mode="inside"] .cap-low{grid-row:3}
+    .stage[data-hb-mode="inside"] .strip{grid-row:4}
+    .stage[data-hb-mode="inside"] .vi{display:flex;flex-direction:column;gap:4px}
+    .stage[data-hb-mode="inside"] .glass{translate:calc(var(--pull-x)*-1em) calc(var(--pull-y)*-1em)}
+    .stage[data-hb-mode="inside"] .lit{translate:calc(var(--pull-x)*1em) calc(var(--pull-y)*1em)}
+    .cap-top .cap{align-self:flex-start}
+    .cap-ring{align-self:flex-start}
+    .cap-lit{align-self:flex-end}
+    .ring{position:absolute;border:2px dashed #fff;pointer-events:none}
+    .bar{position:relative;height:14px;margin:5px 0}
+    .track{position:absolute;inset:0;overflow:hidden;border-radius:7px;background:var(--neon,#ff4fa3)}
+    .track i{position:absolute;top:0;bottom:0;min-width:3px;background:#0d0a0d}
+    .mwrap{position:absolute;left:0;right:0;top:-5px;bottom:-5px;overflow:hidden}
+    .mark{position:absolute;left:0;right:5px;top:0;bottom:0;will-change:transform}
+    .mark::after{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;border-radius:2px;background:#fff;border:1px solid #0d0a0d}
+    /* Compare: two bands, each fitting its own sign below its name; a band clips its sign's wash and glow */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));align-items:stretch;padding:0}
+    .stage[data-hb-mode="compare"] .vc{display:block}
+    .stage[data-hb-mode="compare"] .band{display:grid;place-items:center;position:relative;overflow:hidden;min-height:0;padding:30px 12px 6px}
+    .stage[data-hb-mode="compare"] .steady-band{grid-row:1;border-bottom:1px solid rgba(255,255,255,.18)}
+    .stage[data-hb-mode="compare"] .band:not(.steady-band){grid-row:2}
+    .name,.dip{position:absolute;top:8px;z-index:2}
+    .name{left:10px}
+    .dip{right:10px}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -88,15 +126,43 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>The sign flickers every few seconds. Pause it to look closely, or turn on slow motion to see each flicker.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
-      <div class="sign broken framed" id="sign" role="img" aria-label="OPEN">
-        <div class="layer glass" aria-hidden="true"><span class="word"></span></div>
-        <div class="layer lit" aria-hidden="true"><span class="word"></span></div>
+      <div class="band" id="band">
+        <div class="sign broken framed" id="sign" role="img" aria-label="OPEN">
+          <div class="layer glass" aria-hidden="true"><span class="word"></span></div>
+          <div class="layer lit" aria-hidden="true"><span class="word"></span></div>
+        </div>
+        <p class="lbl name vc" aria-hidden="true" data-hb-caption>Flickering</p>
+        <p class="lbl dip vc" id="cap-dip" aria-hidden="true" data-hb-caption hidden>At a dip</p>
       </div>
+      <div class="band steady-band vc" id="band-steady" aria-hidden="true" inert>
+        <p class="lbl name" data-hb-caption>Steady</p>
+      </div>
+      <div class="cap-top vi" aria-hidden="true" inert>
+        <p class="lbl cap" data-hb-caption>Unlit tubes: a dim copy, always there</p>
+      </div>
+      <div class="cap-low vi" aria-hidden="true" inert>
+        <p class="lbl cap cap-ring" id="cap-ring" data-hb-caption>This letter buzzes on its own beat</p>
+        <p class="lbl cap cap-lit" data-hb-caption>The light: a bright copy with its glow, the only part that flickers</p>
+      </div>
+      <div class="strip vi" aria-hidden="true" inert>
+        <p class="lbl cap" id="cap-cycle" data-hb-caption></p>
+        <div class="bar"><div class="track" id="track"></div><div class="mwrap"><b class="mark" id="mark"></b></div></div>
+      </div>
+      <div class="ring vi" id="ring" aria-hidden="true"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the sign is two copies, pulled apart here: dim unlit tubes, and a bright copy with its glow on top. Only the bright copy flickers, at uneven moments.</p>
+      <p data-hb-for="compare" hidden>Steady stays lit the whole time. Flickering drops the bright copy out in short, uneven bursts, and one letter buzzes on its own, like a worn tube.</p>
     </div>
   </section>
 
@@ -195,14 +261,47 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
-  const sign=document.getElementById('sign'),stage=document.getElementById('stage');
-  const words=[...sign.querySelectorAll('.word')];
-  const txtIn=document.getElementById('text-inp');
+  const sign=document.getElementById('sign'),stage=document.getElementById('stage'),band=document.getElementById('band');
+  const lit=sign.querySelector('.lit'),words=[...sign.querySelectorAll('.word')];
+  const txtIn=document.getElementById('text-inp'),slow=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const $=id=>document.getElementById(id);
+  let mode='normal',paused=reduceMQ.matches,posed=false,shown='OPEN';
+
+  // The notes: the markup holds the default words; reduced motion has its own, and Compare's drops the buzz without Broken letter.
+  // A note is rewritten only when its words change, as its box is read out loud.
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
+  const still=['Dim unlit tubes, and a bright copy with its glow on top, pulled apart here. The strip marks where the light would drop out; with reduced motion it only dims softly.',
+    'Shown still at a dip: Steady stays lit, while Flickering has its bright copy dimmed, so the unlit tubes show through.'];
+  const dims='With reduced motion on, Flickering only dims softly while Steady stays lit. Press Pause to see Flickering at a dip.';
+  function describe(){
+    const r=reduceMQ.matches,b=sign.classList.contains('broken');
+    const now=[r?still[0]:moving[0],r?(posed?still[1]:dims):b?moving[1]:moving[1].replace(' and one letter buzzes on its own,','')];
+    notes.forEach((n,i)=>{if(n.textContent!==now[i])n.textContent=now[i]});
+  }
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;pose();loop()});
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;draw()});
+  document.addEventListener('visibilitychange',loop);
+  reduceMQ.addEventListener('change',draw);
+
+  // Compare's first half: a copy of the sign, made once, with no id or label, whose light never animates.
+  const steady=sign.cloneNode(true);
+  ['id','role','aria-label'].forEach(a=>steady.removeAttribute(a));
+  steady.classList.add('steady');
+  $('band-steady').appendChild(steady);
+  words.push(...steady.querySelectorAll('.word'));
+  function syncCopy(){
+    steady.className='sign steady '+[...sign.classList].filter(c=>c!=='sign'&&!/^f-/.test(c)).join(' ');
+    steady.style.setProperty('--neon',sign.style.getPropertyValue('--neon'));
+  }
+  // The picture is named for what it shows in the mode.
+  const nameFor=t=>mode==='inside'?t+', its tubes and its light pulled apart':mode==='compare'?t+', twice: lit steadily and flickering':t;
 
   // Both copies get one span per letter, so they line up exactly; the broken letter (about 60% along,
   // never a space) is marked .b in both, and only the lit copy animates it.
   function build(text){
-    sign.setAttribute('aria-label',text);
+    shown=text;
+    sign.setAttribute('aria-label',nameFor(text));
     const chars=[...text];
     let b=Math.min(chars.length-1,Math.floor(chars.length*.6));
     while(b<chars.length-1&&/\s/.test(chars[b]))b++;
@@ -217,12 +316,111 @@
     });
     fit();
   }
-  // Shrink the sign when it would not fit the stage, frame and glow included.
+  // Shrink the sign when it would not fit the room its mode gives it, frame and glow included: the stage in Normal, the middle
+  // of the stage in See inside (with the two copies pulled apart), one band in Compare (both signs the same size).
   function fit(){
-    sign.style.fontSize='';
-    const r=Math.min((stage.clientWidth-48)/sign.offsetWidth,(stage.clientHeight-48)/sign.offsetHeight);
-    if(r<1)sign.style.fontSize=parseFloat(getComputedStyle(sign).fontSize)*r+'px';
+    // In See inside the captions' rows change height with the sign's size, so it is measured again until it holds still
+    for(let n=0,last;n<4;n++){
+      size();
+      if(mode!=='inside'||sign.style.fontSize===last)break;
+      last=sign.style.fontSize;marks();
+    }
   }
+  function size(){
+    sign.style.fontSize=steady.style.fontSize='';
+    let rw=stage.clientWidth-48,rh=stage.clientHeight-48,gx=0,gy=0;
+    const cs=getComputedStyle(sign),f=parseFloat(cs.fontSize);
+    if(mode!=='normal'){
+      const b=getComputedStyle(band);
+      rw=band.clientWidth-parseFloat(b.paddingLeft)-parseFloat(b.paddingRight);
+      rh=band.clientHeight-parseFloat(b.paddingTop)-parseFloat(b.paddingBottom);
+      if(mode==='inside'){gx=2*parseFloat(cs.getPropertyValue('--pull-x'));gy=2*parseFloat(cs.getPropertyValue('--pull-y'))}
+    }
+    const r=Math.min(rw/(sign.offsetWidth+gx*f),rh/(sign.offsetHeight+gy*f));
+    if(r<1)sign.style.fontSize=steady.style.fontSize=f*r+'px';
+  }
+
+  // See inside. The strip is the light's cycle as a bar with a dark notch wherever the light drops out. The notches are read from
+  // the page's own keyframes (a run of dim keyframes is one dropout; dropouts under 2% apart are one burst), the cycle length from
+  // the pattern's own rule, and the marker rides the real animation's time every frame, so Pause holds it and Slow motion slows it.
+  const sheet=document.querySelector('style').sheet,rule=sel=>[...sheet.cssRules].find(r=>r.selectorText===sel);
+  const ring=$('ring'),track=$('track'),mark=$('mark'),capRing=$('cap-ring'),capCycle=$('cap-cycle'),capDip=$('cap-dip');
+  const [capTop,capLow,capLit,strip]=['.cap-top','.cap-low','.cap-lit','.strip'].map(q=>stage.querySelector(q));
+  const count=['no','one','two','three','four','five','six','seven','eight'];
+  let drawn='';
+  function pattern(){
+    const r=rule(sign.classList.contains('f-calm')?'.f-calm .lit':sign.classList.contains('f-busy')?'.f-busy .lit':'.lit').style;
+    return {name:r.animationName,secs:parseFloat(r.animationDuration)};
+  }
+  function bursts(name){
+    const out=[];let from=null;
+    for(const k of [...sheet.cssRules].find(r=>r.type===CSSRule.KEYFRAMES_RULE&&r.name===name).cssRules){
+      const at=parseFloat(k.keyText),dim=+k.style.opacity<1;
+      if(dim&&from===null)from=at;
+      else if(!dim&&from!==null){
+        if(out.length&&from-out[out.length-1][1]<=2)out[out.length-1][1]=at;else out.push([from,at]);
+        from=null;
+      }
+    }
+    return out;
+  }
+  function marks(){
+    const s=stage.getBoundingClientRect(),f=parseFloat(getComputedStyle(sign).fontSize);
+    const g=sign.querySelector('.glass').getBoundingClientRect(),l=lit.getBoundingClientRect();
+    const p=pattern(),list=bursts(p.name);
+    if(p.name!==drawn){
+      track.textContent='';
+      list.forEach(([a,b])=>{const n=document.createElement('i');n.style.left=a+'%';n.style.width=b-a+'%';track.appendChild(n)});
+      drawn=p.name;
+    }
+    strip.style.setProperty('--neon',getComputedStyle(sign).getPropertyValue('--neon'));
+    const text='The light '+(reduceMQ.matches?'would drop':'drops')+' out at uneven moments, '+count[list.length]+' times every '+p.secs*(slow.checked?3:1)+' seconds';
+    if(capCycle.textContent!==text)capCycle.textContent=text;
+    // each caption sits by the part it names, moved over only as far as it must to stay inside the box; the ring goes round the
+    // broken letter in the light
+    const put=(el,side,want)=>{
+      el.style.marginLeft=el.style.marginRight='0px';
+      const w=el.offsetWidth;
+      el.style[side]=Math.max(0,Math.min(want(w),el.parentNode.clientWidth-w))+'px';
+    };
+    const tl=capTop.getBoundingClientRect(),rl=capLow.getBoundingClientRect();
+    put(capTop.firstElementChild,'marginLeft',()=>g.left-tl.left);
+    put(capLit,'marginRight',()=>rl.right-l.right);
+    const b=lit.querySelector('.b'),on=!!b&&sign.classList.contains('broken');
+    ring.hidden=capRing.hidden=!on;
+    if(!on)return;
+    const r=b.getBoundingClientRect(),w=r.width+.1*f,h=r.height+.08*f;
+    ring.style.cssText='left:'+(r.left-s.left-stage.clientLeft-.05*f)+'px;top:'+(r.top-s.top-stage.clientTop-.04*f)+'px;width:'+w+'px;height:'+h+'px;border-radius:'+h*.34+'px';
+    put(capRing,'marginLeft',w=>r.left+r.width/2-rl.left-w/2);
+  }
+  let raf=0,cur=null,dur=1;
+  function tick(){
+    raf=0;
+    if(!cur||cur.playState==='idle'){cur=lit.getAnimations()[0];dur=cur?cur.effect.getComputedTiming().duration:1}
+    const p=!reduceMQ.matches&&cur&&cur.currentTime!=null?(cur.currentTime%dur)/dur:0;
+    mark.style.transform='translateX('+p*100+'%)';
+    if(mode==='inside'&&!paused&&!reduceMQ.matches&&!document.hidden)raf=requestAnimationFrame(tick);
+  }
+  function loop(){cancelAnimationFrame(raf);if(mode==='inside')tick()}
+  slow.addEventListener('change',()=>{if(mode==='inside')fit()});
+
+  // Compare: while the loop stands still the two signs would match (the light is on), so the real light is held at a dip
+  // (an important opacity beats the animation) until Play or until Compare is left.
+  function pose(){
+    posed=mode==='compare'&&paused;
+    if(posed)lit.style.setProperty('opacity','.25','important');else lit.style.removeProperty('opacity');
+    capDip.hidden=!posed;
+    describe();
+  }
+  // The mode switch: draws the mode at once.
+  function draw(){
+    sign.setAttribute('aria-label',nameFor(shown));
+    if(mode==='compare')syncCopy();
+    fit();pose();loop();
+  }
+  // A setting changed: the page as it was, plus the mode's picture drawn again.
+  function sync(){if(mode==='normal')describe();else draw()}
+
   // The sign shows the typed text with no spaces at its ends and single spaces inside (as its chip does), or OPEN.
   const signText=()=>txtIn.value.replace(/\s+/g,' ').trim()||'OPEN';
   build('OPEN');
@@ -240,11 +438,12 @@
     }));
   }
   // A new flicker pattern starts from its beginning, which opens with a short flicker, so the change shows at once.
-  choices('freq-seg',d=>{sign.classList.remove('f-calm','f-normal','f-busy');sign.classList.add(d.f)});
-  choices('color-sw',d=>{sign.style.setProperty('--neon',d.c)});
-  choices('glow-seg',d=>{sign.classList.remove('g-small','g-large');if(d.g)sign.classList.add(d.g);fit()});
-  document.getElementById('broken-tog').addEventListener('change',e=>sign.classList.toggle('broken',e.target.checked));
-  document.getElementById('frame-tog').addEventListener('change',e=>sign.classList.toggle('framed',e.target.checked));
+  choices('freq-seg',d=>{sign.classList.remove('f-calm','f-normal','f-busy');sign.classList.add(d.f);sync()});
+  choices('color-sw',d=>{sign.style.setProperty('--neon',d.c);sync()});
+  choices('glow-seg',d=>{sign.classList.remove('g-small','g-large');if(d.g)sign.classList.add(d.g);fit();sync()});
+  document.getElementById('broken-tog').addEventListener('change',e=>{sign.classList.toggle('broken',e.target.checked);sync()});
+  document.getElementById('frame-tog').addEventListener('change',e=>{sign.classList.toggle('framed',e.target.checked);sync()});
+  describe();
 </script>
 </body>
 </html>
