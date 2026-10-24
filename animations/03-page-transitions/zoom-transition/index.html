@@ -23,7 +23,7 @@
   <style>
     :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
@@ -44,6 +44,63 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none!important}}
+    /* The small site: its nav row over its page area, which holds the pages in a wrapper. In Compare a copy of it, the twin, sits beside it. */
+    .box{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .pages{position:absolute;inset:0}
+    .twin,.zv,.zg,.side{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .lbl{padding:2px 7px;border-radius:5px;background:#111114;color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* See inside: the page area's pages (never the pages themselves, whose own transition would animate it) drawn smaller, so that the
+       largest size of the chosen style takes --f of the area and the labels have the bands above and below. On top, at their own
+       size: the box (bright, with a veil outside it for what Normal cuts off), the old page's end size and the new page's start
+       size (dashed, in each page's tint), and four labels. At rest the next change is held part way (the script poses the pages). */
+    .stage{--f:.65;--mx:1;--z:calc(var(--f) / var(--mx))}
+    .stage[data-hb-mode="inside"] .page-area{background:#202026}
+    .stage[data-hb-mode="inside"] .pages{transform:scale(var(--z))}
+    .stage[data-hb-mode="inside"] .zv{display:block;position:absolute;inset:0;z-index:5;pointer-events:none}
+    .zr{position:absolute;left:50%;top:50%;translate:-50% -50%;width:calc(var(--z) * var(--k) * 100%);height:calc(var(--z) * var(--k) * 100%);border:2px dashed var(--c)}
+    .zbox{--k:1;--c:#f4f4f2;border-style:solid;box-shadow:0 0 0 100vmax rgba(11,11,13,.62)}
+    .zold{--k:var(--ko);--c:var(--ot)}
+    .znew{--k:var(--kn);--c:var(--nt)}
+    /* Zoom out leaves the new page at the box's own size: its outline hugs the inside of the box line */
+    .zv.same .znew{width:calc(var(--z) * 100% - 12px);height:calc(var(--z) * 100% - 12px)}
+    .zb{position:absolute;left:0;right:0;height:calc(50% * (1 - var(--f)));display:flex;flex-wrap:wrap;justify-content:center;gap:3px 10px;padding:5px 8px}
+    .zbt{top:0;align-content:flex-end}
+    .zbb{bottom:0;align-content:flex-start}
+    .zl{padding:0 7px;border:1px solid #8a8a92}
+    .zl.zw{border-color:#f4f4f2}
+    .zl.zo{color:var(--ot);border-color:var(--ot)}
+    .zl.zn{color:var(--nt);border-color:var(--nt)}
+    /* Compare: on the left the copy, whose pages only crossfade; on the right the real site, whose pages change size too. At rest
+       both stand part way through the same change; on the right a faint dashed outline marks the size the new page started at. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .box{background:var(--bg)}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"] .zg:not([hidden]){display:block;position:absolute;z-index:3;left:calc(50% - var(--kg) * 50%);top:calc(50% - var(--kg) * 50%);
+      width:calc(var(--kg) * 100%);height:calc(var(--kg) * 100%);border:2px dashed var(--nt);opacity:.6;pointer-events:none}
+    .side{position:absolute;bottom:10px;z-index:11}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    @media(max-width:600px){
+      .stage{--f:.58}
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    /* Phones and short windows (a phone held sideways too) leave the page area short: in Compare the page keeps only its eyebrow and
+       heading, clear of the half names */
+    @media(max-width:600px),(max-height:650px){
+      .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .side.first{bottom:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .side.second{left:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,14 +123,35 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area">
+          <div class="pages" id="pages"></div>
+          <div class="zv" aria-hidden="true">
+            <span class="zr zbox"></span><span class="zr zold"></span><span class="zr znew"></span>
+            <div class="zb zbt"><span class="lbl zl zw" data-hb-caption>The box</span><span class="lbl zl zo" id="l-old" data-hb-caption></span></div>
+            <div class="zb zbb"><span class="lbl zl zn" id="l-new" data-hb-caption></span><span class="lbl zl" id="l-len" data-hb-caption></span></div>
+          </div>
+          <span class="zg" aria-hidden="true" hidden></span>
+        </div>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Fade only</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Fade and zoom</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the view is zoomed out so every size fits: the outlines are the sizes each page starts and ends at while it fades. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Fade only crossfades the pages; Fade and zoom does the same fade while the pages change size, as if moving in depth. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -158,20 +236,47 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const PAGES=[
-    {name:'Home',bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><p class="ph">Design without compromise.</p><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
-    {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
-    {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
+    {name:'Home',tint:'#7db4ff',bg:'linear-gradient(135deg,#0d1a2e,#192640)',html:`<div class="pc"><div class="pe">Creative Studio</div><p class="ph">Design without compromise.</p><p class="pp">We craft digital products that earn attention and keep it.</p></div>`},
+    {name:'Work',tint:'#6fe0a0',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
+    {name:'About',tint:'#d1a3ff',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div></div></div>`},
   ];
-  const nav=document.getElementById('nav'),area=document.getElementById('page-area'),slowTog=document.getElementById('slow-tog');
+  // Each style's four sizes: [oldStartScale,oldEndScale,newStartScale,newEndScale]. The change and both views read this table.
+  const SIZES={
+    'zoom-in': [1,0.9,0.75,1],
+    'zoom-out':[1,1.2,1,1],
+    'pull':    [1,0.7,1.3,1],
+  };
+  const OLD_WORDS={'zoom-in':'Old page shrinks to here','zoom-out':'Old page grows past the edge to here','pull':'Old page shrinks to here'};
+  const NEW_WORDS={'zoom-in':'New page grows from here','zoom-out':'New page fades in at full size','pull':'New page shrinks into place from here'};
+  const SHARE=.3; // at rest the views hold the next change at this share of its time
+  const box=document.getElementById('box'),stage=box.parentElement;
+  const nav=document.getElementById('nav'),pagesEl=document.getElementById('pages'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let current=0,animating=false,dur=550,variant='zoom-in',ease='cubic-bezier(.2,.7,.3,1)',afterMove=null,wayBack=0,timers=[];
+  let current=0,animating=false,dur=550,variant='zoom-in',ease='cubic-bezier(.2,.7,.3,1)',afterMove=null,wayBack=0,timers=[],home=-1;
+  let mode='normal',posedNow=false,view=[0,1],run=null;
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
-    const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;area.appendChild(d);pages.push(d);
+    const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;pagesEl.appendChild(d);pages.push(d);
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
     b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
   });
+  // Compare's first half: the same small site whose pages only crossfade. A copy built from the same pages, with no ids and no
+  // buttons, out of the Tab order and hidden from screen readers; it starts its fade the moment a change of the real site starts
+  // (a click, Show me, Reset), so one input drives both halves.
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area"><div class="pages">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div></div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  const zv=stage.querySelector('.zv'),ghost=stage.querySelector('.zg');
+  const lOld=document.getElementById('l-old'),lNew=document.getElementById('l-new'),lLen=document.getElementById('l-len');
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still and zoomed out: both pages caught part way through the change, part see-through, at sizes between the outlines.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, part way through a change: Fade only is a flat blend of the two pages; Fade and zoom is the same blend with the pages changing size.';
+  }
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -199,44 +304,49 @@
     el.style.transition='';el.style.opacity='';el.style.transform='';el.style.pointerEvents='';
     el.getAnimations().forEach(a=>a.cancel());
   }
+  // The copy's resting look for page n
+  function showTwin(n){
+    twinPages.forEach((el,i)=>{el.classList.toggle('active',i===n);el.style.transition='';el.style.opacity='';el.getAnimations().forEach(a=>a.cancel())});
+    twinNav.forEach((b,i)=>b.classList.toggle('active',i===n));
+  }
   // The resting state for page n, at once
   function showPage(n){
     pages.forEach((el,i)=>rest(el,i===n));
-    updateNav(n);
+    updateNav(n);showTwin(n);posedNow=false;
   }
 
   // Ends a zoom: the demo is idle again, and a Show me run goes on to its next step
   function finish(){
-    animating=false;
+    animating=false;run=null;
     const then=afterMove;afterMove=null;
     if(then)then();
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
     timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
-    animating=false;
+    animating=false;run=null;
     showPage(current);
+    pose();
   }
 
   function navigate(next,then){
     if(next===current||animating)return;
     const prev=current;current=next;updateNav(next);
     afterMove=then||null;
+    unpose();
     if(!motionOk){showPage(next);finish();return}
     animating=true;
-    doTransition(prev,next,dur*(slowTog.checked?3:1),ease);
+    const ms=dur*(slowTog.checked?3:1);
+    run={style:variant,ms};view=[prev,next];drawView();
+    doTransition(prev,next,ms,ease);
   }
 
   // dur is the zoom's length in ms (three times as long in slow motion) and ease its curve, both read when the zoom starts
   function doTransition(prev,next,dur,ease){
     const o=pages[prev],n=pages[next];
     const t=`all ${dur}ms ${ease}`;
-    // Variant configs: [oldStartScale,oldEndScale,newStartScale,newEndScale]
-    const V={
-      'zoom-in': [1,0.9,0.75,1],
-      'zoom-out':[1,1.2,1,1],
-      'pull':    [1,0.7,1.3,1],
-    }[variant];
+    const V=SIZES[variant];
 
     o.style.transition='none';n.style.transition='none';
     o.style.transform=`scale(${V[0]})`;
@@ -245,33 +355,94 @@
     o.style.transition=t;n.style.transition=t;
     o.style.opacity='0';o.style.transform=`scale(${V[1]})`;
     n.style.opacity='1';n.style.transform=`scale(${V[3]})`;
-    later(()=>{rest(o,false);rest(n,true);finish()},dur+50);
+    fadeTwin(prev,next,dur,ease);
+    later(()=>{rest(o,false);rest(n,true);showTwin(next);finish()},dur+50);
+  }
+  // The copy's pages crossfade over the same length and curve, starting with the real change
+  function fadeTwin(prev,next,dur,ease){
+    const o=twinPages[prev],n=twinPages[next];
+    o.style.transition='none';n.style.transition='none';
+    o.style.opacity='1';n.style.opacity='0';n.classList.add('active');
+    void n.offsetWidth;
+    o.style.transition=n.style.transition=`opacity ${dur}ms ${ease}`;
+    o.style.opacity='0';n.style.opacity='1';
+    twinNav.forEach((b,i)=>b.classList.toggle('active',i===next));
   }
 
-  // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started (also when pressed again
+  // or after a mode press in the middle of a run)
   function showMe(){
+    if(home<0)home=current;else current=home;
     settle();
     const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{home=-1})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){home=-1;current=0;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A zoom already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0;home=-1;pose()});
+
+  // How far a curve has got at x of its time (the Feel's own numbers)
+  function progress(curve,x){
+    const c=curve==='ease-in-out'?[.42,0,.58,1]:curve.match(/[\d.]+/g).map(Number);
+    const f=(t,a,b)=>3*(1-t)*(1-t)*t*a+3*(1-t)*t*t*b+t*t*t;
+    let lo=0,hi=1;
+    for(let i=0;i<24;i++){const m=(lo+hi)/2;if(f(m,c[0],c[2])<x)lo=m;else hi=m}
+    return f((lo+hi)/2,c[1],c[3]);
+  }
+  const lengthWords=ms=>ms<400?'about a third of a second':ms<700?'about half a second':ms<1300?'about a second':ms<2000?'about a second and a half':'almost three seconds';
+  const setText=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  // The outlines, their tints and the four labels, for the change in `view` (the next one at rest, the running one while it plays)
+  function drawView(){
+    const st=run?run.style:variant,ms=run?run.ms:dur*(slowTog.checked?3:1),V=SIZES[st],[a,b]=view;
+    stage.style.setProperty('--mx',Math.max(1,V[1],V[2]));
+    stage.style.setProperty('--ot',PAGES[a].tint);stage.style.setProperty('--nt',PAGES[b].tint);
+    stage.style.setProperty('--kg',V[2]);
+    zv.style.setProperty('--ko',V[1]);zv.style.setProperty('--kn',V[2]);
+    zv.classList.toggle('same',V[2]===1);
+    setText(lOld,OLD_WORDS[st]);setText(lNew,NEW_WORDS[st]);setText(lLen,(motionOk?'The zoom takes ':'A zoom would take ')+lengthWords(ms));
+    ghost.hidden=!(posedNow&&V[2]<1);
+  }
+  // Takes the pose off: the pages go back to their resting look (only when a pose is on, so a run is never cut short)
+  function unpose(){
+    if(!posedNow)return;
+    posedNow=false;ghost.hidden=true;
+    [...pages,...twinPages].forEach(el=>{el.style.transition='';el.style.opacity='';el.style.transform=''});
+  }
+  // At rest in See inside and Compare the next change is held part way (at SHARE of its time, where the Feel has got by then): both
+  // pages between their sizes and part see-through; the copy only blends. A change lifts the pose.
+  function pose(){
+    if(mode==='normal'||animating||wayBack){unpose();return}
+    const next=(current+1)%PAGES.length,V=SIZES[variant],p=progress(ease,SHARE),o=pages[current],n=pages[next];
+    view=[current,next];
+    [o,n].forEach(el=>el.style.transition='none');
+    o.style.opacity=1-p;o.style.transform=`scale(${V[0]+p*(V[1]-V[0])})`;
+    n.style.opacity=p;n.style.transform=`scale(${V[2]+p*(V[3]-V[2])})`;
+    twinPages[current].style.opacity=1-p;twinPages[next].style.opacity=p;
+    posedNow=true;drawView();
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    drawView();pose();
+  });
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      drawView();pose();
     }));
   }
   choices('zoom-seg',d=>{variant=d.v});
   choices('speed-seg',d=>{dur=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
+  slowTog.addEventListener('change',drawView);
   showPage(0);
+  drawView();
 </script>
 </body>
 </html>
