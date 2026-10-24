@@ -358,9 +358,11 @@
   function setPose(on){
     if(stage.classList.contains('posed')===on)return;
     if(on)stage.classList.add('posed');
-    else{stage.classList.add('lift');stage.classList.remove('posed');void stage.offsetWidth;stage.classList.remove('lift')}
+    // A press that lifts the pose starts from full size: the held button lets go for that one flush, so its press is seen sinking
+    else{const down=btns.filter(b=>b.classList.contains('pressed'));down.forEach(b=>b.classList.remove('pressed'));
+      stage.classList.add('lift');stage.classList.remove('posed');void stage.offsetWidth;stage.classList.remove('lift');down.forEach(b=>b.classList.add('pressed'))}
   }
-  const centre=el=>{const s=stage.getBoundingClientRect(),b=el.getBoundingClientRect();return{x:b.left+b.width/2-s.left-stage.clientLeft,y:b.top+b.height/2-s.top-stage.clientTop}};
+  const center=el=>{const s=stage.getBoundingClientRect(),b=el.getBoundingClientRect();return{x:b.left+b.width/2-s.left-stage.clientLeft,y:b.top+b.height/2-s.top-stage.clientTop}};
   function refresh(){
     if(mode!=='compare'){setPose(false);return}
     const h=btns.findIndex(b=>b.classList.contains('pressed')),busy=h>=0||running()||btns.some(b=>b.getAnimations().length);
@@ -368,7 +370,7 @@
     const at=h>=0?h:busy?-1:0,show=at>=0&&btns[at].offsetWidth>0;
     gh.style.display=show?'':'none';pt.style.display=show&&!held?'':'none';
     if(show){
-      const a=centre(btns[at]),c=centre(twins.children[at]);
+      const a=center(btns[at]),c=center(twins.children[at]);
       pt.setAttribute('transform',`translate(${a.x+50} ${a.y-2})`);gh.setAttribute('transform',`translate(${c.x+50} ${c.y-2})`);
     }
   }
