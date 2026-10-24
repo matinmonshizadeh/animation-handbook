@@ -61,6 +61,36 @@
     /* Depth labels: shown by the Layer labels switch, one line each in the top left corner, placed by the script.
        The dark backing keeps a star behind a letter from washing it out. */
     .depth-label{position:absolute;top:4px;left:4px;padding:0 5px;border-radius:4px;background:rgba(2,8,18,.75);font-size:11px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:rgba(255,255,255,.7);pointer-events:none;z-index:10;display:none}
+    /* See inside and Compare: the script makes their parts and they stay hidden in Normal */
+    .twin,.start,.fan,.cmp,.ghost{display:none}
+    .fan,.cmp{position:absolute;inset:0;z-index:6;pointer-events:none}
+    .ghost{position:absolute;left:0;top:0;width:20px;height:20px;border-radius:50%;border:2px dashed var(--ui-accent);opacity:.7;pointer-events:none;z-index:100}
+    .fan-cap,.cmp-name{position:absolute;padding:2px 8px;border-radius:6px;background:rgba(5,10,20,.92);color:#f4f4f2;font:600 13px/17px var(--hb-font);white-space:nowrap}
+    /* See inside: every layer at a quarter of its size, fanned from the far sky (top left) to the near ground (bottom right),
+       drawn as a sheet and lightened to show on the dark box. Each slide is divided by the card's scale, so a card slides by its
+       real amount; a dashed outline behind it marks where it rests. will-change is off so the cards are drawn sharp. */
+    .stage[data-hb-mode="inside"] .layer{overflow:hidden;will-change:auto;box-shadow:inset 0 0 0 999px rgba(255,255,255,.05);outline:4px solid rgba(244,244,242,.5);outline-offset:-4px}
+    .stage[data-hb-mode="inside"] .sky{filter:brightness(1.6)}
+    .stage[data-hb-mode="inside"] .stars{filter:brightness(2.4)}
+    .stage[data-hb-mode="inside"] .layer:not(.stars)>*{filter:brightness(var(--lit,2.4))}
+    .stage[data-hb-mode="inside"] #L4,.stage[data-hb-mode="inside"] #L5,.stage[data-hb-mode="inside"] #L6{--lit:4.5}
+    .stage[data-hb-mode="inside"] .star{box-shadow:0 0 0 2px #fff}
+    .stage[data-hb-mode="inside"] .depth-label{display:none!important}
+    .stage[data-hb-mode="inside"] .start{display:block;position:absolute;inset:0;background:rgba(255,255,255,.06);outline:8px dashed rgba(244,244,242,.8);outline-offset:-8px}
+    .stage[data-hb-mode="inside"] .start-sky{inset:-6px}
+    .stage[data-hb-mode="inside"] .fan,.stage[data-hb-mode="compare"] .cmp{display:block}
+    .fan-bar{position:absolute;height:5px;border-radius:3px;background:var(--ui-accent);box-shadow:0 0 0 2px rgba(5,10,20,.85)}
+    /* Compare: two windows onto the middle half of the landscape, at full size: the copy and the real scene are each moved to
+       fill their half and clipped to it */
+    .stage[data-hb-mode="compare"] .scene{translate:25% 0;clip-path:inset(0 25%)}
+    .stage[data-hb-mode="compare"] .twin{display:block;position:absolute;inset:0;translate:-25% 0}
+    .stage[data-hb-mode="compare"] .depth-label{margin-left:calc(25cqw + 14px)}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:rgba(244,244,242,.6);z-index:6;pointer-events:none}
+    .cmp-name{bottom:10px;left:10px;max-width:calc(50% - 20px);font-size:clamp(12px,3.4vw,13px)}
+    .cmp-name.second{left:calc(50% + 10px)}
+    .cmp svg{position:absolute;inset:0;width:100%;height:100%}
+    .cmp path{fill:none;stroke:#f4f4f2;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+    .cmp .a-out{stroke:rgba(5,10,20,.85);stroke-width:6}
     @media(prefers-reduced-motion:reduce){.scene-inner{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -83,6 +113,11 @@
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer across the scene, drag a finger sideways (or Tab to it and use the arrow keys), or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
     </div>
     <div class="stage" id="stage">
       <div class="scene" id="scene" role="img" tabindex="0" aria-label="A night landscape of seven flat layers, from the sky to the ground, that slide by different amounts as the camera moves. Press the arrow keys to move the camera.">
@@ -132,6 +167,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the picture is seven flat layers, fanned out: as the camera moves, each slides away from it, the far sky least and the near ground most. Dashed: where each rests.</p>
+      <p data-hb-for="compare" hidden>All the same slides every layer together, so the picture looks flat. Near moves more slides each by its own amount, near most, so the flat layers look deep.</p>
     </div>
   </section>
 
@@ -204,6 +243,10 @@
   ].map(l=>({...l,el:document.getElementById(l.id)}));
   let mx=0,my=0,strength=40; // where the camera is (-0.5 to 0.5 across the stage) and how far the nearest layer moves
   let raf=0;                 // the frame of a Show me run that is under way, 0 when there is none
+  let mouse=null;                 // where the mouse is over the stage, from its top left corner
+  let mode='normal',parked=false; // See inside and Compare show the camera parked at PARK while the real one is in the middle
+  const PARK={x:.3,y:-.1};        // a little to the right of the middle and up, so a still shows how far every layer slides
+  const FAN_K=.25;                // See inside draws each layer at a quarter of its size
 
   // Add stars
   const starLayer=document.getElementById('L1');
@@ -231,26 +274,37 @@
   addTrees('trees-near',8,39,'#040e18');
 
   // Every layer slides the opposite way from the camera, by its depth times the camera movement
+  // In See inside the layers are drawn at FAN_K of their size, so each slide is divided by it and shows at its real size.
   function applyParallax(normX,normY){
+    const k=mode==='inside'?FAN_K:1;
     LAYERS.forEach(l=>{
-      const tx=(-normX*strength*l.depth).toFixed(1);
-      const ty=(-normY*strength*l.depth*.4).toFixed(1);
+      const tx=(-normX*strength*l.depth/k).toFixed(1);
+      const ty=(-normY*strength*l.depth*.4/k).toFixed(1);
       l.el.style.transform=`translate(${tx}px,${ty}px)`;
     });
+    if(mode==='compare')slideCopy(normX,normY);
   }
+  const draw=()=>applyParallax(parked?PARK.x:mx,parked?PARK.y:my);
+  const unpark=()=>{if(parked){mx=PARK.x;my=PARK.y;parked=false}}; // the visitor, or a run, takes over from the parked camera
 
   // The pointer and a finger put the camera where they are on the stage; a mouse also shows the ring.
   // A finger dragged off the stage keeps sending its moves to the stage, so the camera is held to the stage's edges.
   const edge=v=>Math.max(-.5,Math.min(.5,v));
+  // In Compare the camera is read across the half the pointer is over, and a ghost ring marks the same spot over the other half.
   function aim(e){
-    const r=stage.getBoundingClientRect();
-    mx=edge((e.clientX-r.left)/r.width-.5);
-    my=edge((e.clientY-r.top)/r.height-.5);
-    if(e.pointerType==='mouse'){
-      cursor.style.display='block';
-      cursor.style.transform=`translate(${e.clientX-r.left-10}px,${e.clientY-r.top-10}px)`;
-    }
-    applyParallax(mx,my);
+    const r=stage.getBoundingClientRect(),x=e.clientX-r.left,y=e.clientY-r.top,hw=r.width/2,cmp=mode==='compare';
+    mx=edge(cmp?(x<hw?x:x-hw)/hw-.5:x/r.width-.5);
+    my=edge(y/r.height-.5);
+    parked=false;
+    if(e.pointerType==='mouse'){mouse={x,y};mouseRings()}
+    draw();
+  }
+  function mouseRings(){
+    const hw=stage.clientWidth/2,{x,y}=mouse;
+    cursor.style.display='block';
+    cursor.style.transform=`translate(${x-10}px,${y-10}px)`;
+    ghost.style.display=mode==='compare'?'block':'none';
+    ghost.style.transform=`translate(${(x<hw?x+hw:x-hw)-10}px,${y-10}px)`;
   }
 
   // Show me: in three seconds the camera sweeps right, back through the middle, left and back, dipping a little, and rests
@@ -258,6 +312,7 @@
   // run that was stopped carries on from there.
   function showMe(){
     cancelAnimationFrame(raf);
+    unpark();
     const x0=mx,y0=my;
     let t0=0;
     function step(now){
@@ -265,14 +320,14 @@
       const p=Math.min(1,(now-t0)/3000);
       mx=x0*(1-p)+.45*Math.sin(2*Math.PI*p);
       my=y0*(1-p)+.2*Math.sin(Math.PI*p);
-      if(p<1){applyParallax(mx,my);raf=requestAnimationFrame(step)}
-      else{raf=0;mx=my=0;applyParallax(0,0)}
+      if(p<1){draw();raf=requestAnimationFrame(step)}
+      else{raf=0;mx=my=0;parked=mode!=='normal';draw()}
     }
     raf=requestAnimationFrame(step);
   }
   function stopRun(){cancelAnimationFrame(raf);raf=0}
   document.getElementById('btn-demo').addEventListener('click',showMe);
-  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();mx=my=0;applyParallax(0,0)});
+  document.getElementById('btn-reset').addEventListener('click',()=>{stopRun();mx=my=0;parked=mode!=='normal';draw()});
   // The visitor pressed, typed, scrolled or touched inside the stage: a run under way stops and the camera stays where it is.
   // Sent more than once for one press, so it does nothing when no run is under way.
   document.addEventListener('hb:input',()=>{if(raf)stopRun()});
@@ -281,21 +336,29 @@
   // where the pointer leaves it. A tap sets it too: pointerdown, since a touch that lifts again sends no move.
   stage.addEventListener('pointermove',e=>{if(e.isTrusted&&raf)stopRun();aim(e)});
   stage.addEventListener('pointerdown',aim);
-  stage.addEventListener('pointerleave',()=>{cursor.style.display='none'});
+  stage.addEventListener('pointerleave',()=>{mouse=null;hideRings()});
   // The keyboard is a pretend pointer: focus by keyboard ends a run and shows the ring where the camera is (brought within the
   // pointer's reach, which a run can pass), each arrow key moves the camera 6% of the stage (held, it repeats), and Escape or
   // leaving the scene hides the ring as the pointer leaving does
   const scene=document.getElementById('scene');
   const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
   let keys=false;
-  function ring(){const r=stage.getBoundingClientRect();cursor.style.display='block';cursor.style.transform=`translate(${(mx+.5)*r.width-10}px,${(my+.5)*r.height-10}px)`}
-  scene.addEventListener('focus',()=>{if(scene.matches(':focus-visible')){stopRun();keys=true;mx=edge(mx);my=edge(my);applyParallax(mx,my);ring()}});
+  // In Compare the ring goes in the real scene's half (the right one) and its ghost in the other
+  function ring(){
+    const r=stage.getBoundingClientRect(),hw=r.width/2,u=(parked?PARK.x:mx)+.5,y=((parked?PARK.y:my)+.5)*r.height-10;
+    cursor.style.display='block';
+    if(mode!=='compare'){cursor.style.transform=`translate(${u*r.width-10}px,${y}px)`;return}
+    cursor.style.transform=`translate(${hw+u*hw-10}px,${y}px)`;
+    ghost.style.display='block';ghost.style.transform=`translate(${u*hw-10}px,${y}px)`;
+  }
+  function hideRings(){cursor.style.display='none';ghost.style.display='none'}
+  scene.addEventListener('focus',()=>{if(scene.matches(':focus-visible')){stopRun();keys=true;mx=edge(mx);my=edge(my);draw();ring()}});
   scene.addEventListener('keydown',e=>{
     const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
-    if(d){e.preventDefault();keys=true;mx=edge(mx+.06*d[0]);my=edge(my+.06*d[1]);ring();applyParallax(mx,my)}
-    else if(e.key==='Escape'&&keys){keys=false;cursor.style.display='none'}
+    if(d){e.preventDefault();unpark();keys=true;mx=edge(mx+.06*d[0]);my=edge(my+.06*d[1]);ring();draw()}
+    else if(e.key==='Escape'&&keys){keys=false;hideRings()}
   });
-  scene.addEventListener('blur',()=>{if(keys){keys=false;cursor.style.display='none'}});
+  scene.addEventListener('blur',()=>{if(keys){keys=false;hideRings()}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -306,9 +369,10 @@
   }
   // A run repaints itself on its next frame; every other state has to be drawn here or the new movement would not show
   // until the camera moved again.
-  choices('move-seg',d=>{strength=+d.px;if(!raf)applyParallax(mx,my)});
+  choices('move-seg',d=>{strength=+d.px;if(!raf)draw()});
   document.getElementById('labels-tog').addEventListener('change',e=>{
     document.querySelectorAll('.depth-label').forEach(d=>d.style.display=e.target.checked?'block':'none');
+    if(mode==='inside')placeFan();
   });
 
   // Stack the seven labels down the top left corner, one line each, and inset each by its own largest camera travel
@@ -320,6 +384,95 @@
     d.style.top=(4+i*16+pad)+'px';
     d.style.left=(6+pad+MAX_PAN*LAYERS[i].depth)+'px';
   });
+
+  // ---- See inside and Compare ----
+  // Both views are drawn from the numbers above (LAYERS, strength and the camera), so every setting changes them.
+  const SHARE=LAYERS[3].depth; // the picture without depth slides every layer like the hills
+  const NAMES=['Sky','','Mountains','Hills','Trees','Near trees','Ground'],PHONE_NAMES=[0,2,4,6];
+  const phoneMQ=matchMedia('(max-width:600px),(max-height:500px)');
+  const labelsTog=document.getElementById('labels-tog'),sceneInner=document.getElementById('scene-inner');
+  const LABELS={
+    normal:scene.getAttribute('aria-label'),
+    inside:'The seven flat layers of the night landscape fanned out, each with a bar for how far it slides as the camera moves. Press the arrow keys to move the camera.',
+    compare:'The landscape twice: its layers sliding all together, and each by its own amount. Press the arrow keys to move the camera.'
+  };
+  const make=(tag,cls,parent)=>{const n=document.createElement(tag);n.className=cls;parent.appendChild(n);return n};
+  // Compare's left window is a copy of the scene, made once with the same stars and trees: no ids, inert and hidden from
+  // screen readers, its labels all saying the share its layers slide by
+  const twin=scene.cloneNode(true);
+  twin.className='scene twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  ['id','role','tabindex','aria-label'].forEach(a=>twin.removeAttribute(a));
+  twin.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+  twin.querySelectorAll('.depth-label').forEach(d=>d.textContent='moves '+Math.round(SHARE*100)+'%');
+  scene.after(twin);
+  const twinLayers=[...twin.querySelectorAll('.layer')];
+  const ghost=cursor.cloneNode();ghost.removeAttribute('id');ghost.className='ghost';stage.appendChild(ghost);
+  // See inside: a dashed outline behind each card, a bar for its share of the camera movement, and a caption for most
+  const fan=make('div','fan',stage);fan.setAttribute('aria-hidden','true');
+  LAYERS.forEach((l,i)=>{
+    l.start=make('span',i?'start':'start start-sky',sceneInner);sceneInner.prepend(l.start);
+    l.bar=make('i','fan-bar',fan);
+    if(NAMES[i]){l.cap=make('p','fan-cap',fan);l.cap.setAttribute('data-hb-caption','')}
+  });
+  // The cards run from the top left to the bottom right with room around them for the largest slide (35px across, 14 up and
+  // down); a bar can be as long as the step to the next card allows. Captions are placed from their measured width.
+  function placeFan(){
+    const W=stage.clientWidth,H=stage.clientHeight,cw=W*FAN_K,ch=H*FAN_K,gx=40,gy=18;
+    const dx=(W-2*gx-cw)/6,dy=(H-2*gy-ch)/6,unit=Math.max(4,Math.min(64,dx-14)),phone=phoneMQ.matches;
+    LAYERS.forEach((l,i)=>{
+      const x=gx+i*dx,y=gy+i*dy,at=`${x+cw/2-W/2}px ${y+ch/2-H/2}px`;
+      l.el.style.translate=l.start.style.translate=at;
+      l.el.style.scale=l.start.style.scale=FAN_K;
+      l.bar.style.cssText=`left:${x+5}px;top:${y+27}px;width:${Math.max(2,l.depth*unit)}px`;
+      if(!l.cap)return;
+      l.cap.hidden=phone&&!PHONE_NAMES.includes(i);
+      if(l.cap.hidden)return;
+      l.cap.style.left='0px';
+      l.cap.textContent=labelsTog.checked?`${NAMES[i]}: moves ${Math.round(l.depth*100)}%`:NAMES[i];
+      l.cap.style.cssText=`left:${Math.min(x+4,W-l.cap.offsetWidth-4)}px;top:${y+4}px`;
+    });
+  }
+  // Compare: the two half names and, in each window, four arrows (sky, mountains, trees, ground) three times as long as the slide
+  const cmp=make('div','cmp',stage);cmp.setAttribute('aria-hidden','true');
+  const svg=document.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('aria-hidden','true');cmp.appendChild(svg);
+  ['All the same','Near moves more'].forEach((t,i)=>{const n=make('p',i?'cmp-name second':'cmp-name',cmp);n.textContent=t;n.setAttribute('data-hb-caption','')});
+  const arrows=[];
+  for(let n=0;n<8;n++){
+    const a={half:n>>2,layer:LAYERS[[0,2,4,6][n&3]],y:0};
+    [a.out,a.inn]=['a-out','a-in'].map(c=>{const p=document.createElementNS(svg.namespaceURI,'path');p.setAttribute('class',c);svg.appendChild(p);return p});
+    arrows.push(a);
+  }
+  function placeCompare(){
+    const H=stage.clientHeight,ys=[.1*H,.7*H-79,.7*H-10,.7*H+12];
+    arrows.forEach((a,n)=>{a.y=ys[n&3]});
+  }
+  // Both windows follow the one camera: the copy slides every layer like the hills; an arrow starts at the window's far side
+  function slideCopy(nx,ny){
+    const t=`translate(${(-nx*strength*SHARE).toFixed(1)}px,${(-ny*strength*SHARE*.4).toFixed(1)}px)`;
+    for(let i=0;i<twinLayers.length;i++)twinLayers[i].style.transform=t;
+    const hw=stage.clientWidth/2;
+    for(let n=0;n<arrows.length;n++){
+      const a=arrows[n],v=Math.max(20-hw,Math.min(hw-20,-nx*strength*(a.half?a.layer.depth:SHARE)*3)),s=v<0?-1:1,x=a.half*hw+(s<0?hw-10:10),w=Math.min(7,Math.abs(v)/2.2);
+      const d=`M${x} ${a.y}L${x+v} ${a.y}`+(Math.abs(v)>=8?`M${x+v-s*w} ${a.y-w*.7}L${x+v} ${a.y}L${x+v-s*w} ${a.y+w*.7}`:'');
+      a.out.setAttribute('d',d);a.inn.setAttribute('d',d);
+    }
+  }
+  // Draws the mode at once, from the settings and the camera as they are; in Normal the layers go back to the camera's place
+  function show(){
+    LAYERS.forEach(l=>{if(mode!=='inside')l.el.style.translate=l.el.style.scale=''});
+    if(mode==='inside')placeFan();
+    if(mode==='compare')placeCompare();
+    draw();
+  }
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    scene.setAttribute('aria-label',LABELS[mode]);
+    parked=mode!=='normal'&&(parked||(!raf&&!mx&&!my));
+    if(mouse)mouseRings();else hideRings();
+    show();
+  });
+  new ResizeObserver(()=>{if(mode!=='normal')show()}).observe(stage);
+  document.fonts.ready.then(()=>{if(mode==='inside')placeFan()});
 </script>
 </body>
 </html>
