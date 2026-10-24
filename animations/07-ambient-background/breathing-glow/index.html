@@ -54,6 +54,61 @@
       0%,100%{transform:scale(1);opacity:.9}
       50%{transform:scale(1.02);opacity:1}
     }
+    /* See inside and Compare: everything they add stays hidden until its mode is pressed. Labels sit on their own dark backing. */
+    .ins,.panel,.cap,.half-a,.ghost{display:none}
+    .cap{position:absolute;z-index:3;margin:0;padding:3px 7px;border-radius:5px;background:rgba(2,4,8,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .c-min{white-space:nowrap}
+    .c-max,.c-icon{max-width:min(230px,60%);text-wrap:balance}
+    @media(max-width:340px){.cap{font-size:12px}}
+    .ins{position:absolute;inset:0;pointer-events:none}
+    .ring{position:absolute;inset:0;margin:auto;border-radius:50%;width:var(--d);height:var(--d)}
+    .ring-min,.ring-max{z-index:1;border:2px dashed rgba(244,244,242,.7)}
+    .ring-min{--d:calc(var(--glow-size)*var(--glow-min))}
+    .ring-max{--d:calc(var(--glow-size)*var(--glow-max))}
+    /* The riding rings are crisp, never inside the blurred glow; they breathe with the glow's own keyframes and length */
+    .ring-ride,.ring-ride2{--d:var(--glow-size);z-index:2;border:2.5px solid #fff;animation:breathe var(--glow-dur) ease-in-out infinite}
+    .ring-ride2{--d:calc(var(--glow-size)*1.5);display:none;border:2px solid rgba(255,255,255,.5);animation-duration:calc(var(--glow-dur)*1.3);animation-direction:reverse}
+    .panel{position:absolute;z-index:4;right:10px;bottom:10px;width:clamp(150px,calc(50% - 74px),210px);padding:8px;border-radius:8px;border:1px solid rgba(244,244,242,.18);background:rgba(2,4,8,.92)}
+    .panel .cap{position:static;display:block;padding:5px 0 0;background:none}
+    /* The graph: across is one breath, up is the glow's size; the dot rides it with the glow's own length and easing */
+    .gwrap{position:relative;container-type:size;aspect-ratio:100/24}
+    .gwrap svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .gwrap path{fill:none;vector-effect:non-scaling-stroke}
+    .gaxis{stroke:rgba(244,244,242,.3);stroke-width:1}
+    .gcurve{stroke:var(--ui-accent);stroke-width:2.5;stroke-linecap:round}
+    .gx,.gy{position:absolute;left:0;top:0}
+    .gx{animation:gx var(--glow-dur) linear infinite}
+    .gy{animation:gy var(--glow-dur) ease-in-out infinite}
+    .gdot{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:#fff}
+    @keyframes gx{to{transform:translateX(100cqw)}}
+    @keyframes gy{0%,100%{transform:translateY(95cqh)}50%{transform:translateY(5cqh)}}
+    .stage[data-hb-mode="inside"] :is(.ins,.panel,.c-min,.c-max,.c-icon){display:block}
+    .stage[data-hb-mode="inside"].noel .c-icon{display:none}
+    .stage[data-hb-mode="inside"].two .ring-ride2{display:block}
+    .stage[data-hb-mode="inside"] .center-el{z-index:3}
+    @media(max-width:600px){.panel{left:10px;width:auto}.gwrap{aspect-ratio:auto;height:30px}}
+    /* Compare: a row for the names, then the two scenes side by side at half size, each clipped to its own half. On the left a copy
+       with its own fast, wide breath and no blur (a softer gradient instead, so a blur is never doubled); on the right the real scene. */
+    .hn{position:static;grid-row:1;flex-direction:column;margin:8px 8px 0;padding:6px 10px 8px;border:1px solid rgba(244,244,242,.14);border-radius:8px}
+    .hn b{font-size:14px}
+    .hn span{margin-bottom:6px;font-weight:500;color:#cfd4dc;text-wrap:balance}
+    .hn i{margin-top:auto;height:6px;border-radius:3px;background:var(--ui-accent);width:calc(var(--bar,1)*100%)}
+    .half-a{--glow-dur:1.5s;--glow-min:.45;--glow-max:1.8;position:absolute;grid-area:2/1/3/2;inset:0;overflow:hidden;align-items:center;justify-content:center}
+    /* Without the blur: a wider element whose gradient fades out softly, the shape the blur makes (the blur grows and shrinks with the glow) */
+    .half-a :is(.glow,.glow2){filter:none;--k:1.15;--w:calc(var(--glow-size)*1.2);width:var(--w);height:var(--w);
+      background:radial-gradient(circle,color-mix(in srgb,var(--glow-color) calc(var(--k)*50%),transparent),
+        color-mix(in srgb,var(--glow-color) calc(var(--k)*43%),transparent) 18%,color-mix(in srgb,var(--glow-color) calc(var(--k)*26%),transparent) 36%,
+        color-mix(in srgb,var(--glow-color) calc(var(--k)*10%),transparent) 52%,transparent 70%)}
+    .half-a .glow2{--k:1;--w:calc(var(--glow-size)*1.75)}
+    .ghost{--d:calc(var(--glow-size)*var(--glow-min)*var(--cs,.5));position:absolute;z-index:1;inset:0;margin:auto;width:var(--d);height:var(--d);border:2px dashed rgba(244,244,242,.6);border-radius:50%}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);align-items:stretch;justify-content:stretch;--cs:.6}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;top:0;bottom:0;left:50%;z-index:3;border-left:1px solid rgba(244,244,242,.16)}
+    .stage[data-hb-mode="compare"] :is(.hn,.half-a,.ghost){display:flex}
+    .stage[data-hb-mode="compare"] :is(.glow,.glow2,.center-el){scale:var(--cs)}
+    .stage[data-hb-mode="compare"] :is(.glow-wrap,.ghost){grid-area:2/2/3/3}
+    .stage[data-hb-mode="compare"] .glow-wrap{overflow:hidden}
+    .stage[data-hb-mode="compare"] .center-el{grid-area:2/2/3/3;place-self:center}
+    @media(max-width:600px),(max-height:500px){.stage[data-hb-mode="compare"]{--cs:.5}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -76,6 +131,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="glow-wrap" aria-hidden="true">
         <div class="glow"></div>
@@ -85,10 +145,29 @@
         <div class="center-icon" aria-hidden="true">✦</div>
         <div class="center-title">Rest state</div>
       </div>
+      <p class="cap c-min" data-hb-caption aria-hidden="true">Shrinks to here</p>
+      <p class="cap c-max" data-hb-caption aria-hidden="true">Grows to here, two and a half times as wide</p>
+      <p class="cap c-icon" data-hb-caption aria-hidden="true">The icon swells a tiny bit too</p>
+      <div class="panel" aria-hidden="true" inert>
+        <div class="gwrap">
+          <svg viewBox="0 0 100 40" preserveAspectRatio="none"><path class="gaxis" d="M0 39H100"/><path class="gcurve" d="M0 38C21 38 29 2 50 2S79 38 100 38"/></svg>
+          <i class="gx"><i class="gy"><i class="gdot"></i></i></i>
+        </div>
+        <p class="cap c-graph" data-hb-caption>One breath: <span id="secs-say">5 seconds</span>, easing at both ends</p>
+      </div>
+      <div class="ins" aria-hidden="true"><i class="ring ring-min"></i><i class="ring ring-max"></i><i class="ring ring-ride"></i><i class="ring ring-ride2"></i></div>
+      <p class="cap hn hn-a" data-hb-caption aria-hidden="true"><b>Alarming</b><span>a breath every second and a half</span><i></i></p>
+      <p class="cap hn hn-b" data-hb-caption aria-hidden="true"><b>Calm</b><span>a breath every 5 seconds</span><i></i></p>
+      <div class="half-a" aria-hidden="true" inert></div>
+      <i class="ghost" aria-hidden="true"></i>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the glow breathes between the two dashed rings: it grows and brightens, then shrinks and dims. The graph shows one breath, easing gently at both ends.</p>
+      <p data-hb-for="compare" hidden>Alarming swings from tiny to huge in quick breaths, which feels like a warning. Calm, as you set it, breathes more slowly, which feels relaxed.</p>
     </div>
   </section>
 
@@ -196,18 +275,157 @@
   const vars=document.documentElement.style;
   let secs=5;
 
+  // See inside and Compare. The parts they add are in the markup, hidden; the first half of Compare is a copy of the scene (no ids,
+  // out of reach of the keyboard and screen readers) with its own fast, wide breath. Sizes and numbers come from the page's own variables.
+  const wrap=glow.parentElement,root=getComputedStyle(document.documentElement),$=s=>stage.querySelector(s);
+  const half=$('.half-a'),panel=$('.panel'),ride=$('.ring-ride'),ride2=$('.ring-ride2'),ringMin=$('.ring-min'),ringMax=$('.ring-max');
+  const capMin=$('.c-min'),capMax=$('.c-max'),capIcon=$('.c-icon'),secsSay=document.getElementById('secs-say');
+  const names=['.hn-a','.hn-b'].map($),lines=names.map(n=>n.querySelector('span'));
+  const slowTog=document.getElementById('slow-tog'),reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const copyWrap=wrap.cloneNode(true),copyEl=centre.cloneNode(true),copyGlow2=copyWrap.querySelector('.glow2');
+  [copyWrap,copyEl].forEach(c=>{c.removeAttribute('id');c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'))});
+  half.append(copyWrap,copyEl,$('.ghost').cloneNode());
+  // A note is rewritten only when its words change, as its box reads changes out loud. Under reduced motion the loop starts paused, so
+  // both views are stills and say so: See inside while it is paused, Compare while its pose (the top of a breath) is what shows.
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
+    'Inside, shown still: the glow breathes between the two dashed rings, and the graph shows one breath, easing gently at both ends.',
+    'Shown still at the top of a breath, each with a dashed ring where it was smallest; the bars show how fast each breathes, Alarming always faster than Calm.'];
+  // At A lot, Calm swings as wide as Alarming (the page's own hint calls big swings alarming), so Compare's note says so
+  const wideWords=['Alarming swings from tiny to huge in quick breaths, which feels like a warning. Calm, set to grow a lot, swings just as wide; only its slower pace keeps it calmer.',
+    'Shown still at the top of a breath, each with a dashed ring where it was smallest; set to grow a lot, Calm swings as wide, and the bars show Alarming breathes faster.'];
+  let mode='normal',paused=reduceMQ.matches,posed=false;
+  const saved=new Map();
+  function describe(){
+    const shown=reduceMQ.matches&&paused;
+    const big=parseFloat(root.getPropertyValue('--glow-min'))<.5;
+    notes.forEach((n,i)=>{const s=shown&&(i===0||posed),words=i===1&&big?wideWords[s?1:0]:s?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+  }
+  describe();
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused){posed=false;saved.clear()}describe()});
+
+  // A loop that is paused when a mode is pressed is shown at a telling moment: See inside a quarter of the way through a breath (the
+  // glow between its two dashed rings), Compare at the top of it. Normal's own times are kept and put back with Normal; Play lifts the pose.
+  const mine=a=>{const t=a.effect&&a.effect.target;return t&&(wrap.contains(t)||centre.contains(t))};
+  const length=a=>a.effect.getComputedTiming().duration;
+  function pose(m){
+    const g=glow.getAnimations()[0],first=!posed;
+    stage.getAnimations({subtree:true}).filter(mine).forEach(a=>{
+      // a part that began during the pose was at its start (the icon: with the glow) in Normal
+      if(!saved.has(a))saved.set(a,first?a.currentTime:a.effect.target===centre?saved.get(g)||0:0);
+      a.currentTime=length(a)*(m==='inside'?.25:.5);
+    });
+    if(m==='compare')half.getAnimations({subtree:true}).forEach(a=>{a.currentTime=length(a)/2});
+    posed=true;
+  }
+  function unpose(restore){
+    if(restore)saved.forEach((t,a)=>{if(a.playState!=='idle')a.currentTime=t});
+    saved.clear();posed=false;
+  }
+  // The riding rings and the graph's dot start when See inside is shown, so they are set to the glow's own time, again once they run
+  function follow(a,b){
+    if(!(a&&b))return;
+    const set=()=>{if(a.currentTime!=null&&b.playState!=='idle'){b.currentTime=a.currentTime;b.playbackRate=a.playbackRate}};
+    set();b.ready.then(set,()=>{});
+  }
+  function syncInside(){
+    const g=glow.getAnimations()[0];
+    follow(g,ride.getAnimations()[0]);follow(glow2.getAnimations()[0],ride2.getAnimations()[0]);
+    panel.querySelectorAll('.gx,.gy').forEach(d=>follow(g,d.getAnimations()[0]));
+  }
+  const times=r=>{const n=Math.round(r*2)/2;return['','one','two','three','four','five'][Math.floor(n)]+(n%1?' and a half':'')};
+  const write=(el,words)=>{if(el.textContent!==words)el.textContent=words};
+  // The words and bars that follow Speed, Slow motion and How much it grows
+  function say(){
+    const k=slowTog.checked?3:1,calm=secs*k,min=parseFloat(root.getPropertyValue('--glow-min')),max=parseFloat(root.getPropertyValue('--glow-max'));
+    write(secsSay,calm+' seconds');
+    write(capMax,'Grows to here, '+times(max/min)+' times as wide');
+    write(lines[0],'a breath every '+(k>1?'4 and a half seconds':'second and a half'));
+    write(lines[1],'a breath every '+calm+' seconds');
+    names[0].style.setProperty('--bar',1/k);names[1].style.setProperty('--bar',1.5/calm);
+  }
+  // See inside's labels, from measured sizes: each next to the ring it names (never across it), clear of the icon and title, the graph and
+  // each other, inside the box; the icon's label sits beside the icon. The spot is searched on a grid of 6px.
+  // a label's box is as wide as its widest line (balanced lines would leave the box as wide as the room, and the words away from the ring)
+  function tight(el){
+    el.style.width='';el.style.left=el.style.top='0px';
+    const r=document.createRange();r.selectNodeContents(el);el.style.width=Math.ceil(r.getBoundingClientRect().width)+15+'px';
+  }
+  function place(){
+    if(mode!=='inside')return;
+    const W=stage.clientWidth,H=stage.clientHeight,cx=W/2,cy=H/2,gap=6,radii=[ringMin,ringMax].map(r=>r.offsetWidth/2);
+    const rect=(el,p)=>({x:el.offsetLeft-p,y:el.offsetTop-p,w:el.offsetWidth+2*p,h:el.offsetHeight+2*p});
+    const taken=[rect(centre,8),rect(panel,6)],icon=centre.firstElementChild;
+    const hit=(x,y,w,h,t)=>x<t.x+t.w&&t.x<x+w&&y<t.y+t.h&&t.y<y+h;
+    const at=(el,x,y)=>{el.style.left=x+'px';el.style.top=y+'px'};
+    if(!stage.classList.contains('noel')){
+      const x=centre.offsetLeft+icon.offsetLeft+icon.offsetWidth+10;
+      capIcon.style.maxWidth=Math.max(70,W-x-10)+'px';tight(capIcon);
+      const y=centre.offsetTop+icon.offsetTop+icon.offsetHeight/2-capIcon.offsetHeight/2;
+      at(capIcon,x,y);taken.push({x:x-5,y:y-5,w:capIcon.offsetWidth+10,h:capIcon.offsetHeight+10});
+    }
+    const labels=[[capMin,radii[0]],[capMax,radii[1]]];
+    labels.forEach(([el])=>tight(el));
+    // the best free spot for one label, given what is already taken: null when there is none
+    function find(el,r,used){
+      const w=el.offsetWidth,h=el.offsetHeight;let best=null;
+      for(let y=8;y<=H-8-h;y+=6)for(let x=8;x<=W-8-w;x+=6){
+        if(used.some(t=>hit(x,y,w,h,t)))continue;
+        const near=Math.hypot(Math.max(x-cx,cx-x-w,0),Math.max(y-cy,cy-y-h,0)),far=Math.hypot(Math.max(cx-x,x+w-cx),Math.max(cy-y,y+h-cy));
+        const off=far<=r-gap?r-far:near>=r+gap?near-r:1e3;
+        const score=off+radii.filter(q=>q!==r&&near-gap<q&&q<far+gap).length*40+Math.abs(y+h/2-cy)*.05;
+        if(!best||score<best.score)best={x,y,score};
+      }
+      return best;
+    }
+    // both orders are tried, since the first label takes room the second may need; the cheaper way where both fit is kept
+    const tries=[labels,[...labels].reverse()].map(order=>{
+      const used=taken.slice(),out=[];
+      for(const [el,r] of order){
+        const b=find(el,r,used);
+        if(!b)return null;
+        used.push({x:b.x-5,y:b.y-5,w:el.offsetWidth+10,h:el.offsetHeight+10});out.push([el,b]);
+      }
+      return{out,score:out.reduce((s,[,b])=>s+b.score,0)};
+    }).filter(Boolean).sort((a,b)=>a.score-b.score);
+    (tries.length?tries[0].out:[[capMin,{x:8,y:8}],[capMax,{x:8,y:8+capMin.offsetHeight+6}]]).forEach(([el,b])=>at(el,b.x,b.y));
+  }
+  // Draws the current mode for the current settings, state and size; safe to run again at any time
+  function view(){
+    say();
+    if(posed&&mode!=='normal')pose(mode);
+    if(mode==='inside')syncInside();
+    place();
+    describe();
+  }
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='normal')unpose(true);
+    else if(paused)pose(mode);
+    view();
+  });
+  reduceMQ.addEventListener('change',describe);
+  slowTog.addEventListener('change',view);
+  new ResizeObserver(view).observe(stage);
+  if(document.fonts)document.fonts.ready.then(view);
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      view();
     }));
   }
   // A new --glow-dur keeps the time already played, so every layer would jump to another point of its breath.
   // Scaling each animation's time by the same factor as its length keeps the glow where it is, moving or paused.
+  // Compare's fast copy keeps its own length, so it is left out.
   choices('speed-seg',d=>{
     const next=+d.secs;
-    stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs});
+    stage.getAnimations({subtree:true}).forEach(a=>{
+      if(a.currentTime==null||half.contains(a.effect.target))return;
+      a.currentTime=a.currentTime*next/secs;
+      if(saved.has(a))saved.set(a,saved.get(a)*next/secs);
+    });
     secs=next;
     vars.setProperty('--glow-dur',next+'s');
   });
@@ -215,13 +433,19 @@
   choices('color-sw',d=>{vars.setProperty('--glow-color',d.c)});
   choices('size-seg',d=>{vars.setProperty('--glow-size',d.px+'px')});
   document.getElementById('double-tog').addEventListener('change',e=>{
-    glow2.style.display=e.target.checked?'block':'none';
+    glow2.style.display=copyGlow2.style.display=e.target.checked?'block':'none';
+    stage.classList.toggle('two',e.target.checked);
+    view();
   });
   document.getElementById('el-tog').addEventListener('change',e=>{
-    centre.style.animation=e.target.checked?'':'none';
+    centre.style.animation=copyEl.style.animation=e.target.checked?'':'none';
+    stage.classList.toggle('noel',!e.target.checked);
     // a group that starts breathing again joins the glow at the same point of its breath
-    const g=glow.getAnimations()[0],c=centre.getAnimations()[0];
-    if(g&&c&&g.currentTime!=null)c.currentTime=g.currentTime;
+    [[glow,centre],[copyWrap.firstElementChild,copyEl]].forEach(([g,c])=>{
+      const ga=g.getAnimations()[0],ca=c.getAnimations()[0];
+      if(ga&&ca&&ga.currentTime!=null)ca.currentTime=ga.currentTime;
+    });
+    view();
   });
 </script>
 </body>
