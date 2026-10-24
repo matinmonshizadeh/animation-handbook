@@ -49,6 +49,34 @@
       .fg-title{margin-bottom:0}
       .fg-body{display:none}
     }
+    /* See inside and Compare: the script makes the rings, the dashed outlines and the blur-free copy once, from the real blobs */
+    .vin,.mesh-copy,.half{display:none}
+    .lbl{position:absolute;padding:3px 8px;border-radius:5px;background:rgba(4,6,12,.92);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .fg-card,.stage[data-hb-mode="compare"] .fg-card{display:none}
+    .stage[data-hb-mode="inside"] .vin{display:block}
+    /* In See inside the legend takes a strip at the top, as Compare's names do, and the wash and its marks fit below it */
+    .vin{position:absolute;inset:0}
+    .vscene{position:absolute;left:0;right:0;bottom:0;top:var(--vkey,0px);overflow:hidden}
+    .stage[data-hb-mode="inside"] .mesh-wrap{top:var(--vkey,0px)}
+    /* A ring takes a blob's size, place and path but none of its blur, fill or blend; the dashed outline stands where the path turns back */
+    .ring,.out{position:absolute;border-radius:50%;border:2px solid #fff;background:none;filter:none;opacity:1;mix-blend-mode:normal}
+    .out{border:2px dashed rgba(255,255,255,.6);animation:none}
+    .arrows{position:absolute;inset:0;width:100%;height:100%;fill:var(--ui-accent);stroke:var(--ui-accent);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+    .key{position:absolute;left:0;right:0;top:0;display:flex;flex-wrap:wrap;gap:6px;padding:8px 10px}
+    .key .lbl{position:static;border:1px solid rgba(255,255,255,.18)}
+    .vcap b{color:var(--ui-accent)}
+    /* Compare: the blur-free copy on the left, the real wash confined to the right, both below a strip for their names */
+    .mesh-copy{position:absolute;left:0;right:50%;top:34px;bottom:0;overflow:hidden}
+    .stage[data-hb-mode="compare"] .mesh-copy,.stage[data-hb-mode="compare"] .half{display:block}
+    .stage[data-hb-mode="compare"] .mesh-wrap{left:50%;top:34px}
+    .stage[data-hb-mode="compare"]::before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(255,255,255,.3);z-index:2}
+    .stage[data-hb-mode="compare"] .mesh-copy .blob{filter:none}
+    /* The real half is half as wide, so it takes half the blur to look as it does in Normal */
+    .stage[data-hb-mode="compare"] .mesh-wrap .blob{filter:blur(calc(var(--blob-blur) * .5))}
+    @media(max-width:600px){.stage[data-hb-mode="compare"] .mesh-wrap .blob{filter:blur(calc(var(--blob-blur) * .25))}}
+    .half{top:6px}
+    .half.first{left:10px}
+    .half.second{left:calc(50% + 10px)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -71,6 +99,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="mesh-wrap" aria-hidden="true">
         <div class="blob b1"></div>
@@ -79,6 +112,17 @@
         <div class="blob b4"></div>
         <div class="blob b5"></div>
       </div>
+      <div class="vin" id="vin" aria-hidden="true" inert>
+        <div class="key" id="key">
+          <span class="lbl vcap" data-hb-caption><b>White ring</b>: one blob, unblurred</span>
+          <span class="lbl vcap" data-hb-caption><b>Gold arrow</b>: drifts to the dashed outline</span>
+          <span class="lbl vcap" id="pace" data-hb-caption></span>
+        </div>
+        <div class="vscene" id="vscene"><svg class="arrows" id="arrows"></svg></div>
+      </div>
+      <div class="mesh-copy" id="copy" aria-hidden="true" inert></div>
+      <p class="lbl half first" aria-hidden="true" data-hb-caption>No blur</p>
+      <p class="lbl half second" aria-hidden="true" data-hb-caption>Blurred</p>
       <div class="fg-card">
         <div class="fg-eyebrow">Mesh gradient</div>
         <div class="fg-title">Organic color without sharp edges</div>
@@ -88,6 +132,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each soft patch is a plain round shape of color, outlined here, blurred until its edges melt. Each drifts to its dashed outline and back, at its own pace.</p>
+      <p data-hb-for="compare" hidden>No blur shows the same circles with hard edges, a spotty pattern. Blurred, as you set it, softens them into a wash of color; a light blur leaves the circles easy to see.</p>
     </div>
   </section>
 
@@ -212,6 +260,7 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      draw();
     }));
   }
   choices('blur-seg',d=>{vars.setProperty('--blob-blur',d.px+'px')});
@@ -229,6 +278,75 @@
     blobs.forEach((b,i)=>{b.style.display=i<n?'block':'none'});
   });
   choices('blend-seg',d=>{vars.setProperty('--blend',d.blend)});
+
+  // See inside: a ring and a dashed outline for every blob, and the blur-free copy for Compare, are made once. Each takes the
+  // blob's size, place and keyframes from the page's own styles, so no number is written a second time.
+  const vscene=document.getElementById('vscene'),arrows=document.getElementById('arrows'),copy=document.getElementById('copy'),key=document.getElementById('key');
+  const paceCap=document.getElementById('pace'),slowTog=document.getElementById('slow-tog');
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const END={};
+  for(const r of document.querySelector('style').sheet.cssRules)if(r.type===CSSRule.KEYFRAMES_RULE)END[r.name]=r.findRule('100%').style.transform;
+  const rings=[],outs=[],copies=[];
+  blobs.forEach((b,i)=>{
+    const n='b'+(i+1);
+    [['out',outs,vscene],['ring',rings,vscene],['blob',copies,copy]].forEach(([cls,list,box])=>{
+      const e=document.createElement('div');e.className=cls+' '+n;
+      box.insertBefore(e,box===vscene?arrows:null);list.push(e);
+    });
+    outs[i].style.transform=END[n];
+  });
+
+  const modeOf=()=>stage.dataset.hbMode||'normal';
+  // The views show what the real blobs show: their colors, whether they are shown, and where they are on their path. A view's
+  // animation starts when the view is shown, so it is set to the real one's time then, and again once it runs.
+  function syncViews(){
+    blobs.forEach((b,i)=>{
+      [rings[i],outs[i],copies[i]].forEach(e=>{e.style.display=b.style.display});
+      copies[i].style.background=b.style.background;
+      const a=b.getAnimations()[0];
+      [rings[i],copies[i]].forEach(e=>{
+        const v=e.getAnimations()[0];
+        const set=()=>{if(a.currentTime!=null&&v.playState!=='idle'){v.currentTime=a.currentTime;v.playbackRate=a.playbackRate}};
+        if(a&&v){set();v.ready.then(set,()=>{})}
+      });
+    });
+  }
+  // Each gold arrow runs from where a blob starts to the center of its dashed outline, where it turns back
+  function drawArrows(){
+    const W=vscene.clientWidth,H=vscene.clientHeight;
+    arrows.setAttribute('viewBox','0 0 '+W+' '+H);
+    arrows.innerHTML=outs.filter(o=>o.offsetParent).map(o=>{
+      const m=new DOMMatrix(getComputedStyle(o).transform);
+      const x0=o.offsetLeft+o.offsetWidth/2,y0=o.offsetTop+o.offsetHeight/2,x1=x0+m.e,y1=y0+m.f;
+      const L=Math.hypot(x1-x0,y1-y0),ux=(x1-x0)/L,uy=(y1-y0)/L,hx=x1-ux*10,hy=y1-uy*10;
+      return `<circle cx="${x0}" cy="${y0}" r="4"/><path d="M${x0} ${y0}L${hx} ${hy}"/><path d="M${x1} ${y1}L${hx-uy*5} ${hy+ux*5}L${hx+uy*5} ${hy-ux*5}Z"/>`;
+    }).join('');
+  }
+  // The pace is read from the shown blobs' own cycle times, three times longer in Slow motion
+  function drawPace(){
+    const t=blobs.filter(b=>b.offsetParent).map(b=>parseFloat(getComputedStyle(b).animationDuration)*(slowTog.checked?3:1));
+    const words='Own pace: '+Math.round(Math.min(...t))+' to '+Math.round(Math.max(...t))+' seconds each way';
+    if(paceCap.textContent!==words)paceCap.textContent=words;
+  }
+  function draw(){
+    if(modeOf()==='normal')return;
+    syncViews();
+    if(modeOf()==='inside'){drawPace();stage.style.setProperty('--vkey',key.offsetHeight+'px');drawArrows()}
+  }
+  document.addEventListener('hb:mode',draw);
+  new ResizeObserver(draw).observe(stage);
+  slowTog.addEventListener('change',draw);
+  drawPace();
+
+  // Under reduced motion the loop starts paused, so See inside is a still and its note says so; once Play moves it on, the
+  // markup's own words come back. A note is rewritten only when its words change, as its box reads changes out loud.
+  const note=document.querySelector('[data-hb-for="inside"]'),moving=note.textContent;
+  const still='Inside, shown still: each soft patch is a plain round shape of color, outlined here, blurred until its edges melt; the arrow shows where it would drift.';
+  let paused=reduceMQ.matches;
+  function describe(){const words=reduceMQ.matches&&paused?still:moving;if(note.textContent!==words)note.textContent=words}
+  describe();
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  reduceMQ.addEventListener('change',describe);
 </script>
 </body>
 </html>
