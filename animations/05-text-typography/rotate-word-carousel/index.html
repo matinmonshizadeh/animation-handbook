@@ -21,10 +21,10 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Rotate Word Carousel", "name": "Rotate Word Carousel", "description": "One word in a sentence keeps swapping for the next. Best for hero headlines.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/rotate-word-carousel/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Rotate Word Carousel"}</script>
   <style>
-    :root{--ui-accent:#ff6f8b;--rot-dur:400ms;--rot-ease:cubic-bezier(.4,0,.2,1);--word-color:#ff6f8b}
+    :root{--ui-accent:#ff6f8b;--rot-dur:400ms;--rot-ease:cubic-bezier(.4,0,.2,1);--word-color:#ff6f8b;--hs:clamp(22px,3.5vw,42px)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:#04060c;padding:32px;overflow:hidden}
-    .headline{font-weight:700;font-size:clamp(22px,3.5vw,42px);line-height:1.3;color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:#04060c;padding:32px;overflow:hidden}
+    .headline{font-weight:700;font-size:var(--hs);line-height:1.3;color:#fff;text-align:center;display:flex;flex-direction:column;align-items:center;gap:0}
     .static-line{display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:0.2em}
     .static-text{color:rgba(255,255,255,.75)}
     .rot-container{position:relative;display:inline-block;overflow:hidden;vertical-align:middle}
@@ -46,6 +46,40 @@
     /* Multi-color classes */
     .wc0{color:#58a6ff}.wc1{color:#56d364}.wc2{color:#d2a8ff}.wc3{color:#ffa657}.wc4{color:#f85149}
     @media(prefers-reduced-motion:reduce){.rot-word{transition:none!important;transform:none!important;opacity:1!important}}
+    /* The views are hidden unless a mode shows them */
+    .ins,.cmp,.cap{display:none}
+    .cap{position:absolute;padding:3px 8px;border-radius:6px;background:rgba(8,10,16,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-align:center;max-width:calc(100% - 16px)}
+    @media(max-width:600px){.cap{font-size:12px}}
+    /* The window's edge is drawn on the real box, so it is always where the page puts it */
+    .stage[data-hb-mode="inside"] .rot-container,.stage[data-hb-mode="compare"] .rot-container{outline:2px dashed var(--ui-accent);outline-offset:2px}
+    /* See inside: the real headline, scaled so that what the window hides fits (--ins), put where the script measured (--ins-y, --ins-l, --ins-r) */
+    .stage[data-hb-mode="inside"]{align-items:flex-start;padding:var(--ins-y,0px) var(--ins-r,10px) 0 var(--ins-l,10px)}
+    .stage[data-hb-mode="inside"] .headline{font-size:calc(var(--hs)*var(--ins,1))}
+    .stage[data-hb-mode="inside"] .ins{display:block;position:absolute;inset:0;pointer-events:none;font:700 calc(var(--hs)*var(--ins,1))/1.3 var(--hb-font)}
+    .stage[data-hb-mode="inside"] .ins .cap{display:block}
+    .gw{position:absolute;display:flex;justify-content:center;width:0}
+    .gtw{opacity:.6}
+    .gtw .rot-word[class*="out-"],.gtw .rot-word[class*="enter-"]{opacity:.55}
+    .gnx{opacity:.55}
+    .gword{display:block;white-space:nowrap}
+    .gnx,.gmeas,.garr{visibility:hidden}
+    .gnx.on,.garr.on{visibility:visible}
+    .gmeas{position:absolute;left:0;top:0}
+    .garr{position:absolute;height:12px;transform-origin:0 50%}
+    .garr::before{content:"";position:absolute;left:0;right:8px;top:4.5px;height:3px;border-radius:2px;background:var(--ui-accent)}
+    .garr::after{content:"";position:absolute;right:0;top:0;border:6px solid transparent;border-right:0;border-left:9px solid var(--ui-accent)}
+    /* Compare: two bands, each a headline. On top the mistake, a copy whose box does not clip; below it the real headline */
+    .stage[data-hb-mode="compare"]{flex-direction:column;align-items:stretch;padding:0}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .headline{flex:1 1 0;justify-content:center;padding:28px 12px 0;font-size:calc(var(--hs)*var(--cmp,1))}
+    .stage[data-hb-mode="compare"] .cmp{display:flex;overflow:hidden}
+    .cmp .rot-container{overflow:visible}
+    .stage[data-hb-mode="compare"] .side{display:block;left:12px;top:8px}
+    .stage[data-hb-mode="compare"] .side.second{top:calc(50% + 8px)}
+    .stage[data-hb-mode="compare"] .side.third{display:none;left:auto;right:12px;top:calc(50% + 8px)}
+    .stage[data-hb-mode="compare"].posed .side.third{display:block}
+    /* Held a moment into a slide: both words stand where the old one has slid 40% of its way out, with the fade it has there */
+    .stage[data-hb-mode="compare"].posed .rot-word{transition:none!important;transform:translate(var(--px),var(--py))!important;opacity:var(--po)!important}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -68,6 +102,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow" id="stage">
       <div class="headline" id="headline">
         <div class="static-line">
@@ -77,10 +116,26 @@
           </div>
         </div>
       </div>
+      <div class="ins" aria-hidden="true" inert>
+        <div class="gw gtw"><span class="rot-word"></span></div>
+        <div class="gw gnx"><span class="gword"></span></div>
+        <span class="gword gmeas"></span>
+        <span class="garr"></span>
+        <p class="cap" data-hb-caption>The window: only what is inside it shows</p>
+        <p class="cap" data-hb-caption>Next word waits here, out of sight</p>
+        <p class="cap" data-hb-caption>Slides in under half a second, stays two seconds</p>
+      </div>
+      <p class="cap side first" aria-hidden="true" data-hb-caption>No window</p>
+      <p class="cap side second" aria-hidden="true" data-hb-caption>In a window</p>
+      <p class="cap side third" aria-hidden="true" data-hb-caption>A moment into a slide</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the changing word sits in a small window, and only what is inside it shows. The next word waits just outside, out of sight, and slides in as the old one leaves.</p>
+      <p data-hb-for="compare" hidden>No window lets the sliding words show outside the line. In a window cuts them off at its edge, so each word seems to come from behind the text.</p>
     </div>
   </section>
 
@@ -184,6 +239,8 @@ Startups</textarea>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const rotWord=document.getElementById('rot-word');
+  const rotBox=document.getElementById('rot-container');
+  const headline=document.getElementById('headline');
   const staticText=document.getElementById('static-text');
   const stage=document.getElementById('stage');
   const vars=document.documentElement.style;
@@ -201,6 +258,9 @@ Startups</textarea>
   // Captured once at the start of each slide (startSlide), then reused by every phase of that same slide, so a
   // setting change mid-slide never mismatches the exit and entry sides or the two waits' durations.
   let curDir='up',stepDur=rotDur,nextIdx=0,nextWordVal='';
+  // The views draw look-alikes of the word; they take every class and text change at the same calls as the real word, so they move with it
+  const twins=[],each=fn=>{fn(rotWord);twins.forEach(fn)};
+  let mode='normal',phase='hold'; // phase is 'enter' from the swap to the end of the entry, else 'hold'
 
   function getWords(){
     const words=wordsIn.value.split('\n').map(w=>w.trim()).filter(Boolean);
@@ -231,7 +291,7 @@ Startups</textarea>
     held=[];
     if(next)wait(next,left);
   }
-  document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
+  document.addEventListener('hb:pause',e=>{e.detail.paused?freeze():thaw();deal()});
 
   // One slide, in four waited phases: exit transition, an instant snap to the entry side (needs a tick to
   // register before it can transition), entry transition, then the hold before the next slide. Slow motion
@@ -244,26 +304,29 @@ Startups</textarea>
     curDir=dir;
     stepDur=dur();
     vars.setProperty('--rot-dur',stepDur+'ms');
-    rotWord.classList.add(outMap[curDir]);
+    each(w=>w.classList.add(outMap[curDir]));
     wait(afterExit,stepDur+30);
   }
-  function afterExit(){
-    rotWord.textContent=nextWordVal;
-    wordIdx=nextIdx; // update as soon as the incoming word is shown, so a color change mid-entry uses it
-    setColor(rotWord,wordIdx);
-    // jump to the entry side without transitioning from the exit side
-    rotWord.style.transition='none';
-    rotWord.classList.remove(...outClasses,...enterClasses);
-    rotWord.classList.add(enterMap[curDir]);
+  // The same change on the word and its look-alikes, with transitions off, so none of them slides back through the line
+  function snap(change){
+    each(w=>{w.style.transition='none';change(w)});
     void rotWord.offsetWidth;
-    rotWord.style.transition='';
+    each(w=>{w.style.transition=''});
+  }
+  function afterExit(){
+    wordIdx=nextIdx; // update as soon as the incoming word is shown, so a color change mid-entry uses it
+    phase='enter';
+    // jump to the entry side without transitioning from the exit side
+    snap(w=>{w.textContent=nextWordVal;setColor(w,wordIdx);w.classList.remove(...outClasses,...enterClasses);w.classList.add(enterMap[curDir])});
     wait(afterSnap,20);
+    setNext();layout();
   }
   function afterSnap(){
-    rotWord.classList.remove(...enterClasses);
+    each(w=>w.classList.remove(...enterClasses));
     wait(afterEnter,stepDur+50);
   }
   function afterEnter(){
+    phase='hold';showNext();
     wait(startSlide,hold);
   }
 
@@ -272,16 +335,13 @@ Startups</textarea>
     wordIdx=0;
     const words=getWords();
     // snap back to rest without replaying the exit slide in reverse
-    rotWord.style.transition='none';
-    rotWord.classList.remove(...outClasses,...enterClasses);
-    void rotWord.offsetWidth;
-    rotWord.style.transition='';
-    rotWord.textContent=words[0];
-    setColor(rotWord,0);
+    snap(w=>{w.classList.remove(...outClasses,...enterClasses);w.textContent=words[0];setColor(w,0)});
+    phase='hold';
     wait(startSlide,hold); // while paused, wait() only records this; Play resumes from a fresh hold
+    showNext();deal();
   }
 
-  sentenceIn.addEventListener('input',e=>{staticText.textContent=e.target.value});
+  sentenceIn.addEventListener('input',e=>{staticText.textContent=cStatic.textContent=e.target.value;layout()});
   wordsIn.addEventListener('input',start);
 
   function choices(id,pick){
@@ -291,10 +351,136 @@ Startups</textarea>
       pick(b.dataset);
     }));
   }
-  choices('dir-seg',d=>{dir=d.dir});
-  choices('speed-seg',d=>{rotDur=+d.dur;vars.setProperty('--rot-dur',dur()+'ms')});
-  choices('hold-seg',d=>{hold=+d.hold});
-  colorTog.addEventListener('change',()=>setColor(rotWord,wordIdx));
+  choices('dir-seg',d=>{dir=d.dir;showNext();deal()});
+  choices('speed-seg',d=>{rotDur=+d.dur;vars.setProperty('--rot-dur',dur()+'ms');layout()});
+  choices('hold-seg',d=>{hold=+d.hold;layout()});
+  colorTog.addEventListener('change',()=>{each(w=>setColor(w,wordIdx));setNext()});
+  slowTog.addEventListener('change',layout);
+
+  // ---- See inside and Compare ----
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const ins=stage.querySelector('.ins'),tw=ins.querySelector('.gtw'),nx=ins.querySelector('.gnx'),nxWord=nx.firstElementChild;
+  const meas=ins.querySelector('.gmeas'),arrow=ins.querySelector('.garr'),caps=[...ins.querySelectorAll('.cap')];
+  // Compare's top band: the headline again, its ids and live region left out, whose window does not clip
+  const copy=headline.cloneNode(true);
+  copy.className+=' cmp';copy.setAttribute('aria-hidden','true');copy.inert=true;
+  copy.removeAttribute('id');copy.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'));
+  const cStatic=copy.querySelector('.static-text'),cWord=copy.querySelector('.rot-word');
+  cWord.removeAttribute('aria-live');stage.insertBefore(copy,headline);
+  twins.push(tw.firstElementChild,cWord);
+
+  const ENTER={up:'translateY(110%)',down:'translateY(-110%)',left:'translateX(110%)',right:'translateX(-110%)'};
+  const say=ms=>ms<=300?'a quarter of a second':ms<=500?'under half a second':ms<=800?'under a second':ms<=1300?'about a second':ms<=2100?'two seconds':'three seconds';
+  // The word that waits outside the window: the next one, shown while the word stands still
+  function setNext(){
+    const words=getWords(),i=(wordIdx+1)%words.length;
+    nxWord.textContent=words[i];setColor(nxWord,i);
+    const on=words.length>1&&(phase==='hold'||reduceMQ.matches);
+    nx.classList.toggle('on',on);arrow.classList.toggle('on',on);
+  }
+  function showNext(){setNext();layout()}
+  // A look-alike takes the word's state, and the rest of the slide under way, when its view is first shown
+  function mirror(w){
+    w.getAnimations().forEach(a=>a.cancel());
+    w.className=rotWord.className;w.textContent=rotWord.textContent;w.style.color=rotWord.style.color;
+    rotWord.getAnimations().forEach(a=>{
+      const m=w.animate(a.effect.getKeyframes(),a.effect.getTiming());
+      m.currentTime=a.currentTime;if(a.playState==='paused')m.pause();
+    });
+  }
+  // See inside is measured, as the page sizes the window to the word: everything is scaled (the headline's font) to fit, the
+  // window's edge is on the real box, the faint twin and the waiting word sit centered on it, and the captions go next to them
+  function layout(){
+    if(mode==='compare'){ // a long text is scaled down until the headline fits one band
+      stage.style.setProperty('--cmp',1);
+      stage.style.setProperty('--cmp',Math.max(.5,Math.min(1,(parseFloat(getComputedStyle(stage).minHeight)/2-36)/headline.firstElementChild.offsetHeight)));
+    }
+    if(mode!=='inside')return;
+    const st=stage.style,GAP=6,words=getWords(),vert=dir==='up'||dir==='down',down=dir==='down';
+    caps[2].textContent='Slides in '+say(dur())+', stays '+say(hold);
+    for(const [k,v] of [['--ins',1],['--ins-y','0px'],['--ins-l','10px'],['--ins-r','10px']])st.setProperty(k,v);
+    caps.forEach(c=>{c.style.left=c.style.top='0px'}); // measured from the box's left edge, where they have all their room
+    const W=stage.clientWidth,Hs=stage.clientHeight,[h1,h2,h3]=caps.map(c=>c.offsetHeight);
+    let wmax=0;
+    words.forEach(w=>{meas.textContent=w;wmax=Math.max(wmax,meas.offsetWidth)});
+    // how far the picture reaches above and below the headline's top
+    const reach=(bx,hd)=>{const ct=bx.top-hd.top,H=bx.height;return [vert?Math.min(0,ct-1.1*H):0,Math.max(hd.height,vert?ct+2.1*H:ct+(dir==='right'?2*H+24:H+22))]};
+    const b0=rotBox.getBoundingClientRect(),hd0=headline.getBoundingClientRect(),side=b0.left-hd0.left,[ut,ub]=reach(b0,hd0);
+    const fixT=GAP+(down?h2+4+h3:h1),fixB=GAP+(down?h1:h2+4+h3);
+    // the picture reaches a to the left and b to the right of the headline's middle
+    const a=vert?(side+wmax)/2:Math.max((side+wmax)/2,1.6*wmax-side/2),b=vert?a+28:side/2+1.6*wmax;
+    const k=Math.max(.3,Math.min(1,(Hs-16-fixT-fixB)/(ub-ut),(W-20)/(a+b)));
+    st.setProperty('--ins',k);
+    st.setProperty('--ins-y',Math.max(0,(Hs-((ub-ut)*k+fixT+fixB))/2+fixT-ut*k)+'px');
+    st.setProperty('--ins-l',10+Math.max(0,(a-b)*k)+'px');st.setProperty('--ins-r',10+Math.max(0,(b-a)*k)+'px');
+    const o=stage.getBoundingClientRect(),bx=rotBox.getBoundingClientRect(),hd=headline.getBoundingClientRect();
+    const ox=o.left+stage.clientLeft,oy=o.top+stage.clientTop,[u,v]=reach(bx,hd);
+    const cx=bx.left+bx.width/2-ox,top=bx.top-oy,H=bx.height,wn=nxWord.offsetWidth;
+    for(const g of [tw,nx])Object.assign(g.style,{left:cx+'px',top:top+(g===nx&&dir==='right'?H+24:0)+'px',height:H+'px'});
+    nxWord.style.transform=ENTER[dir];
+    // the arrow is as long as the move: from the waiting word to the window
+    const gx=vert?cx:cx+(dir==='left'?1.1:-1.1)*wn,ay=vert?top+H/2+(down?-1.1:1.1)*H:top+H+14;
+    Object.assign(arrow.style,{width:1.1*(vert?H:wn)+'px',left:(vert?cx+Math.max(bx.width,wn)/2+10:gx)+'px',top:ay-6+'px',transform:`rotate(${vert?(down?90:-90):dir==='left'?180:0}deg)`});
+    const put=(c,mid,y)=>{c.style.left=Math.max(8,Math.min(W-8-c.offsetWidth,mid-c.offsetWidth/2))+'px';c.style.top=y+'px'};
+    const yT=hd.top-oy+u-GAP,yB=hd.top-oy+v+GAP;
+    put(caps[0],cx,down?yB:yT-h1);
+    put(caps[1],gx,down?yT-h2:yB);
+    put(caps[2],gx,down?yT-h2-4-h3:yB+h2+4);
+  }
+
+  // Compare's rest pose: while the loop stands still in a hold (or at all, under reduced motion, where no slide ever happens) both
+  // words stand a moment into a slide: moved POSE of the way, with the fade the page's own curves give at that moment
+  const EASE=[.4,0,.2,1],FADE=[.25,.1,.25,1],POSE=.4;
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  let posed=false;
+  function deal(){
+    const want=mode==='compare'&&paused&&(reduceMQ.matches||next===startSlide);
+    if(want){
+      let lo=0,hi=1; // the moment (0 to 1 of the slide) at which the move has gone POSE of its way
+      for(let i=0;i<30;i++){const t=(lo+hi)/2;if(curveAt(EASE,t)<POSE)lo=t;else hi=t}
+      const go=POSE*110;
+      stage.style.setProperty('--px',({left:-go,right:go}[dir]||0)+'%');
+      stage.style.setProperty('--py',({up:-go,down:go}[dir]||0)+'%');
+      stage.style.setProperty('--po',(1-curveAt(FADE,lo)).toFixed(3));
+    }
+    if(want!==posed){
+      posed=want;
+      if(want)stage.classList.add('posed');
+      else{ // lifted at once, with no transition back
+        const ws=[rotWord,cWord];
+        ws.forEach(w=>w.style.transition='none');stage.classList.remove('posed');void rotWord.offsetWidth;ws.forEach(w=>w.style.transition='');
+      }
+    }
+    describe();
+  }
+  // Under reduced motion the loop starts paused and the views are stills; the notes say so only while that holds. A note is
+  // rewritten only when its words change, as its box is read out loud.
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
+  const still=['Shown still: the dashed box is the window, and only what is inside it shows. The faint word waits just outside it, out of sight, and would slide in.',
+    "Shown still, a moment into a slide: in No window the old word sticks out of the line, whole; In a window cuts it off at the window's edge."];
+  const swaps=['With reduced motion on, the words swap in place and never slide. The dashed box is the window, and the faint word is the one that comes next.',
+    'With reduced motion on, No window and In a window both swap the word in place. Press Pause to see them a moment into a slide.'];
+  function describe(){
+    notes.forEach((n,i)=>{
+      const words=!reduceMQ.matches?moving[i]:paused&&(i===0||posed)?still[i]:swaps[i];
+      if(n.textContent!==words)n.textContent=words;
+    });
+  }
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='inside'){mirror(tw.firstElementChild);setNext()}
+    if(mode==='compare')mirror(cWord);
+    layout();deal();
+  });
+  reduceMQ.addEventListener('change',()=>{setNext();layout();deal()});
+  let resizeTimer;
+  addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(layout,100)});
+  if(document.fonts)document.fonts.ready.then(layout);
 
   rotWord.setAttribute('aria-live','polite');
   vars.setProperty('--rot-dur',rotDur+'ms');
