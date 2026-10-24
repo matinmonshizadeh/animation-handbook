@@ -43,6 +43,49 @@
     .fg-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6}
     /* On phones and short screens the stage is small, so the card shrinks to leave the grid in view */
     @media(max-width:600px),(max-height:760px){.fg-card{padding:12px 14px}.fg-eyebrow{margin-bottom:4px}.fg-title{margin-bottom:0}.fg-body{display:none}}
+    /* See inside and Compare, drawn over the stage from the numbers the script works with. Each ring is fixed to the box and each bright point rides the grid, so the gap between them is the shift. */
+    .views,.ins,.half,.key{display:none}
+    .views,.ins{position:absolute;inset:0}
+    .views{z-index:10;pointer-events:none;--mark:#ffce5a;--ink:#f4f4f2}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="inside"] .ins,.stage[data-hb-mode="compare"] .views,.stage[data-hb-mode="compare"] .half{display:block}
+    .stage[data-hb-mode="inside"] .key{display:grid}
+    .stage[data-hb-mode="inside"] .fg-card{outline:2px dashed rgba(244,244,242,.75);outline-offset:5px}
+    .stage[data-hb-mode="compare"] .fg-card,.stage[data-hb-mode="compare"] .spotlight{display:none}
+    .views [hidden]{display:none!important}
+    .rg,.pt,.ar,.ah,.gh,.lt,.ln,.cap{position:absolute;left:0;top:0}
+    .rg{width:14px;height:14px;margin:-7px 0 0 -7px;border:1.5px solid var(--ink);border-radius:50%}
+    .pt{width:8px;height:8px;margin:-4px 0 0 -4px;border-radius:50%;background:var(--mark);border:1px solid #04060c}
+    .ar{width:1px;height:3px;margin-top:-1.5px;background:var(--mark);transform-origin:0 50%}
+    .ah{margin:-5px 0 0 -8px;border:5px solid transparent;border-left:8px solid var(--mark);border-right:0;transform-origin:100% 50%}
+    .gh{width:12px;height:12px;margin:-6px 0 0 -6px;border:1.5px solid rgba(88,166,255,.5);border-radius:50%;opacity:.85}
+    .lt{width:180px;height:180px;margin:-90px 0 0 -90px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--dot-color) 48%,transparent) 0%,transparent 70%);opacity:0;transition:opacity .2s}
+    .ln{width:1px;height:2px;margin-top:-1px;background:rgba(244,244,242,.4);transform-origin:0 50%}
+    .cap,.key{background:rgba(4,6,12,.92);color:var(--ink);font:600 12.5px/1.3 var(--hb-font);border:1px solid rgba(255,255,255,.16)}
+    .cap{padding:3px 8px;border-radius:6px;white-space:nowrap}
+    .key{position:absolute;left:8px;bottom:8px;top:auto;width:min(calc(100% - 16px),480px);grid-template-columns:auto 1fr;align-items:center;gap:6px 10px;padding:7px 10px;border-radius:8px;overflow:hidden;--L:130}
+    .ka{position:relative;display:block;width:calc(var(--L)*1px + 18px);height:12px}
+    .ka::before{content:"";position:absolute;left:0;top:5px;height:2px;width:calc(var(--L)*var(--f)*1px);background:var(--mark)}
+    .ka::after{content:"";position:absolute;left:calc(var(--L)*var(--f)*1px - 1px);top:2px;border:4px solid transparent;border-left:6px solid var(--mark);border-right:0}
+    .ka.back{width:calc(var(--L)*var(--f)*1px + 8px)}
+    .ka.back::after{left:-1px;border-left:0;border-right:6px solid var(--mark)}
+    .kr{position:absolute;left:calc(var(--L)*1px + 5px);top:0;width:12px;height:12px;border:1.5px solid #58a6ff;border-radius:50%}
+    .kr::before{content:"";position:absolute;left:50%;top:50%;width:60px;height:60px;margin:-30px;border-radius:50%;background:radial-gradient(circle,color-mix(in srgb,var(--dot-color) 90%,transparent) 0%,transparent 70%);opacity:0}
+    .key.lit .kr::before{opacity:1}
+    @media(min-width:601px){.key{grid-template-columns:auto auto auto 1fr;width:min(calc(100% - 16px),780px)}.key>:nth-child(-n+2){grid-row:span 2}}
+    .half{position:absolute;left:0;top:0;width:50%;height:100%;overflow:hidden}
+    .half.one{background:#04060c}
+    .half.two{left:50%}
+    .half.two::before{content:"";position:absolute;left:0;top:0;width:1px;height:100%;background:rgba(244,244,242,.3);z-index:1}
+    .half .cap{left:8px;top:8px}
+    /* The first half's copy of the grid starts where the real grid starts, seen from its own half, so the two halves show the same tiles */
+    .stage[data-hb-mode="compare"] .half .pattern-layer,.stage[data-hb-mode="compare"] .half .pattern-layer2{inset:auto;left:-120%;top:-10%;width:240%;height:120%;will-change:auto}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .half{width:100%;height:50%}
+      .stage[data-hb-mode="compare"] .half.two{left:0;top:50%}
+      .stage[data-hb-mode="compare"] .half.two::before{width:100%;height:1px}
+      .stage[data-hb-mode="compare"] .half .pattern-layer,.stage[data-hb-mode="compare"] .half .pattern-layer2{left:-10%;top:-120%;width:120%;height:240%}
+      .key{--L:64;gap:4px 10px;padding:6px 9px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -65,6 +108,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It drifts by itself. Move your pointer over it, or drag a finger sideways across it, and the grid shifts the other way.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="pattern-layer2" id="layer2" aria-hidden="true"><div class="pat-layer2"></div></div>
       <div class="pattern-layer" id="layer1" aria-hidden="true">
@@ -79,9 +127,26 @@
         <div class="fg-title">Move your pointer or finger across it</div>
         <div class="fg-body">The grid shifts slightly against your pointer: depth you feel more than see.</div>
       </div>
+      <div class="views" aria-hidden="true" inert>
+        <div class="ins">
+          <span class="cap" data-hb-caption>The content stays still</span>
+          <span class="cap" data-hb-caption>Ring: where the dot rests</span>
+          <div class="key" data-hb-caption>
+            <i class="ka" style="--f:1"><i class="kr"></i></i><span>Your pointer moves</span>
+            <i class="ka back" style="--f:calc(var(--pct)/100)"></i><span>The grid moves the other way, <span class="share">a twentieth</span> as far</span>
+            <i class="ka back k2" style="--f:calc(var(--pct)/200)"></i><span class="k2">Second grid: half as far</span>
+          </div>
+        </div>
+        <div class="half one"><span class="cap" data-hb-caption>Stays put</span></div>
+        <div class="half two"><span class="cap" data-hb-caption>Shifts against you</span></div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each ring marks where a grid point rests: the grid shifts against your pointer by a small share of its move, while the content stays still. Move your pointer or finger across it.</p>
+      <p data-hb-for="compare" hidden>Stays put keeps the grid still; Shifts against you slides it the other way from your pointer, so it seems deeper, and the arrow shows how far. Move your pointer or finger across the box.</p>
     </div>
   </section>
 
@@ -195,15 +260,22 @@
   let clock=0;                 // the drift's own time in ms: it moves only while the drift runs, so Play never jumps
   let hasMouse=false;          // a mouse is over the stage
   const fingers=new Set();     // fingers and pens that are down on the stage
+  // For the views: the mode, the grid's spacing and shape, the box a shift is measured in (the stage, or one half of it in Compare),
+  // where a pointer last steered the grid, the shift the grid has now, and whether the reduced-motion pose is shown
+  const reduced=matchMedia('(prefers-reduced-motion: reduce)'),stk=matchMedia('(max-width:600px)');
+  let mode='normal',gap=28,pat='dots',bw=0,bh=0,steered=false,lx=0,ly=0,cx=0,cy=0,posed=false;
 
   const move=(el,x,y)=>{el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`};
   // Ring and light sit at the pointer through transform, centred on it
   const put=(el,x,y)=>{el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) translate(-50%,-50%)`};
+  function shift(x,y){move(layer1,x,y);move(layer2,x/2,y/2);cx=x;cy=y;if(mode!=='normal')follow()}
+  // The grid as a pointer at x,y of its box would put it: against the pointer, by the chosen share of the box. The second layer goes half as far.
+  function aim(x,y){shift(-(x/bw-.5)*str*.01*bw,-(y/bh-.5)*str*.01*bh)}
 
-  // The grid at the drift's clock: strength is a share of the stage, and the two axes drift out of step. The second layer goes half as far, as it does for the pointer.
+  // The grid at the drift's clock: strength is a share of the box, and the two axes drift out of step
   function place(){
-    const x=-Math.sin(clock*.0002)*str*.01*W*.4,y=-Math.cos(clock*.00014)*str*.01*H*.3;
-    move(layer1,x,y);move(layer2,x/2,y/2);
+    steered=false;
+    shift(-Math.sin(clock*.0002)*str*.01*bw*.4,-Math.cos(clock*.00014)*str*.01*bh*.3);
   }
   // loop() keeps exactly one frame requested in raf. The first frame after a start has no earlier frame to measure from, so it adds no time; a long gap between frames (a background tab) counts for at most 50 ms.
   function loop(now){
@@ -222,23 +294,34 @@
     paused=e.detail.paused;
     if(paused)stop();
     else resume();
+    if(mode!=='normal')dealt();else notes();
   });
+  // The mode switch draws the mode at once, playing or paused; nothing here scrolls, moves focus or presses a control.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;dealt()});
 
   // A setting that changes where the grid sits places it again at once, so the change shows even while the drift is paused (or is paused a moment later, before the next frame). A grid a pointer is steering stays where it is.
-  function refresh(){if(!hasMouse&&!fingers.size)place()}
+  function refresh(){if(posed)redraw();else if(!hasMouse&&!fingers.size)place()}
+  function dims(){bw=W;bh=H;if(mode==='compare'){if(stk.matches)bh=H/2;else bw=W/2}}
   // A real change of the stage's size places the grid again; a resize that leaves it as it was (a phone's address bar sliding in or out) does nothing.
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
-    W=w;H=h;refresh();
+    W=w;H=h;dims();refresh();
+    if(mode!=='normal')lay();
   }
 
   // Pointer events: a mouse steers the grid while it hovers, a finger or pen while it is down. A tap on a phone sends no mouse pointer, so it never leaves a ring or a light behind.
   const at=e=>{const r=stage.getBoundingClientRect();return[e.clientX-r.left,e.clientY-r.top]};
-  // The grid shifts against the pointer, up to half the chosen share of the stage each way; the second layer goes half as far
+  // In Compare: the pointer's place inside its own half, and whether that half is the second
+  function local(x,y){
+    const two=stk.matches?y>=bh:x>=bw;
+    return[two&&!stk.matches?x-bw:x,two&&stk.matches?y-bh:y,two];
+  }
+  // The grid shifts against the pointer, up to half the chosen share of the box each way
   function steer(x,y){
-    const dx=-(x/W-.5)*str*.01*W,dy=-(y/H-.5)*str*.01*H;
-    move(layer1,dx,dy);move(layer2,dx/2,dy/2);
+    steered=true;lx=x;ly=y;
+    const p=mode==='compare'?local(x,y):[x,y];
+    aim(p[0],p[1]);
   }
   function mouseIn(){hasMouse=true;ring.style.display='block';stop()}
 
@@ -278,15 +361,164 @@
       pick(b.dataset);
     }));
   }
-  choices('pat-seg',d=>{Object.keys(PATTERNS).forEach(k=>{PATTERNS[k].style.display=k===d.pat?'block':'none'})});
-  choices('str-seg',d=>{str=+d.pct;refresh()});
-  choices('gap-seg',d=>{vars.setProperty('--dot-gap',d.px+'px')});
+  const redrawViews=()=>{if(mode!=='normal')lay()};
+  choices('pat-seg',d=>{Object.keys(PATTERNS).forEach(k=>{PATTERNS[k].style.display=k===d.pat?'block':'none'});pat=d.pat;redrawViews()});
+  choices('str-seg',d=>{str=+d.pct;refresh();redrawViews()});
+  choices('gap-seg',d=>{vars.setProperty('--dot-gap',d.px+'px');gap=+d.px;redrawViews()});
   choices('color-sw',d=>{
     vars.setProperty('--dot-color',`rgba(${d.rgb},.25)`);
     light.style.background=`radial-gradient(circle,rgba(${d.rgb},.06) 0%,transparent 70%)`;
   });
-  document.getElementById('layer2-tog').addEventListener('change',e=>{layer2.style.display=e.target.checked?'block':'none'});
-  document.getElementById('spot-tog').addEventListener('change',e=>{spotOn=e.target.checked;if(!spotOn)light.style.opacity='0'});
+  document.getElementById('layer2-tog').addEventListener('change',e=>{layer2.style.display=e.target.checked?'block':'none';redrawViews()});
+  document.getElementById('spot-tog').addEventListener('change',e=>{spotOn=e.target.checked;if(!spotOn)light.style.opacity='0';redrawViews()});
+
+  /* ---- See inside and Compare ---- */
+  const card=document.querySelector('.fg-card'),box=document.querySelector('.views'),ins=box.querySelector('.ins');
+  const [cap1,cap2]=ins.querySelectorAll('.cap'),key=ins.querySelector('.key'),share=key.querySelector('.share');
+  const nIn=document.querySelector('[data-hb-for="inside"]'),nCmp=document.querySelector('[data-hb-for="compare"]');
+  const IN_NOTE=nIn.textContent,CMP_NOTE=nCmp.textContent;
+  const IN_STILL='Inside, shown still as if your pointer were at the right: each ring marks where a grid point rests, and the grid has slid a little the other way.';
+  const CMP_STILL='Shown still as if your pointer were at the right of each half: Stays put has not moved, while Shifts against you has slid a little the other way, as the arrow shows.';
+  const el=(parent,cls)=>{const n=document.createElement('i');n.className=cls;parent.appendChild(n);return n};
+  const tr=(n,x,y,rest='')=>{n.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px)${rest}`};
+  // A marked grid point: its ring (fixed), the bright point riding the grid, and in the second half an arrow as long as the shift.
+  // k is the share of the shift it follows: 1 for the grid, .5 for the second layer.
+  const marks=(parent,ks,arrows)=>ks.map(k=>{
+    const m={k,x:0,y:0};
+    (arrows?['rg','ar','ah','pt']:['rg','pt']).forEach(c=>{m[c]=el(parent,c)});
+    return m;
+  });
+  const MI=marks(ins,[1,1,1,1,.5],false);
+  // Compare's first half holds a copy of the grid made once (no ids) that never moves; the second half shows the real grid
+  const cp1=layer1.cloneNode(true),cp2=layer2.cloneNode(true);
+  [cp1,cp2].forEach(c=>{c.removeAttribute('id');c.style.transform='';c.querySelectorAll('[id]').forEach(n=>n.removeAttribute('id'))});
+  const copies={dots:cp1.children[0],lines:cp1.children[1],cross:cp1.children[2]};
+  const halves=[...box.querySelectorAll('.half')].map((h,i)=>({h,lt:el(h,'lt'),ln:el(h,'ln'),m:marks(h,[1,.5],i===1),gh:el(h,'gh')}));
+  halves[0].h.prepend(cp2,cp1);
+
+  // Every shift of the grid moves the bright points with it and stretches the arrow to the shift's length
+  function follow(){
+    const L=mode==='inside'?MI:halves[1].m;
+    for(let i=0;i<L.length;i++){
+      const m=L[i];
+      if(m.pt.hidden)continue;
+      const dx=m.k*cx,dy=m.k*cy;
+      tr(m.pt,m.x+dx,m.y+dy);
+      if(m.ar){
+        const len=Math.hypot(dx,dy),t=Math.atan2(dy,dx),a=`rotate(${t.toFixed(3)}rad)`;
+        // the shaft is as long as the shift; the head sits just beyond its end
+        tr(m.ar,m.x,m.y+16,`${a} scaleX(${len.toFixed(2)})`);
+        tr(m.ah,m.x+dx+8*Math.cos(t),m.y+16+dy+8*Math.sin(t),a);
+        m.ar.style.opacity=m.ah.style.opacity=len>.4?1:0;
+      }
+    }
+  }
+  // Compare: the pointer's place in each half (a ghost ring and the faint light), or the pretend pointer parked near the right edge in the pose
+  let pu=-1,pv=-1,pTwo=false,mp=null;
+  function ghosts(){
+    const show=posed||pu>=0,x=posed?bw*.9:pu,y=posed?bh/2:pv,lit=show&&spotOn&&(posed||hasMouse);
+    halves.forEach((o,i)=>{
+      // as in Normal, Pause holds the light where it is: only the pointer leaving or the switch puts it out
+      if(!lit)o.lt.style.opacity=0;
+      else if(posed||!paused){o.lt.style.opacity=1;tr(o.lt,x,y)}
+      o.gh.hidden=!show||(!posed&&pTwo===!!i);
+      o.ln.hidden=!posed;
+      if(!show)return;
+      tr(o.gh,x,y);
+      tr(o.ln,bw/2,bh/2,`rotate(${Math.atan2(y-bh/2,x-bw/2).toFixed(3)}rad) scaleX(${Math.hypot(x-bw/2,y-bh/2).toFixed(1)})`);
+    });
+  }
+  stage.addEventListener('pointermove',e=>{
+    if(e.pointerType!=='mouse')return;
+    mp=at(e);
+    if(mode!=='compare'||posed)return;
+    [pu,pv,pTwo]=local(...mp);
+    ghosts();
+  });
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&pu>=0){pu=-1;ghosts()}});
+
+  // The grid point nearest t that ok accepts. Tiles of size g start at (ox,oy) and a point sits off into each.
+  function snap(t,g,off,ox,oy,ok){
+    let best=null,bd=1e9;
+    const i0=Math.round((t[0]-ox-off)/g),j0=Math.round((t[1]-oy-off)/g);
+    for(let i=i0-4;i<=i0+4;i++)for(let j=j0-4;j<=j0+4;j++){
+      const x=ox+off+i*g,y=oy+off+j*g,d=Math.hypot(x-t[0],y-t[1]);
+      if(d<bd&&ok(x,y)){bd=d;best=[x,y]}
+    }
+    return best;
+  }
+  const hit=(a,b,p)=>a[0]<b[2]+p&&a[2]>b[0]-p&&a[1]<b[3]+p&&a[3]>b[1]-p;
+  function setMark(m,p,on){
+    m.rg.hidden=m.pt.hidden=!p||!on;
+    if(m.ar)m.ar.hidden=m.ah.hidden=m.pt.hidden;
+    if(p){m.x=p[0];m.y=p[1];tr(m.rg,m.x,m.y);tr(m.pt,m.x,m.y)}
+  }
+  // Where the marked points, the captions and the key go, worked out from the measured boxes and the grid's own tiles
+  function lay(){
+    for(const k in PATTERNS)copies[k].style.display=PATTERNS[k].style.display;
+    cp2.style.display=layer2.style.display;
+    const two=layer2.style.display==='block',g=gap,o=pat==='lines'?.5:g/2,cmp=mode==='compare';
+    key.style.setProperty('--pct',str);key.classList.toggle('lit',spotOn);
+    key.querySelectorAll('.k2').forEach(n=>{n.hidden=!two});
+    share.textContent=str===3?'a thirtieth':str===5?'a twentieth':'a tenth';
+    const tx=cmp&&!stk.matches?-.6*W:-.1*W,ty=cmp&&stk.matches?-.6*H:-.1*H;   // where the real grid's first tile starts, seen from the box
+    if(cmp){
+      const ok=(x,y)=>x>=14&&x<=bw-14&&y>=40&&y<=bh-24;
+      [[.3*bw,.76*bh],[.72*bw,.8*bh]].forEach((t,i)=>{
+        const p=snap(t,i?g*2.5:g,i?g*1.25:o,tx,ty,ok);
+        halves.forEach(h=>setMark(h.m[i],p,!i||two));
+      });
+    }else{
+      const s=stage.getBoundingClientRect(),bx=stage.clientLeft,by=stage.clientTop;
+      const rect=n=>{const r=n.getBoundingClientRect();return[r.left-s.left-bx,r.top-s.top-by,r.right-s.left-bx,r.bottom-s.top-by]};
+      const C=rect(card),K=rect(key),w1=cap1.offsetWidth,h1=cap1.offsetHeight;
+      cap2.textContent=pat==='lines'?'Ring: where the lines cross':'Ring: where the dot rests';
+      const w2=cap2.offsetWidth,h2=cap2.offsetHeight;
+      // "The content stays still" goes over the card's outline, or under it where there is no room above
+      let x1=Math.min(Math.max((C[0]+C[2]-w1)/2,4),W-w1-4);
+      const y1=C[1]-13-h1>=4?C[1]-13-h1:C[3]+13,c1=[x1,y1,x1+w1,y1+h1],done=[];
+      let r2=null;
+      const free=(x,y,loose)=>x>=10&&x<=W-10&&y>=10&&y<=H-10&&[[C,16],[K,12],[c1,loose?-99:10],[r2||c1,r2?10:-99]].every(([r,p])=>!hit([x,y,x,y],r,p))&&done.every(d=>Math.hypot(d[0]-x,d[1]-y)>=34);
+      // "Ring: where the dot rests" goes to the right of the first marked point, where it meets nothing
+      const side=(x,y)=>[x+14,y-h2/2,x+14+w2,y+h2/2];
+      const room=(x,y)=>{const r=side(x,y);return r[2]<=W-4&&r[1]>=4&&r[3]<=H-4&&[[C,10],[K,8],[c1,6]].every(([b,p])=>!hit(r,b,p))};
+      const xl=(C[0]-7)/2,xr=(C[2]+7+W)/2,yb=Math.max(K[1]-14,70),y=f=>14+f*(yb-14);
+      [[xl,y(.1)],[xr,y(.1)],[xl,y(.8)],[xr,y(.8)],[xr,y(.45)]].forEach((t,i)=>{
+        const tile=i<4?g:g*2.5,off=i<4?o:g*1.25,find=ok=>snap(t,tile,off,tx,ty,ok);
+        const p=(i?null:find((x,y)=>free(x,y)&&room(x,y)))||find(free)||(i>3?find((x,y)=>free(x,y,1)):null);
+        setMark(MI[i],p,i<4||two);
+        if(p)done.push(p);
+        if(p&&!i&&room(p[0],p[1]))r2=side(p[0],p[1]);
+      });
+      // the second layer's dot may fall where the caption goes: the caption then slides aside
+      const m=MI[4];
+      if(!m.pt.hidden&&hit(c1,[m.x,m.y,m.x,m.y],12))x1=m.x+14+w1<=W-4?m.x+14:m.x-14-w1;
+      tr(cap1,x1,y1);
+      cap2.hidden=!r2;
+      if(r2)tr(cap2,r2[0],r2[1]);
+    }
+    follow();
+    if(cmp)ghosts();
+  }
+  // The pose: under reduced motion with the loop paused, a mode rests on a pretend pointer near the right edge, and the grid as that
+  // pointer would put it. Any other time the grid is where the drift or the pointer put it.
+  function redraw(){if(posed)aim(bw*.9,bh/2);else if(steered)steer(lx,ly);else place()}
+  function notes(){
+    const still=reduced.matches&&paused,a=still?IN_STILL:IN_NOTE,b=still?CMP_STILL:CMP_NOTE;
+    if(nIn.textContent!==a)nIn.textContent=a;
+    if(nCmp.textContent!==b)nCmp.textContent=b;
+  }
+  function dealt(){
+    posed=mode!=='normal'&&reduced.matches&&paused;
+    dims();
+    // a mouse already over the box shows its ghost ring and light in Compare at once, before it moves
+    pu=-1;if(mode==='compare'&&!posed&&hasMouse&&mp)[pu,pv,pTwo]=local(...mp);
+    redraw();
+    if(mode!=='normal')lay();
+    notes();
+  }
+  reduced.addEventListener('change',dealt);
+  if(document.fonts)document.fonts.ready.then(redrawViews);
 
   resize();
   place();
