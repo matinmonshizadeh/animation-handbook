@@ -37,6 +37,43 @@
     /* Reduced motion: the circle does not grow; it appears at full size and only fades out */
     @keyframes ripple-fade{from{transform:scale(var(--ripple-scale))}to{transform:scale(var(--ripple-scale));opacity:0}}
     @media(prefers-reduced-motion:reduce){.ripple{animation-name:ripple-fade}.rbtn{transition:none!important}}
+    /* See inside and Compare, drawn over the stage from the page's own numbers. A still circle is a span in a real button with no
+       animation: it holds one moment of a press, and the stage's lift class hides it while a live ripple runs. */
+    .stage{position:relative}
+    .ripple.still{display:none;animation:none}
+    .ripple.edge{background:none}
+    .copies,.views,.mark,.ptr,.lbl{display:none}
+    .views{position:absolute;inset:0;pointer-events:none}
+    .rcopy{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;border-radius:6px;font-size:13px;font-weight:bold;padding:0 32px;height:52px;min-width:180px;white-space:nowrap;-webkit-user-select:none;user-select:none}
+    .mark{position:absolute;left:0;top:0;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #f4f4f2;box-shadow:0 0 0 1.5px #0b0b0d,inset 0 0 0 1.5px #0b0b0d}
+    .mark::after{content:"";position:absolute;left:50%;top:50%;width:3px;height:3px;margin:-1.5px 0 0 -1.5px;border-radius:50%;background:#f4f4f2;box-shadow:0 0 0 1.5px #0b0b0d}
+    .ptr{position:absolute;left:0;top:0;width:15px;height:23px;overflow:visible;fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    .ptr.ghost{opacity:.7}
+    .lbl{position:absolute;width:max-content;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-wrap:balance}
+    .cmp-l.nm{top:10px;left:12px;white-space:nowrap}
+    .cmp-l.nm.second{left:calc(50% + 12px)}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"]:not(.lift) .ripple.still,.stage[data-hb-mode="compare"]:not(.lift) .rbtn-primary .ripple.still,.stage[data-hb-mode="compare"]:not(.lift) .rbtn-secondary .ripple.still{display:block}
+    .stage[data-hb-mode="inside"] .mark,.stage[data-hb-mode="inside"] .cap,.stage[data-hb-mode="compare"] .ptr,.stage[data-hb-mode="compare"] .cmp-l{display:block}
+    /* See inside: the buttons move to the left of the box and the three captions go beside them */
+    .stage[data-hb-mode="inside"]{align-items:flex-start;padding:14px 16px;gap:24px}
+    /* Compare: the plain copies in the left half, the real buttons in the right, every button in the same row as its twin. The
+       Secondary row is a little lower, which leaves room under the Primary button for the caption of its circle. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto;justify-items:center;align-content:center;row-gap:16px;padding:44px 0 8px}
+    .stage[data-hb-mode="compare"] .copies{display:contents}
+    .stage[data-hb-mode="compare"] .rbtn{grid-column:2}
+    .stage[data-hb-mode="compare"] .rcopy{grid-column:1}
+    .stage[data-hb-mode="compare"] .rbtn-primary{grid-row:1}
+    .stage[data-hb-mode="compare"] .rbtn-secondary{grid-row:2;margin-top:var(--cap-gap,12px)}
+    .stage[data-hb-mode="compare"] .rbtn-ghost{grid-row:3}
+    .stage[data-hb-mode="compare"] .views{background:linear-gradient(rgba(255,255,255,.14),rgba(255,255,255,.14)) 50% 0/1px 100% no-repeat}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{gap:36px;padding:14px 10px}
+      .stage[data-hb-mode="inside"] .rbtn{min-width:0;width:clamp(128px,47%,150px);padding:0 2px;white-space:nowrap}
+    }
+    @media(max-width:440px){
+      .stage[data-hb-mode="compare"] .rbtn,.stage[data-hb-mode="compare"] .rcopy{min-width:0;width:min(calc(100% - 12px),150px);padding:0 2px;white-space:nowrap}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -59,14 +96,36 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap anywhere on a button (or Tab to one and press Enter), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <button class="rbtn rbtn-primary" type="button">Primary button</button>
       <button class="rbtn rbtn-secondary" type="button">Secondary button</button>
       <button class="rbtn rbtn-ghost" type="button">Outline button</button>
+      <div class="copies" aria-hidden="true" inert>
+        <span class="rcopy rbtn-primary">Primary button</span>
+        <span class="rcopy rbtn-secondary">Secondary button</span>
+        <span class="rcopy rbtn-ghost">Outline button</span>
+      </div>
+      <div class="views" aria-hidden="true">
+        <span class="lbl cap" data-hb-caption>1 Starts where you press</span>
+        <span class="lbl cap" data-hb-caption>2 Grows far past the edge, which cuts it off</span>
+        <span class="lbl cap" data-hb-caption>3 Fades as it covers the button, all in about half a second</span>
+        <span class="lbl cmp-l nm" data-hb-caption>No ripple</span>
+        <span class="lbl cmp-l nm second" data-hb-caption>Ripple</span>
+        <span class="lbl cmp-l pose-l" data-hb-caption>A twentieth of a second in</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, one press is shown at three moments: a circle starts small, grows far past the edge, which cuts it off, and fades. Press a button, or press Show me.</p>
+      <p data-hb-for="compare" hidden>No ripple: a press shows nothing, so you cannot tell it landed; Ripple: a circle spreads across the button and fades. Press a button, or press Show me.</p>
     </div>
   </section>
 
@@ -171,6 +230,23 @@
   const slowTog=document.getElementById('slow-tog');
   let dur=600,scale=2.5,opacity=0.4,color='255,255,255',fromCenter=false,runTimers=[];
 
+  // See inside and Compare. Each real button holds a still circle (made once, no animation) for one moment of a press. live counts the
+  // ripples running on each button and spot is where the last press landed (from the button's top left corner); while any ripple
+  // runs or a Show me press waits, the stage is lifted and the still circles are hidden.
+  const stage=document.querySelector('.stage'),views=stage.querySelector('.views'),copies=[...stage.querySelectorAll('.rcopy')];
+  const caps=[...views.querySelectorAll('.cap')],poseCap=views.querySelector('.pose-l'),RM=matchMedia('(prefers-reduced-motion: reduce)');
+  const live=[0,0,0],spot=[null,null,null],ACROSS=[.25,.75,.5],MOMENT=[.02,.08,.45];
+  const PTR='<svg class="ptr" viewBox="0 0 15 23"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg>';
+  views.insertAdjacentHTML('beforeend','<span class="mark"></span>'.repeat(3)+PTR.repeat(3)+PTR.replace('"ptr"','"ptr ghost"').repeat(3));
+  const marks=[...views.querySelectorAll('.mark')],ptrs=[...views.querySelectorAll('.ptr:not(.ghost)')],ghosts=[...views.querySelectorAll('.ghost')];
+  const still=btns.map(b=>b.appendChild(Object.assign(document.createElement('span'),{className:'ripple still'})));
+  const edge=btns.map(b=>b.appendChild(Object.assign(document.createElement('span'),{className:'ripple still edge'})));
+  const TIME={350:'about a third of a second',600:'about half a second',1000:'about a second',1050:'about a second',1800:'nearly two seconds',3000:'about three seconds'};
+  const NOTES={inside:'Inside, one press is shown still at three moments: a circle starts small, grows past the edge and fades. With reduced motion on, a press only fades a highlight.',
+    compare:'Shown still, a twentieth of a second in: No ripple shows nothing; Ripple shows a circle spreading across the button. With reduced motion on, a press fades a highlight.'};
+  const note=m=>document.querySelector(`[data-hb-for="${m}"]`),NORMAL_NOTES={inside:note('inside').textContent,compare:note('compare').textContent};
+  let mode='normal';
+
   function spawnRipple(btn,e){
     const r=btn.getBoundingClientRect();
     const size=Math.max(r.width,r.height)*2;
@@ -181,7 +257,10 @@
     el.style.cssText=`width:${size}px;height:${size}px;left:${x-size/2}px;top:${y-size/2}px;background:rgba(${color},${opacity});animation-duration:${dur}ms`;
     el.style.setProperty('--ripple-scale',scale);
     btn.appendChild(el);
-    el.addEventListener('animationend',()=>el.remove(),{once:true});
+    const i=btns.indexOf(btn);
+    live[i]++;spot[i]={x,y,pretend:e.pointerType!=='mouse'};
+    el.addEventListener('animationend',()=>{el.remove();live[i]--;draw()},{once:true});
+    draw();
   }
   btns.forEach(btn=>btn.addEventListener('pointerdown',e=>spawnRipple(btn,e)));
   // Enter or Space clicks a button with no pointer, so the click's detail is 0 (as when assistive technology presses it): the
@@ -210,15 +289,85 @@
         spawnRipple(btns[i],{clientX:r.left+r.width*across,clientY:r.top+r.height/2});
       },i*dur,i*100);
     });
+    draw();
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. Ripples already spreading finish by themselves.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();draw()}});
+
+  // The moment of a press: how far along its time a circle is, by the page's own curve (CSS ease-out, the curve through (0,0),
+  // (0,0), (.58,1) and (1,1)); the circle's scale and fade follow that one number.
+  function eased(p){
+    let lo=0,hi=1,u=p;
+    for(let i=0;i<20;i++){u=(lo+hi)/2;if(3*(1-u)*u*u*.58+u*u*u<p)lo=u;else hi=u}
+    return 3*(1-u)*u*u+u*u*u;
+  }
+  function say(el,t){if(el.textContent!==t)el.textContent=t}
+  // A mark (a ring and dot, a pointer or its ghost) at a press spot on a button's rectangle r, or hidden
+  function put(el,a,r,ox,oy){
+    el.style.display=a?'':'none';
+    if(a)el.style.transform=`translate(${r.left-ox+a.x}px,${r.top-oy+a.y}px)`;
+  }
+  // Draws the mode from the settings and what runs now: the still circles, the marks, the pointers and the captions, placed from the
+  // buttons' measured boxes. See inside shows three moments of a press (a share of the time each) and Compare one, a twentieth of a
+  // second in, on the real Primary and Secondary buttons (a color can hide on one of them). While a ripple runs, only its own press is marked.
+  function draw(){
+    const lift=live.some(n=>n>0)||running();
+    stage.classList.toggle('lift',lift);
+    if(mode==='normal')return;
+    const s=stage.getBoundingClientRect(),ox=s.left+stage.clientLeft,oy=s.top+stage.clientTop,W=stage.clientWidth,H=stage.clientHeight;
+    if(mode==='compare'){
+      // the room under the Primary button for the caption's lines comes first: it moves every button the marks are placed on
+      const left=btns[0].getBoundingClientRect().left-ox;
+      poseCap.style.left=left+'px';poseCap.style.maxWidth=(W-8-left)+'px';
+      stage.style.setProperty('--cap-gap',Math.max(12,poseCap.offsetHeight-10)+'px');
+    }
+    btns.forEach((b,i)=>{
+      const w=b.offsetWidth,h=b.offsetHeight,size=Math.max(w,h)*2,x=fromCenter?w/2:ACROSS[i]*w;
+      // See inside: a small Ripple size would leave the first circle under its marker and the second hardly past the edges, so those two
+      // moments come later in the press (the share of the time where the circle reaches this size); the least size grows with Ripple size
+      const k=Math.sqrt(scale/1.5),least=[Math.min(28*k,h-8),1.5*h*k,0][i];
+      const e=mode==='inside'?Math.max(eased(MOMENT[i]),least/(size*scale)):eased(Math.min(50/dur,1));
+      const at0=`width:${size}px;height:${size}px;left:${x-size/2}px;top:${h/2-size/2}px;transform:scale(${scale*e})`;
+      still[i].style.cssText=at0+`;background:rgba(${color},${opacity});opacity:${1-e}`;
+      // See inside also draws the circle's edge, a thin line the fade does not touch (its width is made up for the scale)
+      edge[i].style.cssText=at0+(mode==='inside'?`;border:${1.5/(scale*e)}px solid rgba(244,244,242,.85)`:'');
+      const at=lift?(live[i]>0?spot[i]:null):(mode==='inside'||i<2?{x,y:h/2,pretend:true}:null);
+      put(marks[i],mode==='inside'&&at,b.getBoundingClientRect(),ox,oy);
+      put(ptrs[i],mode==='compare'&&at&&at.pretend&&at,b.getBoundingClientRect(),ox,oy);
+      put(ghosts[i],mode==='compare'&&at,copies[i].getBoundingClientRect(),ox,oy);
+    });
+    say(caps[0],fromCenter?'1 Starts in the middle':'1 Starts where you press');
+    say(caps[2],'3 Fades as it covers the button, all in '+TIME[dur*(slowTog.checked?3:1)]);
+    if(mode==='inside'){
+      let floor=6;
+      caps.forEach((c,i)=>{
+        const r=btns[i].getBoundingClientRect(),left=r.right-ox+14;
+        c.style.left=left+'px';c.style.top='0px';c.style.maxWidth=Math.max(60,W-left-10)+'px';
+        const top=Math.min(Math.max(r.top-oy+r.height/2-c.offsetHeight/2,floor),H-c.offsetHeight-6);
+        c.style.top=top+'px';floor=top+c.offsetHeight+6;
+      });
+    }else{
+      // the caption goes under the Primary button, in the room the Secondary row leaves for its lines (one or two)
+      poseCap.style.top=(btns[0].getBoundingClientRect().bottom-oy+3)+'px';poseCap.style.visibility=lift?'hidden':'';
+    }
+  }
+  // The notes read as the markup has them; under reduced motion, the pair the script writes (only when the words change)
+  function writeNotes(){
+    ['inside','compare'].forEach(m=>say(note(m),RM.matches?NOTES[m]:NORMAL_NOTES[m]));
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;writeNotes();draw()});
+  addEventListener('resize',draw);
+  document.fonts.ready.then(draw);
+  slowTog.addEventListener('change',draw);
+  RM.addEventListener('change',writeNotes);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      draw();
     }));
   }
   choices('from-seg',d=>{fromCenter=d.center==='true'});
