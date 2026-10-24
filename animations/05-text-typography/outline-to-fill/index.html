@@ -23,8 +23,8 @@
   <style>
     :root{--ui-accent:#ff6f8b;--fill-dur:900ms;--fill-ease:ease-in-out;--stroke-color:#ff6f8b;--fill-color:#ff6f8b;--stroke-w:2px}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px;background:#04060c}
-    .otf-text{font-size:clamp(44px,8vw,84px);line-height:1;letter-spacing:0.06em;font-weight:800;-webkit-user-select:none;user-select:none}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;padding:24px;background:#04060c}
+    .otf-text{font-size:var(--otf-fs,clamp(44px,8vw,84px));line-height:1;letter-spacing:0.06em;font-weight:800;-webkit-user-select:none;user-select:none}
     /* Variant A: bottom-up fill via stacked layers */
     .otf-wrap{position:relative;display:inline-block}
     .outline-layer{
@@ -62,7 +62,54 @@
     .stroke-fade-wrap.filled .fill-only{opacity:1}
     /* Label */
     .var-label{font-size:clamp(11px,1.5vw,14px);letter-spacing:2px;text-transform:uppercase;color:#8a8a92;text-align:center;margin-bottom:12px}
-    @media(prefers-reduced-motion:reduce){.fill-layer,.stroke-only,.fill-only{transition:none!important}.fill-layer{clip-path:inset(0%)!important}.stroke-fade-wrap.filled .fill-only{opacity:1!important}.stroke-fade-wrap.filled .stroke-only{opacity:0!important}}
+    /* See inside and Compare. The script sets --otf-fs (the word size that fits the box), --m1 to --m3 and --pb (room for the words above
+       or below a row) and --rem (how much of the fill is still shut at the pose). */
+    .otf-cap,.otf-ghost,.otf-win,.twin{display:none}
+    .otf-cap{position:absolute;left:0;top:0;z-index:4;width:max-content;padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);pointer-events:none}
+    #fill-layer{--pc:inset(calc(var(--rem,0)*100%) 0 0 0)}
+    #fill-layer.dir-down{--pc:inset(0 0 calc(var(--rem,0)*100%) 0)}
+    #fill-layer.dir-left{--pc:inset(0 0 0 calc(var(--rem,0)*100%))}
+    #fill-layer.dir-right{--pc:inset(0 calc(var(--rem,0)*100%) 0 0)}
+    #fill-layer.dir-center{--pc:inset(calc(var(--rem,0)*50%) 0)}
+    .stage[data-hb-mode="inside"].posed #fill-layer,.stage[data-hb-mode="compare"].posed #fill-layer{clip-path:var(--pc)!important;transition:none!important}
+    /* See inside: the filled copy is pulled down under the hollow one, with a faint full copy behind it, a dashed frame and a bright edge
+       that takes the window's own transition (two edges from the middle). The pose holds the fill half way through its time. */
+    .stage[data-hb-mode="inside"]{gap:10px;padding:8px 24px var(--pb,8px)}
+    .stage[data-hb-mode="inside"][data-otf="beside"]{padding-right:290px}
+    .stage[data-hb-mode="inside"] > .otf-cap:not([hidden]){display:block}
+    .stage[data-hb-mode="inside"] .var-label{margin:0;line-height:14px}
+    .stage[data-hb-mode="inside"] .wipe .var-label{margin-bottom:var(--m1,0px)}
+    .stage[data-hb-mode="inside"] .wipe{margin-bottom:var(--m2,0px)}
+    .stage[data-hb-mode="inside"] .fade{margin-bottom:var(--m3,0px)}
+    .stage[data-hb-mode="inside"] .fill-layer{position:relative;inset:auto;margin-top:8px}
+    .stage[data-hb-mode="inside"] .otf-ghost,.stage[data-hb-mode="inside"] .otf-win{display:block;position:absolute;left:0;right:0;bottom:0;height:var(--otf-fs)}
+    .stage[data-hb-mode="inside"] .otf-ghost{z-index:0;opacity:.2;-webkit-text-stroke:var(--stroke-w) var(--stroke-color);color:var(--fill-color)}
+    .stage[data-hb-mode="inside"] .otf-win{z-index:3;pointer-events:none;outline:1.5px dashed rgba(244,244,242,.5);outline-offset:2px}
+    .otf-edge{position:absolute;inset:0;--k:1;--sx:0;--sy:1;--m:1;
+      transform:translate(calc(var(--k)*var(--sx)*var(--m)*100%),calc(var(--k)*var(--sy)*var(--m)*100%));
+      box-shadow:inset calc(var(--sx)*2px) calc(var(--sy)*2px) 0 #fff,inset calc(var(--sx)*3px) calc(var(--sy)*3px) 0 #04060c;
+      transition:transform var(--fill-dur) var(--fill-ease)}
+    .otf-edge.e2{display:none;--sy:-1;--m:.5}
+    .fill-layer.dir-down~.otf-win .otf-edge{--sy:-1}
+    .fill-layer.dir-left~.otf-win .otf-edge{--sx:1;--sy:0}
+    .fill-layer.dir-right~.otf-win .otf-edge{--sx:-1;--sy:0}
+    .fill-layer.dir-center~.otf-win .e1{--m:.5}
+    .fill-layer.dir-center~.otf-win .e2{display:block}
+    .fill-layer.filled~.otf-win .otf-edge{--k:0}
+    .stage[data-hb-mode="inside"].posed .otf-edge{--k:var(--rem);transition:none!important}
+    .stage[data-hb-mode="inside"].posed .stroke-only{opacity:var(--rem)!important;transition:none!important}
+    .stage[data-hb-mode="inside"].posed .fill-only{opacity:calc(1 - var(--rem))!important;transition:none!important}
+    /* Compare: Snaps (a copy whose fill has no transition) above Wipes (the real row). The Fade row is set aside but keeps running. */
+    .stage[data-hb-mode="compare"]{gap:0;padding:8px 24px}
+    .stage[data-hb-mode="compare"] .var-label{display:none}
+    .stage[data-hb-mode="compare"] .otf-item{position:relative;width:100%;padding:30px 0;display:flex;flex-direction:column;align-items:center}
+    .stage[data-hb-mode="compare"] .fade{position:absolute;visibility:hidden}
+    .stage[data-hb-mode="compare"] .twin{display:flex;border-bottom:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .otf-name{display:block;top:3px;left:50%;transform:translateX(-50%)}
+    .stage[data-hb-mode="compare"].posed .otf-note{display:block;top:auto;bottom:3px;left:50%;transform:translateX(-50%)}
+    .stage[data-hb-mode="compare"].posed #otf-wrap::after{content:'';position:absolute;inset:0;outline:1.5px dashed rgba(244,244,242,.5);outline-offset:2px;border-radius:2px}
+    .twin .fill-layer{transition:none!important}
+    @media(prefers-reduced-motion:reduce){.fill-layer,.stroke-only,.fill-only,.otf-edge{transition:none!important}.fill-layer{clip-path:inset(0%)!important}.stroke-fade-wrap.filled .fill-only{opacity:1!important}.stroke-fade-wrap.filled .stroke-only{opacity:0!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -85,26 +132,41 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="otf-item">
+      <div class="otf-item wipe">
         <p class="var-label">Wipe</p>
         <div class="otf-wrap" id="otf-wrap">
           <div class="otf-text outline-layer" id="outline-layer">OUTLINE</div>
           <div class="otf-text fill-layer" id="fill-layer" aria-hidden="true">OUTLINE</div>
         </div>
+        <p class="otf-cap otf-name" data-hb-caption aria-hidden="true">Wipes</p>
+        <p class="otf-cap otf-note" data-hb-caption aria-hidden="true">Half way through the fill</p>
       </div>
-      <div class="otf-item">
+      <div class="otf-item fade">
         <p class="var-label">Fade</p>
         <div class="stroke-fade-wrap" id="stroke-wrap">
           <div class="otf-text stroke-only" id="stroke-only">OUTLINE</div>
           <div class="otf-text fill-only" id="fill-only" aria-hidden="true">OUTLINE</div>
         </div>
       </div>
+      <p class="otf-cap" data-hb-caption aria-hidden="true">Hollow copy, always on top</p>
+      <p class="otf-cap" data-hb-caption aria-hidden="true"></p>
+      <p class="otf-cap" data-hb-caption aria-hidden="true">Fade: the hollow copy fades out as the filled one fades in</p>
+      <p class="otf-cap" data-hb-caption aria-hidden="true"></p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Here the word's two copies are pulled apart: hollow on top, filled below. The wipe uncovers the filled copy through a growing window; the fade swaps the two by fading.</p>
+      <p data-hb-for="compare" hidden>Snaps fills the hollow letters in a single jump. Wipes pours the color in, so you see the fill travel across the letters.</p>
     </div>
   </section>
 
@@ -228,6 +290,7 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
+  const stage=document.querySelector('.stage');
   const fillLayer=document.getElementById('fill-layer');
   const strokeWrap=document.getElementById('stroke-wrap');
   const outlineLayer=document.getElementById('outline-layer'),strokeOnly=document.getElementById('stroke-only'),fillOnly=document.getElementById('fill-only');
@@ -236,7 +299,34 @@
   const txtIn=document.getElementById('txt-in');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const DIR_CLASSES=['dir-down','dir-left','dir-right','dir-center'];
-  let dir='up',ms=900,strokeW=2,ease='ease-in-out',timers=[];
+  let dir='up',ms=900,strokeW=2,ease='ease-in-out',timers=[],mode='normal',posed=false;
+
+  // See inside and Compare. Compare's first half is a copy of the Wipe row (no ids, inert) whose filled copy has no transition, so its
+  // letters go from hollow to full in one frame. See inside adds to the real row a faint full copy behind the filled one and a frame
+  // with a bright edge that moves with the window (two edges from the middle).
+  const wipeItem=fillLayer.closest('.otf-item'),fadeItem=strokeWrap.closest('.otf-item');
+  const twinItem=wipeItem.cloneNode(true);
+  twinItem.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  twinItem.classList.add('twin');twinItem.inert=true;twinItem.setAttribute('aria-hidden','true');
+  twinItem.querySelector('.otf-name').textContent='Snaps';twinItem.querySelector('.otf-note').remove();
+  wipeItem.before(twinItem);
+  const twinFill=twinItem.querySelector('.fill-layer');
+  const ghost=document.createElement('div'),win=document.createElement('div');
+  ghost.className='otf-text otf-ghost';ghost.textContent=outlineLayer.textContent;win.className='otf-win';win.innerHTML='<i class="otf-edge e1"></i><i class="otf-edge e2"></i>';
+  [ghost,win].forEach(el=>{el.inert=true;el.setAttribute('aria-hidden','true')});
+  fillLayer.parentElement.append(ghost,win);
+  const anim=[fillLayer,strokeOnly,fillOnly,twinFill,...win.children]; // everything with a transition of its own
+  const caps=[...stage.querySelectorAll(':scope > .otf-cap')],[,cFill,cFade,cTime]=caps,fadeLong=cFade.textContent;
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent='Shown still, half way through the fill: the filled copy is partly uncovered by its window, and the Fade row is part way from outline to fill.';
+    document.querySelector('[data-hb-for="compare"]').textContent='Shown still, half way through the fill: Snaps is already full, while Wipes is filled only part of the way.';
+  }
+  // The Feel choices as the numbers of their speed curves (the browser's own), and the words for the captions
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const FEEL={'ease-out':', starting fast and easing out','ease-in-out':', easing in and out',linear:' at one steady pace'};
+  const SIDE={up:'from below',down:'from above',right:'from the left',left:'from the right',center:'from the middle'};
+  const SECS={1:'half a second',2:'a second',3:'a second and a half',5:'two and a half seconds',9:'four and a half seconds'}; // by half seconds
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
@@ -251,7 +341,7 @@
   }
   function fitText(){
     // Scale long words down so they never get clipped by the stage on narrow screens
-    const avail=document.querySelector('.stage').clientWidth-48;
+    const cs=getComputedStyle(stage),avail=stage.clientWidth-parseFloat(cs.paddingLeft)-parseFloat(cs.paddingRight);
     document.querySelectorAll('.otf-wrap,.stroke-fade-wrap').forEach(w=>{
       w.style.transform='';
       const s=avail>0?Math.min(1,avail/w.offsetWidth):1;
@@ -259,44 +349,121 @@
     });
   }
   function applyText(t){
-    [outlineLayer,fillLayer,strokeOnly,fillOnly].forEach(el=>{el.textContent=t;});
-    fitText();
+    [outlineLayer,fillLayer,strokeOnly,fillOnly,ghost,...twinItem.querySelectorAll('.otf-text')].forEach(el=>{el.textContent=t;});
+    layout();
   }
-  // Snaps both variants back to hollow without a reverse transition, then forces a reflow so the next
-  // fill runs at full length from the start.
+  // Snaps both variants back to hollow without a reverse transition, so the next fill runs at full length from the start.
   function reset(){
-    const layers=[fillLayer,...strokeWrap.children];
-    layers.forEach(el=>el.style.transition='none');
-    fillLayer.classList.remove('filled');
-    strokeWrap.classList.remove('filled');
-    applyDir();
-    void fillLayer.offsetWidth;
-    layers.forEach(el=>el.style.transition='');
+    snap(()=>{[fillLayer,twinFill,strokeWrap].forEach(el=>el.classList.remove('filled'));applyDir()});
   }
   // One play fills both words together. While Loop is on it then holds filled for 1400ms, snaps back
   // to hollow at once, waits 300ms and plays again; switching Loop off lets the words finish filled.
-  // Slow motion stretches the fill itself, not the hold or the wait.
-  function cycle(){
+  // Slow motion stretches the fill itself, not the hold or the wait. In a view a play lifts the pose, which comes back after it with
+  // Loop off. In Compare a play from Replay starts with both halves hollow for a beat.
+  function cycle(beat){
     apply();
+    pose(false);
     reset();
-    fillLayer.classList.add('filled');
-    strokeWrap.classList.add('filled');
-    if(!loopTog.checked||!motionOk)return;
+    const fill=()=>[fillLayer,twinFill,strokeWrap].forEach(el=>el.classList.add('filled'));
+    if(beat&&mode==='compare'&&motionOk)later(fill,200);else fill();
+    if(!loopTog.checked||!motionOk){poseLater(motionOk?dur()+900:700);return}
     later(()=>{
       if(!loopTog.checked)return;
       reset();
       later(cycle,300);
     },dur()+1400);
   }
-  function play(){timers.forEach(clearTimeout);timers=[];cycle()}
+  function play(){timers.forEach(clearTimeout);timers=[];cycle(true)}
+  function poseLater(wait){if(mode!=='normal')later(()=>{if(!loopTog.checked)pose(true)},wait)}
+
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // Draws a change at once, with no transition running through it (also forces a reflow)
+  function snap(fn){
+    anim.forEach(el=>el.style.transition='none');
+    fn();void stage.offsetWidth;
+    anim.forEach(el=>el.style.transition='');
+  }
+  // The pose, for a view at rest: the fill half way through its time, as far open as the Feel's curve has it by then (--rem is the
+  // part still shut). A play lifts it; leaving it shows the fill as it is, with no wipe from the pose.
+  function pose(on){
+    on=on&&mode!=='normal';
+    if(on)stage.style.setProperty('--rem',(1-curveAt(CURVES[ease],.5)).toFixed(3));
+    if(on===posed)return;
+    posed=on;
+    snap(()=>stage.classList.toggle('posed',on));
+    if(mode==='inside')layout();
+  }
+  // The word size, up to Normal's, at which the stacked rows fit the box: their height is a fixed part plus the words' own
+  function fitSize(n,first,last,extra){
+    const s=stage.style,cs=getComputedStyle(stage);
+    s.removeProperty('--otf-fs');
+    const f0=parseFloat(getComputedStyle(outlineLayer).fontSize);
+    const used=last.getBoundingClientRect().bottom-first.getBoundingClientRect().top+extra+parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom);
+    s.setProperty('--otf-fs',Math.floor(Math.max(24,Math.min(f0,f0-(used-stage.clientHeight)/n)))+'px');
+  }
+  // See inside's words, from measured sizes: beside their rows on a wide box, above or below them (in room --m1 to --m3 keep) on a
+  // narrow one; the last (the time, or the pose) has a strip along the bottom.
+  function place(){
+    const S=stage.getBoundingClientRect(),ox=S.left+stage.clientLeft,oy=S.top+stage.clientTop,W=stage.clientWidth,H=stage.clientHeight;
+    const A=[outlineLayer,fillLayer,strokeOnly].map(el=>el.getBoundingClientRect());
+    const beside=stage.dataset.otf==='beside',x0=Math.max(...A.map(a=>a.right))-ox+16;
+    let low=4;
+    caps.forEach((c,i)=>{
+      if(c.hidden)return;
+      const w=c.offsetWidth,h=c.offsetHeight,a=A[Math.min(i,2)];
+      const top=i===3?H-h-6:beside?Math.max((a.top+a.bottom)/2-oy-h/2,low):i===0?a.top-oy-h-3:a.bottom-oy+3;
+      c.style.left=Math.max(4,Math.min(beside&&i<3?x0:(W-w)/2,W-w-4))+'px';
+      c.style.top=Math.max(2,Math.min(top,H-h-4))+'px';
+      low=top+h+6;
+    });
+  }
+  // Sizes for the mode on show: the word size and the room for See inside's words. Normal has none of it.
+  function layout(){
+    const s=stage.style;
+    ['--m1','--m2','--m3','--pb','--otf-fs'].forEach(p=>s.removeProperty(p));
+    delete stage.dataset.otf;
+    if(mode==='normal'){fitText();return}
+    if(mode==='compare')fitSize(2,twinItem,wipeItem,0);
+    else{
+      const beside=stage.clientWidth>=560,rest=posed||!beside;
+      stage.dataset.otf=beside?'beside':'above';
+      cFill.textContent=(beside?'Filled copy, uncovered by a window ':'Filled copy, window ')+SIDE[dir];
+      cFade.textContent=beside?fadeLong:'Fade: hollow fades out, filled fades in';
+      cTime.textContent=rest?'Shown half way through the fill':'Both take about '+SECS[Math.round(dur()/500)]+FEEL[ease];
+      cTime.hidden=false;
+      caps.forEach((c,i)=>{c.style.left=c.style.top='0px';c.style.maxWidth=(i<3&&beside?250:stage.clientWidth-16)+'px'});
+      const h=caps.map(c=>c.offsetHeight+4);
+      if(!beside)['--m1','--m2','--m3'].forEach((p,i)=>s.setProperty(p,h[i]+'px'));
+      s.setProperty('--pb',h[3]+6+'px');
+      cTime.hidden=!posed&&!beside;
+      fitSize(3,wipeItem,fadeItem,beside?0:h[2]);
+    }
+    fitText();
+    if(mode==='inside')place();
+  }
+
+  // The mode switch draws the mode at once (at rest, posed); the shared script then presses Replay (not under reduced motion)
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    pose(!loopTog.checked);
+    layout();
+  });
 
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else poseLater(dur()+1000)});
+  slowTog.addEventListener('change',()=>{if(mode!=='normal')layout()});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      if(mode!=='normal'){apply();applyDir();pose(posed);layout()}
     }));
   }
   choices('dir-seg',d=>{dir=d.dir});
@@ -306,9 +473,9 @@
   choices('outline-color-sw',d=>{vars.setProperty('--stroke-color',d.c)});
   choices('fill-color-sw',d=>{vars.setProperty('--fill-color',d.c)});
   txtIn.addEventListener('input',()=>{applyText(txtIn.value.trim()?txtIn.value.toUpperCase():'OUTLINE')});
-  window.addEventListener('resize',fitText);
+  window.addEventListener('resize',layout);
   apply();applyDir();fitText();
-  if(document.fonts)document.fonts.ready.then(fitText); // the site font can still be loading when fitText() first runs
+  if(document.fonts)document.fonts.ready.then(layout); // the site font can still be loading when fitText() first runs
 </script>
 </body>
 </html>
