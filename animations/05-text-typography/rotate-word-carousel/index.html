@@ -52,9 +52,10 @@
     @media(max-width:600px){.cap{font-size:12px}}
     /* The window's edge is drawn on the real box, so it is always where the page puts it */
     .stage[data-hb-mode="inside"] .rot-container,.stage[data-hb-mode="compare"] .rot-container{outline:2px dashed var(--ui-accent);outline-offset:2px}
-    /* See inside: the real headline, scaled so that what the window hides fits (--ins), put where the script measured (--ins-y, --ins-l, --ins-r) */
-    .stage[data-hb-mode="inside"]{align-items:flex-start;padding:var(--ins-y,0px) var(--ins-r,10px) 0 var(--ins-l,10px)}
-    .stage[data-hb-mode="inside"] .headline{font-size:calc(var(--hs)*var(--ins,1))}
+    /* See inside: the real headline, scaled so that what the window hides fits (--ins), put where the script measured (--ins-y, --ins-dx; its room shrinks with it, so it wraps as it did before) */
+    .stage[data-hb-mode="inside"]{align-items:flex-start;padding:var(--ins-y,0px) 10px 0}
+    .stage[data-hb-mode="inside"] .headline{position:relative;left:var(--ins-dx,0px);max-width:calc(100%*var(--ins,1));font-size:calc(var(--hs)*var(--ins,1))}
+    .stage[data-hb-mode="inside"] .static-line{row-gap:var(--ins-rg,.2em)} /* with Down, a window on a line of its own leaves room above it for the waiting word */
     .stage[data-hb-mode="inside"] .ins{display:block;position:absolute;inset:0;pointer-events:none;font:700 calc(var(--hs)*var(--ins,1))/1.3 var(--hb-font)}
     .stage[data-hb-mode="inside"] .ins .cap{display:block}
     .gw{position:absolute;display:flex;justify-content:center;width:0}
@@ -135,7 +136,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, the changing word sits in a small window, and only what is inside it shows. The next word waits just outside, out of sight, and slides in as the old one leaves.</p>
-      <p data-hb-for="compare" hidden>No window lets the sliding words show outside the line. In a window cuts them off at its edge, so each word seems to come from behind the text.</p>
+      <p data-hb-for="compare" hidden>No window lets the sliding words show outside the dashed box. In a window cuts them off at its edge, so each word seems to come from behind the text.</p>
     </div>
   </section>
 
@@ -309,6 +310,7 @@ Startups</textarea>
   }
   // The same change on the word and its look-alikes, with transitions off, so none of them slides back through the line
   function snap(change){
+    each(w=>w.getAnimations().forEach(a=>{if(!(a instanceof CSSTransition))a.cancel()})); // a copied slide stops with the real word's
     each(w=>{w.style.transition='none';change(w)});
     void rotWord.offsetWidth;
     each(w=>{w.style.transition=''});
@@ -369,7 +371,7 @@ Startups</textarea>
   cWord.removeAttribute('aria-live');stage.insertBefore(copy,headline);
   twins.push(tw.firstElementChild,cWord);
 
-  const ENTER={up:'translateY(110%)',down:'translateY(-110%)',left:'translateX(110%)',right:'translateX(-110%)'};
+  const ENTER={up:'translateY(110%)',down:'translateY(-110%)'};
   const say=ms=>ms<=300?'a quarter of a second':ms<=500?'under half a second':ms<=800?'under a second':ms<=1300?'about a second':ms<=2100?'two seconds':'three seconds';
   // The word that waits outside the window: the next one, shown while the word stands still
   function setNext(){
@@ -384,8 +386,11 @@ Startups</textarea>
     w.getAnimations().forEach(a=>a.cancel());
     w.className=rotWord.className;w.textContent=rotWord.textContent;w.style.color=rotWord.style.color;
     rotWord.getAnimations().forEach(a=>{
-      const m=w.animate(a.effect.getKeyframes(),a.effect.getTiming());
-      m.currentTime=a.currentTime;if(a.playState==='paused')m.pause();
+      const kf=a.effect.getKeyframes();
+      if(w!==cWord&&'opacity' in kf[0])return; // the faint twin keeps its own fade, which holds it faint past the window's edge
+      const m=w.animate(kf,a.effect.getTiming());
+      if(a.playState==='paused'){m.currentTime=a.currentTime;m.pause();held.push(m)} // Play resumes it with the real word
+      else if(a.startTime!==null)m.startTime=a.startTime; // a running one keeps step with the real word
     });
   }
   // See inside is measured, as the page sizes the window to the word: everything is scaled (the headline's font) to fit, the
@@ -398,38 +403,43 @@ Startups</textarea>
     if(mode!=='inside')return;
     const st=stage.style,GAP=6,words=getWords(),vert=dir==='up'||dir==='down',down=dir==='down';
     caps[2].textContent='Slides in '+say(dur())+', stays '+say(hold);
-    for(const [k,v] of [['--ins',1],['--ins-y','0px'],['--ins-l','10px'],['--ins-r','10px']])st.setProperty(k,v);
+    for(const [k,v] of [['--ins',1],['--ins-y','0px'],['--ins-dx','0px'],['--ins-rg',down?'1.6em':'.2em']])st.setProperty(k,v);
     caps.forEach(c=>{c.style.left=c.style.top='0px'}); // measured from the box's left edge, where they have all their room
     const W=stage.clientWidth,Hs=stage.clientHeight,[h1,h2,h3]=caps.map(c=>c.offsetHeight);
     let wmax=0;
     words.forEach(w=>{meas.textContent=w;wmax=Math.max(wmax,meas.offsetWidth)});
-    // how far the picture reaches above and below the headline's top
-    const reach=(bx,hd)=>{const ct=bx.top-hd.top,H=bx.height;return [vert?Math.min(0,ct-1.1*H):0,Math.max(hd.height,vert?ct+2.1*H:ct+(dir==='right'?2*H+24:H+22))]};
-    const b0=rotBox.getBoundingClientRect(),hd0=headline.getBoundingClientRect(),side=b0.left-hd0.left,[ut,ub]=reach(b0,hd0);
+    // how far the picture reaches above and below the headline's top, and the pixels the row of the arrow adds below it (X, not scaled)
+    const X=vert?0:dir==='right'?24:22;
+    const reach=(bx,hd)=>{const ct=bx.top-hd.top,H=bx.height;return [vert?Math.min(0,ct-1.1*H):0,Math.max(hd.height,vert?ct+2.1*H:ct+(dir==='right'?2*H:H))]};
+    const b0=rotBox.getBoundingClientRect(),hd0=headline.getBoundingClientRect(),[ut,ub]=reach(b0,hd0);
+    // where the window stands beside the headline's middle (a word on a line of its own stands at its middle), and the widest headline's half
+    const c=b0.left+b0.width/2-hd0.left-hd0.width/2,hh=(hd0.width-b0.width+wmax)/2;
     const fixT=GAP+(down?h2+4+h3:h1),fixB=GAP+(down?h1:h2+4+h3);
     // the picture reaches a to the left and b to the right of the headline's middle
-    const a=vert?(side+wmax)/2:Math.max((side+wmax)/2,1.6*wmax-side/2),b=vert?a+28:side/2+1.6*wmax;
-    const k=Math.max(.3,Math.min(1,(Hs-16-fixT-fixB)/(ub-ut),(W-20)/(a+b)));
+    const a=dir==='right'?Math.max(hh,1.6*wmax-c):hh,b=vert?hh+28:dir==='left'?Math.max(hh,c+1.6*wmax):hh;
+    const k=Math.max(.3,Math.min(1,(Hs-16-fixT-fixB-X)/(ub-ut),(W-20)/(a+b)));
     st.setProperty('--ins',k);
-    st.setProperty('--ins-y',Math.max(0,(Hs-((ub-ut)*k+fixT+fixB))/2+fixT-ut*k)+'px');
-    st.setProperty('--ins-l',10+Math.max(0,(a-b)*k)+'px');st.setProperty('--ins-r',10+Math.max(0,(b-a)*k)+'px');
+    st.setProperty('--ins-y',Math.max(0,(Hs-((ub-ut)*k+X+fixT+fixB))/2+fixT-ut*k)+'px');
+    st.setProperty('--ins-dx',(a-b)*k/2+'px');
     const o=stage.getBoundingClientRect(),bx=rotBox.getBoundingClientRect(),hd=headline.getBoundingClientRect();
     const ox=o.left+stage.clientLeft,oy=o.top+stage.clientTop,[u,v]=reach(bx,hd);
     const cx=bx.left+bx.width/2-ox,top=bx.top-oy,H=bx.height,wn=nxWord.offsetWidth;
+    // the waiting word stands a tenth of its width clear of the window, also when it is narrower than the word in the window
+    const mv=vert?0:(.6*wn+Math.max(wn,bx.width)/2)*(dir==='left'?1:-1);
     for(const g of [tw,nx])Object.assign(g.style,{left:cx+'px',top:top+(g===nx&&dir==='right'?H+24:0)+'px',height:H+'px'});
-    nxWord.style.transform=ENTER[dir];
+    nxWord.style.transform=vert?ENTER[dir]:'translateX('+mv+'px)';
     // the arrow is as long as the move: from the waiting word to the window
-    const gx=vert?cx:cx+(dir==='left'?1.1:-1.1)*wn,ay=vert?top+H/2+(down?-1.1:1.1)*H:top+H+14;
-    Object.assign(arrow.style,{width:1.1*(vert?H:wn)+'px',left:(vert?cx+Math.max(bx.width,wn)/2+10:gx)+'px',top:ay-6+'px',transform:`rotate(${vert?(down?90:-90):dir==='left'?180:0}deg)`});
+    const gx=cx+mv,ay=vert?top+H/2+(down?-1.1:1.1)*H:top+H+14;
+    Object.assign(arrow.style,{width:(vert?1.1*H:Math.abs(mv))+'px',left:(vert?cx+Math.max(bx.width,wn)/2+10:gx)+'px',top:ay-6+'px',transform:`rotate(${vert?(down?90:-90):dir==='left'?180:0}deg)`});
     const put=(c,mid,y)=>{c.style.left=Math.max(8,Math.min(W-8-c.offsetWidth,mid-c.offsetWidth/2))+'px';c.style.top=y+'px'};
-    const yT=hd.top-oy+u-GAP,yB=hd.top-oy+v+GAP;
+    const yT=hd.top-oy+u-GAP,yB=hd.top-oy+v+X+GAP;
     put(caps[0],cx,down?yB:yT-h1);
     put(caps[1],gx,down?yT-h2:yB);
     put(caps[2],gx,down?yT-h2-4-h3:yB+h2+4);
   }
 
-  // Compare's rest pose: while the loop stands still in a hold (or at all, under reduced motion, where no slide ever happens) both
-  // words stand a moment into a slide: moved POSE of the way, with the fade the page's own curves give at that moment
+  // Compare's rest pose: while the loop stands still (in a hold, or in the middle of a slide, where the fade has often taken both words
+  // away) both words stand a moment into a slide: moved POSE of the way, with the fade the page's own curves give at that moment
   const EASE=[.4,0,.2,1],FADE=[.25,.1,.25,1],POSE=.4;
   function curveAt([a,b,c,e],x){
     const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
@@ -439,7 +449,7 @@ Startups</textarea>
   }
   let posed=false;
   function deal(){
-    const want=mode==='compare'&&paused&&(reduceMQ.matches||next===startSlide);
+    const want=mode==='compare'&&paused;
     if(want){
       let lo=0,hi=1; // the moment (0 to 1 of the slide) at which the move has gone POSE of its way
       for(let i=0;i<30;i++){const t=(lo+hi)/2;if(curveAt(EASE,t)<POSE)lo=t;else hi=t}
@@ -450,8 +460,15 @@ Startups</textarea>
     }
     if(want!==posed){
       posed=want;
-      if(want)stage.classList.add('posed');
-      else{ // lifted at once, with no transition back
+      if(want){
+        // the pose cancels the words' transitions, so a slide the pause stopped goes on as a paused copy, which Play resumes
+        [rotWord,cWord].forEach(w=>w.getAnimations().forEach(a=>{
+          if(!(a instanceof CSSTransition))return;
+          const m=w.animate(a.effect.getKeyframes(),a.effect.getTiming());
+          m.currentTime=a.currentTime;m.pause();held.push(m);a.cancel();
+        }));
+        stage.classList.add('posed');
+      }else{ // lifted at once, with no transition back
         const ws=[rotWord,cWord];
         ws.forEach(w=>w.style.transition='none');stage.classList.remove('posed');void rotWord.offsetWidth;ws.forEach(w=>w.style.transition='');
       }
@@ -462,7 +479,7 @@ Startups</textarea>
   // rewritten only when its words change, as its box is read out loud.
   const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
   const still=['Shown still: the dashed box is the window, and only what is inside it shows. The faint word waits just outside it, out of sight, and would slide in.',
-    "Shown still, a moment into a slide: in No window the old word sticks out of the line, whole; In a window cuts it off at the window's edge."];
+    "Shown still, a moment into a slide: in No window the old word sticks out of the dashed box, whole; In a window cuts it off at the box's edge."];
   const swaps=['With reduced motion on, the words swap in place and never slide. The dashed box is the window, and the faint word is the one that comes next.',
     'With reduced motion on, No window and In a window both swap the word in place. Press Pause to see them a moment into a slide.'];
   function describe(){
