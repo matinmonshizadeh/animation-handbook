@@ -201,8 +201,9 @@
   const vars=document.documentElement.style;
   let opts=[],current=0,dur=340,runTimers=[];
   // For See inside and Compare (below): which view is on, Normal's own choice while one is, the highlight's resting place,
-  // whether the pose is drawn, and the last choice (from, to)
-  let mode='normal',kept=0,last=null,posed=false,trail=null;
+  // whether the pose is drawn (and where its highlight stands), the last choice (from, to, and at: where a slide back from the pose
+  // started), whether the visitor made that choice (the pose stays away until a mode press, a setting, a resize or Show me) and the box's size
+  let mode='normal',kept=0,last=null,posed=false,posedAt=null,trail=null,chose=false,size='';
 
   function build(n){
     seg.innerHTML='';seg.appendChild(ind);opts=[];
@@ -213,8 +214,8 @@
       b.addEventListener('click',()=>select(i));
       seg.appendChild(b);opts.push(b);
     }
-    current=Math.min(current,n-1);
-    posed=false;trail=current?{from:0,to:current}:null;
+    current=Math.min(current,n-1);kept=Math.min(kept,n-1);
+    posed=false;chose=false;trail=current?{from:0,to:current}:null;
     // mark the selection before the first style resolution (no label crossfade on a rebuild), then put the highlight on it
     paint();move(current,false);draw();
   }
@@ -250,9 +251,10 @@
   }
   // The visitor's own choice also moves the keyboard focus onto the option
   function select(i){
+    chose=true; // set first: under reduced motion choose() draws at once
     if(mode!=='normal')kept=i;
     if(i!==current)choose(i);
-    else if(posed){unpose();move(current,true)} // the first option pressed while the pose is drawn: the highlight slides back to it
+    else if(posed){trail={from:0,to:0,at:posedAt};unpose();move(current,true);draw()} // the first option pressed while the pose is drawn: the highlight slides back to it, from where the pose drew it
     opts[i].focus();
   }
 
@@ -270,7 +272,11 @@
 
   // Measure again when the box reflows or a font swaps in: the widths depend on the text. A slide under way is aimed anew, not cut short.
   const remeasure=()=>{move(current,sliding());draw()};
-  addEventListener('resize',remeasure);
+  addEventListener('resize',()=>{ // a box of another size draws the views anew; a bar sliding in and out on a phone does not
+    const s=stage.clientWidth+'x'+stage.clientHeight;
+    if(s!==size){size=s;chose=false}
+    remeasure();
+  });
   if(document.fonts){
     document.fonts.ready.then(remeasure);
     document.fonts.addEventListener('loadingdone',remeasure);
@@ -294,10 +300,10 @@
   }
   // The highlight slides to the last option, rests there for 1200ms once it has arrived, and slides back. The run moves no focus.
   document.getElementById('btn-demo').addEventListener('click',()=>{
-    stopRun();
+    stopRun();chose=false;
     if(!posed)toRest(); // from the pose, the run goes on from where the highlight is drawn
     choose(opts.length-1);
-    later(()=>choose(0),dur,1200);
+    later(()=>{chose=false;choose(0)},dur,1200); // the run's end brings the pose back
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the highlight stays where it is.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
@@ -306,7 +312,7 @@
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);draw();
+      chose=false;pick(b.dataset);draw();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
@@ -323,7 +329,7 @@
   const FEEL={'cubic-bezier(.5,1.6,.4,1)':'running a little past, then back','ease-out':'slowing to a stop',linear:'at one steady speed'};
   const POSE_MS=100;
   const STILL='Shown still, a moment after the same choice: Jumps is already on the new option; Slides is part way there, stretching as it goes.';
-  const JUMPED='Motion is reduced, so Slides also jumps to the new option; with motion on it glides over and stretches to fit. The faint outline marks where it started.';
+  const JUMPED='Motion is reduced, so Slides jumps to the new option just as Jumps does; with motion on it glides over and stretches to fit. The faint outline marks where it started.';
   const over=document.createElement('div'),copy=document.createElement('div');
   over.className='sc-over';over.setAttribute('aria-hidden','true');
   over.innerHTML='<svg class="sc-svg"><path class="stem" stroke-width="1.5" opacity=".6"/><path class="arrow"/></svg><span class="ol from"></span><span class="ol to"></span>'+
@@ -332,7 +338,7 @@
   copy.className='seg-track cp';copy.setAttribute('aria-hidden','true');copy.inert=true;
   copy.innerHTML='<span class="seg-ind"></span>';
   const cind=copy.firstChild,q=s=>over.querySelector(s),easeNow=()=>getComputedStyle(document.documentElement).getPropertyValue('--ease').trim();
-  stage.prepend(copy);stage.append(over);
+  stage.prepend(copy);stage.append(over);size=stage.clientWidth+'x'+stage.clientHeight;
   stage.insertAdjacentHTML('beforeend','<span class="cap cp-name n0" data-hb-caption aria-hidden="true">Jumps</span><span class="cap cp-name n1" data-hb-caption aria-hidden="true">Slides</span>');
   function say(k,t){const el=k.nodeType?k:document.querySelector('[data-hb-for="'+k+'"]');if(el.textContent!==t)el.textContent=t}
   if(!motionOk){
@@ -375,7 +381,7 @@
     opts[T].style.color=`color-mix(in srgb,${ck} ${c}%,var(--ui-muted))`;
     void seg.offsetWidth;
     els.forEach(el=>{el.style.transition=''});
-    posed=true;
+    posed=true;posedAt=H;
   }
   function putCopy(i){
     const n=opts.length;
@@ -431,12 +437,12 @@
     q('.stem').setAttribute('d',stems);
     q('.arrow').setAttribute('d',`M${xs} ${ay-4}V${ay+4}M${xs} ${ay}H${xe}`+(Math.abs(xe-xs)>14?`M${xe-dir*7} ${ay-4}L${xe} ${ay}L${xe-dir*7} ${ay+4}`:''));
   }
-  // Draws the view for the state now: the pose when nothing is sliding or pending and the choice is on the first option, else the
-  // last choice (where the highlight started and where it landed). Safe to run again; Normal draws nothing.
+  // Draws the view for the state now: the pose when nothing is sliding or pending, the choice is on the first option and the visitor
+  // did not just make it, else the last choice (where the highlight started and where it landed). Safe to run again; Normal draws nothing.
   function draw(){
     if(mode==='normal')return;
     const calm=!sliding(),under=seg.classList.contains('underline'),T=Math.min(2,opts.length-1);
-    const posing=calm&&!running()&&current===0;
+    const posing=calm&&!running()&&current===0&&!chose;
     copy.classList.toggle('underline',under);over.classList.toggle('line',under);
     let S,Lg,H;
     if(posing){
@@ -447,7 +453,7 @@
     }else{
       if(posed)unpose();
       const t=trail||{from:0,to:current};
-      S=calm?asChosen(t.from):spot(t.from);Lg=t.to===current?last:spot(t.to);H=Lg;
+      S=t.at||(calm?asChosen(t.from):spot(t.from));Lg=t.to===current?last:spot(t.to);H=Lg;
     }
     if(mode==='compare'){putCopy(posing?T:current);if(!motionOk)say('compare',posing?STILL:JUMPED)}
     place(S,Lg,H,under);
@@ -457,7 +463,7 @@
   // first option, started a moment after the first option is drawn: the browser keeps the highlight's drawing at the scale of its
   // last jump, so a jump straight to a stretched place would not look like the slide that first put it there.
   document.addEventListener('hb:mode',e=>{
-    const was=mode;mode=e.detail.mode;
+    const was=mode;mode=e.detail.mode;chose=false;
     if(mode==='normal'){
       if(was!=='normal'){
         stopRun();unpose();toRest(0);
