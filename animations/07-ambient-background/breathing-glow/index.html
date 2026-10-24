@@ -56,7 +56,7 @@
     }
     /* See inside and Compare: everything they add stays hidden until its mode is pressed. Labels sit on their own dark backing. */
     .ins,.panel,.cap,.half-a,.ghost{display:none}
-    .cap{position:absolute;z-index:2;margin:0;padding:3px 7px;border-radius:5px;background:rgba(2,4,8,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .cap{position:absolute;z-index:3;margin:0;padding:3px 7px;border-radius:5px;background:rgba(2,4,8,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
     .c-min{white-space:nowrap}
     .c-max,.c-icon{max-width:min(230px,60%);text-wrap:balance}
     @media(max-width:340px){.cap{font-size:12px}}
@@ -290,11 +290,15 @@
   const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
     'Inside, shown still: the glow breathes between the two dashed rings, and the graph shows one breath, easing gently at both ends.',
     'Shown still at the top of a breath, each with a dashed ring where it was smallest; the bars show how fast each breathes, Alarming always faster than Calm.'];
+  // At A lot, Calm swings as wide as Alarming (the page's own hint calls big swings alarming), so Compare's note says so
+  const wideWords=['Alarming swings from tiny to huge in quick breaths, which feels like a warning. Calm, set to grow a lot, swings just as wide; only its slower pace keeps it calmer.',
+    'Shown still at the top of a breath, each with a dashed ring where it was smallest; set to grow a lot, Calm swings as wide, and the bars show Alarming breathes faster.'];
   let mode='normal',paused=reduceMQ.matches,posed=false;
   const saved=new Map();
   function describe(){
     const shown=reduceMQ.matches&&paused;
-    notes.forEach((n,i)=>{const words=shown&&(i===0||posed)?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+    const big=parseFloat(root.getPropertyValue('--glow-min'))<.5;
+    notes.forEach((n,i)=>{const s=shown&&(i===0||posed),words=i===1&&big?wideWords[s?1:0]:s?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
   }
   describe();
   document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused){posed=false;saved.clear()}describe()});
