@@ -47,6 +47,54 @@
     /* The site focus ring is drawn inside the button. On the orange and green buttons it is as light as the fill, so it turns dark. */
     .hb-page .stage .pbtn-primary:focus-visible,.hb-page .stage .pbtn-success:focus-visible{outline-color:#0b0b0d}
     @media(prefers-reduced-motion:reduce){.pbtn,.pbtn.pressed,.pbtn::before,.pbtn::after{transition:none!important}}
+    /* See inside and Compare, drawn over the stage from the page's own numbers: each button's size at rest (dashed) and held down
+       (dotted), four captions with leaders; in Compare a copy of the buttons that stays the same beside the real ones, which take
+       the pose of the real Confirm held down until a button is held or a run waits. */
+    .stage{position:relative}
+    .views{display:none;position:absolute;inset:0;pointer-events:none}
+    .views svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .marks,.c-in,.c-cmp,.twins,.cursors,.o-out,.o-edge,.o-in,.lead{display:none}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="compare"] .views{display:block}
+    .stage[data-hb-mode="inside"] .marks,.stage[data-hb-mode="inside"] .c-in,.stage[data-hb-mode="compare"] .marks,
+    .stage[data-hb-mode="compare"] .c-cmp,.stage[data-hb-mode="compare"] .cursors{display:block}
+    .stage[data-hb-mode="inside"] .o-out,.stage[data-hb-mode="inside"] .o-edge,.stage[data-hb-mode="inside"] .o-in,.stage[data-hb-mode="inside"] .lead{display:inline}
+    .stage[data-hb-mode="compare"] .m:first-child .o-out{display:inline;opacity:.55}
+    .o-out{fill:none;stroke:#f4f4f2;stroke-width:2;stroke-dasharray:7 5}
+    .o-edge{fill:none;stroke:#0b0b0d;stroke-width:4}
+    .o-in{fill:none;stroke:#f4f4f2;stroke-width:2.5;stroke-dasharray:.1 5;stroke-linecap:round}
+    .lead path{fill:none;stroke:#f4f4f2;stroke-width:1.5;stroke-linejoin:round}
+    .lead path:first-child{stroke:#0b0b0d;stroke-width:4}
+    .lead circle{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5}
+    .cursors path{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    #gh{opacity:.7}
+    .cap{position:absolute;padding:2px 7px;border-radius:5px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);width:max-content}
+    .cmp-name{top:10px}
+    .cmp-name.one{left:12px}
+    .cmp-name.two{left:calc(50% + 12px)}
+    .cmp-time{left:calc(50% + 12px);right:12px;bottom:8px;width:fit-content;margin:0 auto;text-align:center;font-size:12.5px}
+    /* Compare: the real buttons take the right half, the copies the left; the names sit above, the timing words below */
+    .stage[data-hb-mode="compare"]{gap:14px;padding:44px 12px 64px calc(50% + 12px)}
+    .twins{position:absolute;left:0;top:0;bottom:0;width:50%;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:44px 12px 64px}
+    .twins .pbtn{display:flex;align-items:center;justify-content:center;cursor:default}
+    .stage[data-hb-mode="compare"] .twins{display:flex}
+    .stage[data-hb-mode="compare"].posed>.pbtn-primary{transform:scale(var(--press-scale));transition:none}
+    .stage[data-hb-mode="compare"].posed>.pbtn-primary::before,.stage[data-hb-mode="compare"].posed>.pbtn-primary::after{transition:none}
+    .stage[data-hb-mode="compare"].posed>.pbtn-primary::before{opacity:0}
+    .stage[data-hb-mode="compare"].posed>.pbtn-primary::after{opacity:1}
+    .stage.lift .pbtn,.stage.lift .pbtn::before,.stage.lift .pbtn::after{transition:none!important}
+    /* A short window: the timing words need the room of the other two buttons */
+    @media(min-width:601px) and (max-height:649px){.stage[data-hb-mode="compare"] .pbtn:nth-child(n+2){display:none}}
+    /* Phones: Confirm alone, with the captions above and below it; Compare stacks its halves */
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"] .pbtn:nth-child(n+2),.stage[data-hb-mode="compare"] .pbtn:nth-child(n+2){display:none}
+      .stage[data-hb-mode="inside"]{padding-bottom:48px}
+      .stage[data-hb-mode="compare"]{padding:0 12px 64px;justify-content:flex-end}
+      .twins{width:auto;right:0;bottom:50%;justify-content:flex-start;padding:30px 12px 0}
+      .cmp-name{top:6px}
+      .cmp-name.one,.cmp-name.two{left:12px}
+      .cmp-name.two{top:calc(50% + 6px)}
+      .cmp-time{left:12px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -69,14 +117,44 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press and hold a button, then let go, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <button class="pbtn pbtn-primary" type="button">Confirm</button>
       <button class="pbtn pbtn-success" type="button">Save Draft</button>
       <button class="pbtn pbtn-ghost" type="button">Cancel</button>
+      <div class="views" aria-hidden="true">
+        <div class="twins" aria-hidden="true" inert></div>
+        <svg class="marks">
+          <g class="m"><rect class="o-out"/><rect class="o-edge"/><rect class="o-in"/></g>
+          <g class="m"><rect class="o-out"/><rect class="o-edge"/><rect class="o-in"/></g>
+          <g class="m"><rect class="o-out"/><rect class="o-edge"/><rect class="o-in"/></g>
+          <g class="lead"><path/><path/><circle r="3"/></g>
+          <g class="lead"><path/><path/><circle r="3"/></g>
+          <g class="lead"><path/><path/><circle r="3"/></g>
+          <g class="lead"><path/><path/><circle r="3"/></g>
+        </svg>
+        <span class="cap c-in" data-hb-caption>At rest: full size</span>
+        <span class="cap c-in" data-hb-caption>Held down: a little smaller, very quickly</span>
+        <span class="cap c-in" data-hb-caption>Let go: back in about a fifth of a second, a little past full size</span>
+        <span class="cap c-in" data-hb-caption>Two glows trade places: big at rest, small when held</span>
+        <span class="cap c-cmp cmp-name one" data-hb-caption>Stays the same</span>
+        <span class="cap c-cmp cmp-name two" data-hb-caption>Shrinks when pressed</span>
+        <span class="cap c-cmp cmp-time" data-hb-caption>Sinks very quickly; springs back in about a fifth of a second, a little past full size</span>
+        <!-- The pretend pointer on the held real button and its ghost on the copy, after the captions so no caption hides them -->
+        <svg class="cursors"><g id="gh" style="display:none"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></g><g id="pt" style="display:none"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></g></svg>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the outer outline is the button at rest and the inner one its size while held down; let go and it springs back out. Press and hold a button, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Stays the same: pressing it changes nothing, so it feels dead; Shrinks when pressed: it sinks in while held and springs back as you let go. Press a button, or Show me.</p>
     </div>
   </section>
 
@@ -194,29 +272,131 @@
     runTimers.push(id);
   }
   function running(){return runTimers.length>0}
-  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];btns.forEach(b=>b.classList.remove('pressed'))}
+  function stopRun(){runTimers.forEach(clearTimeout);runTimers=[];btns.forEach(b=>b.classList.remove('pressed'));refresh()}
   // Button i goes down, shrinks for pd, is held 320ms and springs back for rd; the next one goes down 220ms after that.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     btns.forEach((b,i)=>{
+      if(!b.offsetWidth)return; // a button a mode hides on a phone is not pressed
       later(()=>b.classList.add('pressed'),i*(pd+rd),i*540);
       later(()=>b.classList.remove('pressed'),i*(pd+rd)+pd,i*540+320);
     });
+    refresh();
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops. The shared script sends this before the
   // button's own pointerdown handler runs, so the visitor's own press still takes effect.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
+
+  // See inside and Compare. ps (Press depth), pd, rd and feel (Release feel) are the page's own numbers; the words say how long each part
+  // takes, times three while Slow motion is on, as the real press is. The copies are made once, after btns, so they never press.
+  const stage=document.querySelector('.stage'),twins=stage.querySelector('.twins'),marks=[...stage.querySelectorAll('.m')];
+  const caps=[...stage.querySelectorAll('.c-in')],timeCap=stage.querySelector('.cmp-time'),leads=[...stage.querySelectorAll('.lead')];
+  const pt=document.getElementById('pt'),gh=document.getElementById('gh');
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const NOTE={inside:noteIn.textContent,compare:noteCmp.textContent};
+  const RM={inside:'Inside, the outer outline is the button at rest and the inner one its size while held down; with reduced motion on it changes size at once.',
+    compare:'Stays the same looks as always, and Shrinks when pressed rests held down, smaller with a smaller glow. With reduced motion on it changes size at once.'};
+  const rmQuery=matchMedia('(prefers-reduced-motion: reduce)'),stacked=matchMedia('(max-width:600px)');
+  const OUT=3,LANE=14,FEELS={spring:'a little past full size',out:'slowing into place',linear:'at one steady pace'};
+  let mode='normal',ps=.95,feel='spring',held=false;
+  btns.forEach(b=>{const c=document.createElement('span');c.className=b.className;c.textContent=b.textContent;twins.append(c)});
+  const smaller=s=>s>=.96?'slightly smaller':s>=.93?'a little smaller':'a tenth smaller';
+  const quickly=ms=>ms<60?'almost at once':ms<110?'very quickly':ms<210?'quickly':'in under half a second';
+  const secs=ms=>ms<130?'about a tenth of a second':ms<250?'about a fifth of a second':ms<420?'about a third of a second':ms<700?'about half a second':'almost a second';
+  const say=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  const set=(el,o)=>{for(const k in o)el.setAttribute(k,o[k])};
+  const box=b=>({x:b.offsetLeft,y:b.offsetTop,w:b.offsetWidth,h:b.offsetHeight});
+  function words(){
+    const k=slowTog.checked?3:1,rm=rmQuery.matches;
+    say(caps[1],'Held down: '+smaller(ps)+', '+(rm?'at once':quickly(pd*k)));
+    say(caps[2],'Let go: back '+(rm?'to full size at once':'in '+secs(rd*k)+', '+FEELS[feel]));
+    say(timeCap,rm?'Changes size at once':'Sinks '+quickly(pd*k)+'; springs back in '+secs(rd*k)+', '+FEELS[feel]);
+    say(noteIn,rm?RM.inside:NOTE.inside);say(noteCmp,rm?RM.compare:NOTE.compare);
+  }
+  // Both outlines come from each button's own box: the outer one a few pixels outside it, the inner one at Press depth
+  function drawMarks(){
+    btns.forEach((b,i)=>{
+      const r=box(b),g=marks[i],[out,edge,inn]=g.children;
+      g.style.display=r.w?'':'none';
+      if(!r.w)return;
+      const w=r.w*ps,h=r.h*ps,inner={x:r.x+(r.w-w)/2,y:r.y+(r.h-h)/2,width:w,height:h,rx:8*ps};
+      set(out,{x:r.x-OUT,y:r.y-OUT,width:r.w+2*OUT,height:r.h+2*OUT,rx:8+OUT});set(edge,inner);set(inn,inner);
+    });
+  }
+  // See inside's captions, from their measured sizes. A desktop box has two on each side of the column; a phone's has Confirm alone
+  // with two above and two below, their leaders running down the margins. Every leader ends in a dot on what it names.
+  function placeInside(){
+    const W=stage.clientWidth,H=stage.clientHeight,phone=stacked.matches,r=box(btns[0]),xr=r.x+r.w,yb=r.y+r.h,cx=r.x+r.w/2,cy=r.y+r.h/2;
+    const g=btns[1].offsetWidth?(btns[1].offsetTop-yb)/2:12,xl=r.x-OUT-LANE,xq=xr+OUT+LANE;
+    const T=phone?[{x:r.x-OUT,y:r.y+12},{x:cx+r.w*ps/2,y:cy-8},{x:r.x-OUT,y:yb-12},{x:xr-26,y:yb+g}]
+      :[{x:r.x-OUT,y:r.y+12},{x:cx-r.w*ps/2,y:cy+8},{x:xr+OUT,y:r.y+12},{x:xr-26,y:yb+g}];
+    const lead=(i,d)=>{const e=leads[i];e.children[0].setAttribute('d',d);e.children[1].setAttribute('d',d);set(e.children[2],{cx:T[i].x,cy:T[i].y})};
+    caps.forEach(c=>{c.style.left='0px';c.style.top='0px'});
+    if(phone){
+      caps[0].style.maxWidth=caps[2].style.maxWidth=(xq-14)+'px';caps[1].style.maxWidth=caps[3].style.maxWidth=(W-16)+'px';
+      const h=caps.map(c=>c.offsetHeight),w=caps.map(c=>c.offsetWidth),c1=r.y-OUT-4-h[0],c2=c1-6-h[1],c3=yb+OUT+14,c4=c3+h[2]+6;
+      [[0,8,c1],[1,W-8-w[1],c2],[2,8,c3],[3,W-8-w[3],c4]].forEach(([i,x,y])=>{caps[i].style.left=x+'px';caps[i].style.top=y+'px'});
+      lead(0,`M${T[0].x} ${T[0].y}H${xl}V${c1+h[0]}`);lead(1,`M${T[1].x} ${T[1].y}H${xq}V${c2+h[1]}`);
+      lead(2,`M${T[2].x} ${T[2].y}H${xl}V${c3}`);lead(3,`M${T[3].x} ${T[3].y}H${xq}V${c4}`);
+      return;
+    }
+    // each side stacks its two captions down from the height of their targets, and moves up as one if the bottom would leave the box
+    [[0,1,xl,true],[2,3,xq,false]].forEach(([a,b,lane,left])=>{
+      caps[a].style.maxWidth=caps[b].style.maxWidth=Math.min(300,left?lane-12:W-lane-12)+'px';
+      let y=6;const tops=[a,b].map(i=>{const h=caps[i].offsetHeight,t=y=Math.max(y,T[i].y-h/2);y+=h+6;return t});
+      const over=Math.max(0,tops[1]+caps[b].offsetHeight-(H-6));
+      [a,b].forEach((i,k)=>{
+        const c=caps[i],top=Math.max(6,tops[k]-over),edge=left?lane-6:lane+6;
+        c.style.left=(left?edge-c.offsetWidth:edge)+'px';c.style.top=top+'px';
+        lead(i,`M${T[i].x} ${T[i].y}H${lane}V${top+c.offsetHeight/2}H${edge}`);
+      });
+    });
+  }
+  // Compare: the pose is the real Confirm held down by a mode rule; it lifts at once (transitions off for the flush) and comes back
+  // when no button is held, no run waits and no button is still moving. The pretend pointer sits on the held real button, its ghost
+  // on the copy beside it.
+  function setPose(on){
+    if(stage.classList.contains('posed')===on)return;
+    if(on)stage.classList.add('posed');
+    else{stage.classList.add('lift');stage.classList.remove('posed');void stage.offsetWidth;stage.classList.remove('lift')}
+  }
+  const centre=el=>{const s=stage.getBoundingClientRect(),b=el.getBoundingClientRect();return{x:b.left+b.width/2-s.left-stage.clientLeft,y:b.top+b.height/2-s.top-stage.clientTop}};
+  function refresh(){
+    if(mode!=='compare'){setPose(false);return}
+    const h=btns.findIndex(b=>b.classList.contains('pressed')),busy=h>=0||running()||btns.some(b=>b.getAnimations().length);
+    setPose(!busy);
+    const at=h>=0?h:busy?-1:0,show=at>=0&&btns[at].offsetWidth>0;
+    gh.style.display=show?'':'none';pt.style.display=show&&!held?'':'none';
+    if(show){
+      const a=centre(btns[at]),c=centre(twins.children[at]);
+      pt.setAttribute('transform',`translate(${a.x+50} ${a.y-2})`);gh.setAttribute('transform',`translate(${c.x+50} ${c.y-2})`);
+    }
+  }
+  function draw(){
+    if(mode!=='normal'){words();drawMarks();if(mode==='inside')placeInside()}
+    refresh();
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Show me (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;draw()});
+  const redraw=()=>{if(mode!=='normal')draw()};
+  addEventListener('resize',redraw);slowTog.addEventListener('change',redraw);rmQuery.addEventListener('change',redraw);
+  document.fonts.ready.then(redraw);
+  const mo=new MutationObserver(refresh);btns.forEach(b=>mo.observe(b,{attributes:true,attributeFilter:['class']}));
+  stage.addEventListener('transitionend',()=>{if(mode==='compare')refresh()});
+  stage.addEventListener('pointerdown',e=>{held=e.isTrusted},true);
+  ['pointerup','pointercancel'].forEach(t=>addEventListener(t,()=>{if(held){held=false;refresh()}},true));
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      redraw();
     }));
   }
-  choices('depth-seg',d=>{vars.setProperty('--press-scale',d.scale)});
+  choices('depth-seg',d=>{ps=+d.scale;vars.setProperty('--press-scale',d.scale)});
   choices('release-seg',d=>{rd=+d.ms;vars.setProperty('--release-dur',rd+'ms')});
-  choices('feel-seg',d=>{vars.setProperty('--release-ease',d.ease)});
+  choices('feel-seg',d=>{feel=d.ease==='linear'?'linear':d.ease==='ease-out'?'out':'spring';vars.setProperty('--release-ease',d.ease)});
   choices('press-seg',d=>{pd=+d.ms;vars.setProperty('--press-dur',pd+'ms')});
 </script>
 </body>
