@@ -432,13 +432,16 @@ function drawSide(t){
   for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
     const s=(i+.5)*cw-.5;dist[j*nx+i]=mapJS(ray.ox+s*hx,(ny-j-.5)/ny*(h/vk)-1.45,ray.oz+s*hz,t,SCENE);did[j*nx+i]=hitId;
   }
-  // The cut: the distance is blended between grid points at every output pixel, so the edge of a shape comes out clean
-  for(let j=0,o=0;j<oy;j++){
-    const v=Math.min(Math.max((j+.5)/oy*ny-.5,0),ny-1.001),j0=v|0,fy=v-j0;
+  // The cut: the distance is blended between grid points at every output pixel. Walls thinner than a cell fall between grid points,
+  // so just outside a surface it is worked out exactly at the pixel, and the edge is drawn half a pixel out so no wall is lost
+  for(let j=0,o=0,reach=(SCENE>1?1.5:.75)*cw;j<oy;j++){
+    const v=Math.min(Math.max((j+.5)/oy*ny-.5,0),ny-1.001),j0=v|0,fy=v-j0,y=(oy-j-.5)/oy*(h/vk)-1.45;
     for(let i=0;i<ox;i++,o+=4){
-      const u=Math.min(Math.max((i+.5)/ox*nx-.5,0),nx-1.001),fx=u-(u|0),p=j0*nx+(u|0);
-      const d=(dist[p]*(1-fx)+dist[p+1]*fx)*(1-fy)+(dist[p+nx]*(1-fx)+dist[p+nx+1]*fx)*fy,m=MATS[did[p+(fx>.5)+(fy>.5)*nx]],e=.8+.45*Math.exp(Math.min(d,0)*28);
-      px[o]=m[0]*e;px[o+1]=m[1]*e;px[o+2]=m[2]*e;px[o+3]=(.5-d/pw)*255;
+      const u=Math.min(Math.max((i+.5)/ox*nx-.5,0),nx-1.001),fx=u-(u|0),p=j0*nx+(u|0),s=(i+.5)*pw-.5;
+      let d=(dist[p]*(1-fx)+dist[p+1]*fx)*(1-fy)+(dist[p+nx]*(1-fx)+dist[p+nx+1]*fx)*fy,m=MATS[did[p+(fx>.5)+(fy>.5)*nx]];
+      if(d<reach&&d>-.5*cw){d=mapJS(ray.ox+s*hx,y,ray.oz+s*hz,t,SCENE);m=MATS[hitId];}
+      const e=.8+.45*Math.exp(Math.min(d,0)*28);
+      px[o]=m[0]*e;px[o+1]=m[1]*e;px[o+2]=m[2]*e;px[o+3]=(1-d/pw)*255;
     }
   }
   gctx.putImageData(gimg,0,0);sctx.clearRect(0,0,w,h);sctx.drawImage(grid,0,0,w,h);
