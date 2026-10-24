@@ -36,7 +36,68 @@
     .card[data-mode="blur-only"].in{opacity:1;filter:blur(0)}
     .card[data-mode="fade-only"]{filter:none!important;transform:none!important;transition:opacity var(--dur) var(--ease)!important}
     .card[data-mode="fade-only"].in{opacity:1}
-    @media(prefers-reduced-motion:reduce){.card{transition:opacity 300ms linear!important;filter:none!important;transform:none!important}}
+    /* See inside and Compare. Their labels are plain words on a dark backing. The box and the card's wrapper stay flex boxes in every
+       mode, so the browser keeps the card's own box and its picture when a mode is left. */
+    .slot{display:flex}
+    .twin-slot,.bars,.side,.when{display:none}
+    .pill{padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.88);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .side,.when{position:absolute;z-index:1}
+    .side{top:12px}
+    .side.first{left:12px}
+    .side.second{left:calc(50% + 12px)}
+    .when{left:50%;transform:translateX(-50%);visibility:hidden}
+    .stage.posed .when{visibility:visible}
+    /* See inside: the card beside three bars, one for each change (under it on phones). Each bar starts at the full size of its
+       change and shrinks to nothing on the card's own timing, so the three end together with the card. A dashed outline marks the
+       card's resting place, so the drift shows as a gap. */
+    .stage[data-hb-mode="inside"]{justify-content:center;gap:clamp(24px,6vw,72px);padding:clamp(8px,2.5vh,28px) clamp(12px,3vw,32px)}
+    .stage[data-hb-mode="inside"] .slot{position:relative;min-width:0}
+    .stage[data-hb-mode="inside"] .slot::before{content:'';position:absolute;inset:0;border:1.5px dashed rgba(244,244,242,.6);border-radius:14px;opacity:0}
+    .stage[data-hb-mode="inside"] .slot.drifts::before{opacity:1}
+    .stage[data-hb-mode="inside"] .when{display:block;top:100%;margin-top:10px}
+    .stage[data-hb-mode="inside"] .bars{display:flex;flex-direction:column;gap:clamp(12px,3vh,22px);flex:1 1 0;min-width:0;max-width:300px}
+    .bar{display:flex;flex-direction:column;align-items:flex-start;gap:6px}
+    .bar[hidden]{display:none!important}
+    .trk{display:block;width:100%;height:8px;border-radius:4px;background:rgba(244,244,242,.16);overflow:hidden}
+    .trk i{display:block;height:100%;background:var(--ui-accent);transform-origin:0 50%;transform:scaleX(var(--w,1));transition:transform var(--dur) var(--ease)}
+    .stage[data-hb-mode="inside"] .bars.in i{transform:scaleX(0)}
+    /* Compare: the card twice, each in its own half that clips its blur. On the left a copy that only fades in (Fade only); on the
+       right the card itself, as What changes sets it. Between plays both rest a fifth of a second in. */
+    .stage[data-hb-mode="compare"]{position:relative}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .slot{position:relative;flex:1 1 0;min-width:0;align-self:stretch;align-items:center;justify-content:center;overflow:hidden;padding:40px 6px 44px}
+    .stage[data-hb-mode="compare"] .twin-slot{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"] .when{display:block;bottom:10px}
+    .stage[data-hb-mode="inside"] .card-title,.stage[data-hb-mode="compare"] .card-title{white-space:nowrap}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{flex-direction:column;gap:8px;padding:8px 12px}
+      .stage[data-hb-mode="inside"] .slot{margin-bottom:26px}
+      .stage[data-hb-mode="inside"] .bars{display:grid;grid-template-columns:max-content minmax(0,1fr);align-items:center;gap:8px 10px;flex:none;width:100%;max-width:none}
+      .stage[data-hb-mode="inside"] .bar{display:contents}
+      .stage[data-hb-mode="compare"] .slot{padding:36px 4px 40px}
+    }
+    /* Phones and short boxes (a window up to 640px tall gives a box of 310px or less): compact cards, the icon and the title */
+    @media(max-width:600px),(max-height:640px){
+      .stage[data-hb-mode="inside"] .card,.stage[data-hb-mode="compare"] .card{padding:14px 16px}
+      .stage[data-hb-mode="inside"] .card-sub,.stage[data-hb-mode="compare"] .card-sub{display:none}
+      .stage[data-hb-mode="inside"] .card-icon,.stage[data-hb-mode="compare"] .card-icon{font-size:22px;margin-bottom:6px}
+    }
+    /* Reduced motion keeps the blur and the drift out of every play, so the held moment is drawn still: opacity, blur and drift a fifth
+       of a second in (--p is how far the Feel has taken a play by then). These rules beat the card's own mode rules and the reduced fade. */
+    @media(prefers-reduced-motion:reduce){
+      .card{transition:opacity 300ms linear!important;filter:none!important;transform:none!important}
+      .trk i{transition:none!important}
+      .stage[data-hb-mode="inside"].posed .card:not(.twin),.stage[data-hb-mode="compare"].posed .card:not(.twin){
+        opacity:var(--p)!important;filter:blur(calc(var(--blur-start)*(1 - var(--p))))!important;
+        transform:translateY(calc(var(--ty)*(1 - var(--p))))!important;transition:none!important}
+      .stage[data-hb-mode="inside"].posed .card[data-mode="blur-only"]:not(.twin),.stage[data-hb-mode="compare"].posed .card[data-mode="blur-only"]:not(.twin){
+        opacity:1!important;transform:none!important}
+      .stage[data-hb-mode="inside"].posed .card[data-mode="fade-only"]:not(.twin),.stage[data-hb-mode="compare"].posed .card[data-mode="fade-only"]:not(.twin){
+        filter:none!important;transform:none!important}
+      .stage[data-hb-mode="compare"].posed .card.twin{opacity:var(--p)!important;transition:none!important}
+      .stage[data-hb-mode="inside"].posed .trk i{transform:scaleX(calc(var(--w,1)*(1 - var(--p))))!important;transition:none!important}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -59,17 +120,36 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="card" id="card" data-mode="blur-fade">
-        <div class="card-icon">◉</div>
-        <div class="card-title">Focus Pull</div>
-        <div class="card-sub">It sharpens and fades in at the same time, like a camera finding focus.</div>
+      <div class="slot">
+        <div class="card" id="card" data-mode="blur-fade">
+          <div class="card-icon">◉</div>
+          <div class="card-title">Focus Pull</div>
+          <div class="card-sub">It sharpens and fades in at the same time, like a camera finding focus.</div>
+        </div>
+        <p class="pill when" aria-hidden="true" data-hb-caption>A fifth of a second in</p>
       </div>
+      <div class="bars" aria-hidden="true">
+        <div class="bar" data-bar="blur"><span class="pill" data-hb-caption>Blur</span><span class="trk"><i></i></span></div>
+        <div class="bar" data-bar="see"><span class="pill" data-hb-caption>See-through</span><span class="trk"><i></i></span></div>
+        <div class="bar" data-bar="drift"><span class="pill" data-hb-caption>Below its place</span><span class="trk"><i></i></span></div>
+      </div>
+      <p class="pill side first" aria-hidden="true" data-hb-caption>Fade only</p>
+      <p class="pill side second" aria-hidden="true" data-hb-caption>Blur and fade</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each bar shows what is left of one change: the blur, the see-through look, the drift. They run out together, on the same timing.</p>
+      <p data-hb-for="compare" hidden>Fade only just fades in, sharp the whole time; Blur and fade also sharpens from a blur, like a camera finding focus. With Loop off, both rest a fifth of a second in.</p>
     </div>
   </section>
 
@@ -167,54 +247,149 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const card=document.getElementById('card');
+  const slot=card.parentElement,stage=slot.parentElement;
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const driftSetting=document.getElementById('drift-setting'),driftTog=document.getElementById('drift-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let ms=700,blurStart='20px',ease='ease-out',timers=[];
+  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own), the page's drift in
+  // pixels, the heaviest blur it offers (the bars' fixed scale), the moment both views hold, and the names of What changes.
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const DRIFT=8,POSE_MS=200,BLUR_MAX=Math.max(...[...document.querySelectorAll('#blur-seg button')].map(b=>parseFloat(b.dataset.blur)));
+  const NAMES={'blur-fade':'Blur and fade','blur-only':'Blur only','fade-only':'Fade only'};
+  const bars=stage.querySelector('.bars'),rows={},fills=[...bars.querySelectorAll('.bar')].map(b=>(rows[b.dataset.bar]=b).querySelector('i'));
+  const second=stage.querySelector('.side.second');
+  // Compare's first card: a copy that always plays Fade only, in a half of its own, out of reach of the keyboard and screen readers
+  const twin=card.cloneNode(true);
+  twin.removeAttribute('id');twin.classList.add('twin');twin.dataset.mode='fade-only';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  const twinSlot=document.createElement('div');
+  twinSlot.className='slot twin-slot';twinSlot.inert=true;twinSlot.setAttribute('aria-hidden','true');twinSlot.append(twin);slot.before(twinSlot);
+  const moving=[card,twin,...fills];
+  let mode='normal';
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
     vars.setProperty('--dur',dur()+'ms');
     vars.setProperty('--ease',ease);
     vars.setProperty('--blur-start',blurStart);
-    vars.setProperty('--ty',driftTog.checked?'8px':'0px');
+    vars.setProperty('--ty',driftTog.checked?DRIFT+'px':'0px');
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){card.classList.toggle('in',on);twin.classList.toggle('in',on);bars.classList.toggle('in',on)}
+  // run fn with every transition off for one frame, so the change shows at once
+  function snap(fn){
+    moving.forEach(el=>el.style.setProperty('transition','none','important'));
+    fn();void card.offsetWidth;
+    moving.forEach(el=>el.style.removeProperty('transition'));
+  }
   function blurIn(){
     // snap back to the starting pose without a transition so every play starts from the beginning
-    card.style.setProperty('transition','none','important');
-    card.classList.remove('in');void card.offsetWidth;
-    card.style.removeProperty('transition');
-    card.classList.add('in');
+    snap(()=>setIn(false));
+    setIn(true);
   }
+  // The held moment of See inside and Compare comes back once a play is over (the reduced fade is 300ms), if a mode is on show
+  function holdLater(){later(()=>{if(mode!=='normal'&&!(loopTog.checked&&motionOk))pose(true)},(motionOk?dur():300)+700)}
   // One play blurs in. While Loop is on it then holds, blurs out, waits and plays again;
   // switching Loop off lets the card finish sharp. Slow motion stretches the blur, not the waits.
+  // In a mode a play lifts the held moment, and it is held again after the play.
   function cycle(){
-    apply();blurIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();pose(false);blurIn();
+    if(!loopTog.checked||!motionOk){holdLater();return}
     later(()=>{
       if(!loopTog.checked)return;
-      card.classList.remove('in');
+      setIn(false);
       later(cycle,dur()+400);
     },dur()+900);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // The held moment: the play itself, frozen where a fifth of a second has run (a share of the play, so Slow motion does not move it).
+  // Every value is the page's own, and the card is never restyled. Under reduced motion the rules above draw it, by --p.
+  function deal(){
+    apply();
+    if(motionOk){
+      snap(()=>setIn(false));setIn(true);
+      const share=Math.min(1,POSE_MS/ms);
+      stage.getAnimations({subtree:true}).forEach(a=>{a.pause();a.currentTime=share*a.effect.getComputedTiming().duration});
+    }
+    stage.classList.add('posed');
+  }
+  function pose(on){
+    const held=stage.classList.contains('posed');
+    if(on)deal();
+    else if(held){
+      if(motionOk){stage.getAnimations({subtree:true}).forEach(a=>a.finish());stage.classList.remove('posed')}
+      else snap(()=>stage.classList.remove('posed'));
+    }
+    note();
+  }
+  // Each view's note, in words that hold for What changes, Drifts up and reduced motion; written only when its words change
+  function note(){
+    if(mode==='normal')return;
+    const m=card.dataset.mode,drift=m==='blur-fade'&&driftTog.checked,still=!motionOk&&stage.classList.contains('posed');
+    let t;
+    if(mode==='inside'){
+      const one=m==='blur-only'?'the bar shows what is left of the blur as it runs out; with Blur only the card stays solid and in place.'
+        :m==='fade-only'?'the bar shows how see-through the card still is as it runs out; Fade only adds no blur and no drift.'
+        :'each bar shows what is left of one change: '+(drift?'the blur, the see-through look, the drift.':'the blur and the see-through look.');
+      t=still?'Shown still, a fifth of a second in: '+one:'Inside, '+one+(motionOk&&m==='blur-fade'?' They run out together, on the same timing.':'');
+    }else if(m==='fade-only')t='What changes is set to Fade only, so both halves fade in the same way. Pick Blur and fade under More options in Try it to see the difference.';
+    else if(still)t='Shown still, a fifth of a second in: Fade only is part way in and sharp, while '+NAMES[m]+(m==='blur-only'?' is solid and still blurred.':drift?' is still blurred and a little low.':' is still blurred.');
+    else if(!motionOk)t='Playing the short fade, with no blur because your device is set to reduce motion.';
+    else t='Fade only just fades in, sharp the whole time; '+(m==='blur-only'?'Blur only stays solid and sharpens from a blur.':'Blur and fade also sharpens from a blur, like a camera finding focus.')+' With Loop off, both rest a fifth of a second in.';
+    const p=document.querySelector('[data-hb-for="'+mode+'"]');
+    if(p.textContent!==t)p.textContent=t;
+  }
+  // What the views draw from the settings: which bars show and how long each starts, the pose, the right half's name
+  function refresh(){
+    const m=card.dataset.mode,drifts=m==='blur-fade'&&driftTog.checked;
+    stage.style.setProperty('--p',curveAt(CURVES[ease],Math.min(1,POSE_MS/ms)).toFixed(3));
+    slot.classList.toggle('drifts',drifts);
+    rows.blur.hidden=m==='fade-only';rows.see.hidden=m==='blur-only';rows.drift.hidden=!drifts;
+    rows.blur.querySelector('i').style.setProperty('--w',(parseFloat(blurStart)/BLUR_MAX).toFixed(3));
+    rows.drift.querySelector('i').style.setProperty('--w',(DRIFT/BLUR_MAX).toFixed(3));
+    second.textContent=NAMES[m];
+    if(stage.classList.contains('posed'))deal();
+    note();
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    pose(mode!=='normal'&&!(loopTog.checked&&motionOk));
+    refresh();
+  });
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  // Loop off: a play still in its blur in or hold ends there (and in a mode is then held); one blurring out or waiting plays on
+  // to its end, blurs in once more, then holds by itself
+  loopTog.addEventListener('change',()=>{
+    if(loopTog.checked)play();
+    else if(mode!=='normal'&&card.classList.contains('in'))holdLater();
+  });
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('blur-seg',d=>{blurStart=d.blur});
   choices('speed-seg',d=>{ms=+d.ms});
   choices('mode-seg',d=>{card.dataset.mode=d.mode;driftSetting.hidden=d.mode!=='blur-fade'});
   choices('feel-seg',d=>{ease=d.ease});
+  driftTog.addEventListener('change',refresh);
   apply();
+  refresh();
 </script>
 </body>
 </html>
