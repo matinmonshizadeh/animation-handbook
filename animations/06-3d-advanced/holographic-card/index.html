@@ -61,6 +61,32 @@
     .card.split{transform-style:preserve-3d}.card.split .foil,.card.split .gl{mix-blend-mode:normal}.card.split .gloss{display:none}
     .card.split .ly{will-change:transform;box-shadow:inset 0 0 0 1px rgba(var(--hc-light),.3)}
     @media(prefers-reduced-motion:reduce){.card{touch-action:auto}.foil,.spot{transition:opacity .3s}} /* nothing moves: only fades */
+    /* See inside cuts the card into four strips with static clips: the picture shows in all four, the foil in the last three, the glare in
+       the last two and the text panels in the last. A ring marks the pretend pointer, parked where nothing aims. Compare puts a plain copy
+       (picture and text panels only) in the first half, each card with a perspective of its own. */
+    .plain,.cut,.pt,.views,.cap{display:none}
+    .views,.pt{position:absolute;inset:0;pointer-events:none}
+    .cut{position:absolute;inset:0;pointer-events:none;--ln:linear-gradient(rgba(var(--hc-light),.5),rgba(var(--hc-light),.5));
+      background:var(--ln) 25% 0/1px 100% no-repeat,var(--ln) 50% 0/1px 100% no-repeat,var(--ln) 75% 0/1px 100% no-repeat}
+    .ring{position:absolute;left:0;top:0;width:16px;height:16px;border-radius:50%;border:2px solid #fff;background:rgba(var(--hc-light),.2);box-shadow:0 0 0 1.5px rgba(var(--hc-shade),.75)}
+    .plain{touch-action:auto}.plain .ring{border-style:dashed;opacity:.85}
+    .stage.held .card:not(.plain) .ring{display:none}
+    .cap{position:absolute;left:0;top:0;padding:2px 8px;border:1px solid rgba(var(--hc-light),.25);border-radius:6px;background:rgba(8,7,13,.92);color:var(--hc-ink);
+      font:600 12px/1.25 var(--hb-font);white-space:nowrap;transition:transform .35s ease-out}
+    .cap.nm{position:static}
+    .cap.in-c::after{content:"";position:absolute;left:var(--k);width:1px;height:var(--tk);background:rgba(var(--hc-light),.75)}
+    .cap.up::after{top:calc(100% + 1px)}.cap.down::after{bottom:calc(100% + 1px)}
+    .names{position:absolute;inset:6px 0 auto;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));justify-items:center}
+    .stage[data-hb-mode="inside"] .foil{clip-path:inset(0 0 0 25%)}
+    .stage[data-hb-mode="inside"] .gl{clip-path:inset(0 0 0 50%)}
+    .stage[data-hb-mode="inside"] .txt{clip-path:inset(0 0 0 75%)}
+    .stage[data-hb-mode="inside"] .views,.stage[data-hb-mode="inside"] .cut,.stage[data-hb-mode="inside"] .pt,.stage[data-hb-mode="inside"] .in-c,
+    .stage[data-hb-mode="compare"] .views,.stage[data-hb-mode="compare"] .pt,.stage[data-hb-mode="compare"] .plain,.stage[data-hb-mode="compare"] .nm{display:block}
+    .stage[data-hb-mode="inside"] .card.split .cut,.stage[data-hb-mode="inside"] .card.split .pt,.stage[data-hb-mode="compare"] .card.split .pt{display:none}
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));perspective:none}
+    .stage[data-hb-mode="compare"] .views::before{content:"";position:absolute;inset:0 auto 0 50%;width:1px;background:rgba(var(--hc-light),.12)}
+    @media(prefers-reduced-motion:reduce){.cap{transition:none}.stage[data-hb-mode="inside"] .foil,.stage[data-hb-mode="inside"] .spot,
+      .stage[data-hb-mode="compare"] .foil,.stage[data-hb-mode="compare"] .spot{transition:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -82,6 +108,11 @@
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Move your pointer over the card, drag a finger across it (or Tab to it and use the arrow keys), or press Show me.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
     </div>
     <div class="stage" id="stage">
       <div class="card" id="card" data-foil="smooth" role="img" tabindex="0" aria-label="A holographic trading card named Aurora Prism: a glowing crystal over dark mountains under a night sky. As the card tilts toward the pointer, rainbow foil slides across it and a glare follows the pointer. The arrow keys do what the pointer does.">
@@ -113,10 +144,23 @@
           <div class="ip"><p class="ab">Prism Burst</p><p class="ds">Splits starlight into every color.</p><p class="ft"><span>Holo rare</span><span>025/160</span></p></div>
           <div class="spot gloss" id="gloss"></div>
         </div>
+        <div class="cut"></div>
+        <div class="pt" aria-hidden="true"><i class="ring"></i></div>
+      </div>
+      <div class="views" aria-hidden="true">
+        <span class="cap in-c up" data-hb-caption>Picture</span>
+        <span class="cap in-c down" data-hb-caption>+ Rainbow foil</span>
+        <span class="cap in-c up" data-hb-caption>+ Glare</span>
+        <span class="cap in-c down" data-hb-caption>+ Text panels</span>
+        <div class="names"><span class="cap nm" data-hb-caption>Plain card</span><span class="cap nm" data-hb-caption>Holographic</span></div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the card is four flat layers, added strip by strip: the picture, a rainbow foil that slides as it tilts, a glare under the pointer, and solid text panels on top.</p>
+      <p data-hb-for="compare" hidden>Plain card has only its picture and text; Holographic adds a rainbow foil that slides as the card tilts and a glare that follows the pointer. Point at Holographic or press Show me.</p>
     </div>
   </section>
 
@@ -213,23 +257,50 @@ const FOIL={smooth:[.26,.4],glitter:[.55,.45],lines:[.45,.45]};
 let T=12,G=.55,pat='smooth',split=0;  // settings: the lean at the card's edges in degrees, the glare, the pattern, layers apart (0 or 1)
 let ax=0,ay=0,ah=0,sx=0,sy=0,sh=0,sp=0;  // a: the aim (x and y from -.5 to .5 across the card, h 1 while it is lit), s: what is shown
 let raf=0,lastT=null,run=null,holdTimer=0,spDrawn='';
+// See inside and Compare. Where nothing aims the card, a pretend pointer is parked at PARK (across and down the card, -.5 to .5) and the card
+// leans toward it, lit. held: a real pointer or finger is on the card; keys: the arrow keys aim it. cs: the card's fit in the view (scale).
+const PARK=[.26,-.22],LIT=1.04,LH=21,GAP=6;
+let mode='normal',held=false,keys=false,cs=1,cw=1,ch=1,fan=0;
+const NAME={normal:card.getAttribute('aria-label'),
+  inside:'The holographic card cut into four strips: the picture alone, then with the rainbow foil, then with the glare, then with the text panels on top. The arrow keys do what the pointer does.',
+  compare:'Two cards side by side: on the left a plain card with only its picture and text, on the right the holographic card with its rainbow foil and glare. The arrow keys do what the pointer does.'};
+// The plain copy: the picture and the text panels only, with no ids (its picture points at the real card's gradients), hidden and inert
+const plain=card.cloneNode(true);
+plain.querySelectorAll('.foil,.gl,.gloss,.cut,defs').forEach(n=>n.remove());
+[plain,...plain.querySelectorAll('[id]')].forEach(n=>n.removeAttribute('id'));
+['role','tabindex','aria-label','data-foil'].forEach(a=>plain.removeAttribute(a));
+plain.classList.add('plain');plain.setAttribute('aria-hidden','true');plain.inert=true;card.before(plain);
+const plainLayers=[...plain.querySelectorAll('.ly')],rings=[...stage.querySelectorAll('.ring')],cap=[...stage.querySelectorAll('.in-c')],noteEls=[...document.querySelectorAll('.hb-mode-notes p')];
+// Pose: the aim where nothing aims the card (flat and dark in Normal)
+function settle(){const m=mode!=='normal';ax=m?PARK[0]:0;ay=m?PARK[1]:0;ah=+m;}
 
 // Draws the state s on the card. Under reduced motion nothing turns or slides: the foil and the glare only fade in where they are.
 function draw(){
-  const still=reduce.matches,x=still?0:sx,y=still?0:sy,[f0,f1]=FOIL[pat];
-  card.style.transform=`rotateX(${(-2*T*y-14*sp).toFixed(2)}deg) rotateY(${(2*T*x+26*sp).toFixed(2)}deg) scale(${(1+(still?0:.04*sh)-.2*sp).toFixed(3)})`;
-  sheen.style.transform=`translate(${(-40*x).toFixed(2)}%,${(-40*y).toFixed(2)}%)`;
+  const still=reduce.matches,modal=mode!=='normal',x=still?0:sx,y=still?0:sy,[f0,f1]=FOIL[pat];
+  const fx=still&&modal?PARK[0]:x,fy=still&&modal?PARK[1]:y;  // a still view lights the foil and glare at the parked spot
+  const turn=`rotateX(${(-2*T*y-14*sp).toFixed(2)}deg) rotateY(${(2*T*x+26*sp).toFixed(2)}deg) scale(${(1+(still?0:.04*sh)-.2*sp).toFixed(3)})`;
+  card.style.transform=mode==='compare'?'perspective(1000px) '+turn:turn;  // Compare: each card has its own perspective
+  sheen.style.transform=`translate(${(-40*fx).toFixed(2)}%,${(-40*fy).toFixed(2)}%)`;
   foil.style.opacity=(f0+f1*sh).toFixed(3);
   // The glare and the gloss follow the pointer. In the layers view the glare stays lit at rest, up and to the right where its sheet
   // reaches past the picture, so it reads as a layer of its own; under reduced motion it keeps a fixed spot (on the card, up left)
-  const rest=sp*(1-sh),gx=still?35*sp-15:100*x+20*rest,gy=still?4*sp-20:100*y-16*rest;
+  const rest=sp*(1-sh),gx=still?(modal&&!sp?100*fx:35*sp-15):100*x+20*rest,gy=still?(modal&&!sp?100*fy:4*sp-20):100*y-16*rest;
   spot.style.transform=gloss.style.transform=`translate(${gx.toFixed(2)}%,${gy.toFixed(2)}%)`;
   spot.style.opacity=(G*Math.max(sh,sp)).toFixed(3);
   gloss.style.opacity=(.25*G*sh).toFixed(3);
   // Shows the layers: each layer comes forward by its place in the stack, written only while they move (not as a custom property
   // on the card: the card gets a new style every frame and would pass it down to every layer each time)
   const v=sp.toFixed(3);
-  if(v!==spDrawn){spDrawn=v;card.classList.toggle('split',sp>0);layers.forEach((l,i)=>{l.style.transform=sp>0?`translateZ(${(30*i*sp).toFixed(1)}px)`:'';});}
+  if(v!==spDrawn){spDrawn=v;card.classList.toggle('split',sp>0);plain.classList.toggle('split',sp>0);
+    layers.forEach((l,i)=>{l.style.transform=sp>0?`translateZ(${(30*i*sp).toFixed(1)}px)`:'';});
+    plainLayers.forEach((l,i)=>{l.style.transform=sp>0?`translateZ(${(90*i*sp).toFixed(1)}px)`:'';});  // the text sheet stays as far out as on the real card
+  }
+  if(modal){  // the pretend pointer's ring on the card and its ghost on the copy, and the copy turning with the card
+    const aimed=(held||keys)&&!run,qx=still?PARK[0]:aimed?ax:sx,qy=still?PARK[1]:aimed?ay:sy,t=`translate(${((qx+.5)*cw-8).toFixed(1)}px,${((qy+.5)*ch-8).toFixed(1)}px)`;
+    for(let i=0;i<rings.length;i++)rings[i].style.transform=t;
+    stage.classList.toggle('held',held);
+    if(mode==='compare'){plain.style.transform=card.style.transform;card.style.translate=plain.style.translate=(fan*sp).toFixed(1)+'px';}
+  }
 }
 
 // The loop runs only while something moves. Show me drives the state by its own clock; otherwise the state closes 14% of the
@@ -240,14 +311,15 @@ function wake(){
 }
 function tick(ts){
   // Reduced motion turned on mid-move (no change event comes once draw() has read the query): straight to its rest, loop stopped
-  raf=0;if(reduce.matches){run=null;sx=sy=sh=ax=ay=ah=0;sp=split;draw();return;}
+  raf=0;if(reduce.matches){run=null;settle();sx=ax;sy=ay;sh=ah;sp=split;draw();return;}
   const dt=lastT===null?FRAME:Math.min(ts-lastT,50);lastT=ts;let more=false;
   const k=1-Math.pow(1-K,dt/FRAME);
   if(run){
     if(run.t0===null)run.t0=ts;
     const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p);
-    sx=.42*Math.sin(2*Math.PI*e)+run.x*(1-p);sy=.34*Math.sin(4*Math.PI*e)+run.y*(1-p);sh=Math.min(1,5*Math.min(e,1-e));
-    if(p<1)more=true;else{run=null;sx=sy=sh=ax=ay=ah=0;}
+    sx=.42*Math.sin(2*Math.PI*e)+run.x*(1-p);sy=.34*Math.sin(4*Math.PI*e)+run.y*(1-p);sh=Math.max(Math.min(1,5*Math.min(e,1-e)),run.h*(1-Math.min(1,5*e)));  // a lit pose fades into the run
+    if(mode!=='normal'){sx=clamp(sx);sy=clamp(sy);}  // a parked start never carries the pointer off the card
+    if(p<1)more=true;else{run=null;sx=sy=sh=0;settle();more=mode!=='normal';}  // a view glides on to its parked pose
   }else{
     sx+=(ax-sx)*k;sy+=(ay-sy)*k;sh+=(ah-sh)*k;
     if(Math.abs(ax-sx)+Math.abs(ay-sy)+Math.abs(ah-sh)<.002){sx=ax;sy=ay;sh=ah;}else more=true;
@@ -262,33 +334,35 @@ document.addEventListener('visibilitychange',()=>{lastT=null;});
 // motion the card stays flat and the foil and glare fade in for 1.2 s, then out.
 function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
 document.getElementById('btn-demo').addEventListener('click',()=>{stopHold();
-  if(reduce.matches){ah=1;wake();holdTimer=setTimeout(()=>{holdTimer=0;ah=0;wake();},1200);return;}
-  run={t0:null,x:sx,y:sy};wake();
+  if(reduce.matches){ah=1;wake();holdTimer=setTimeout(()=>{holdTimer=0;settle();wake();},1200);return;}
+  run={t0:null,x:sx,y:sy,h:mode==='normal'?0:sh};wake();
 });
 // The visitor pressed, typed, scrolled or touched inside the stage: a run or hold stops and the card settles, unless that same
 // press aims it (the pointer handlers below come next)
-document.addEventListener('hb:input',()=>{if(holdTimer||run){stopHold();run=null;ax=ay=ah=0;wake();}});
+document.addEventListener('hb:input',()=>{if(holdTimer||run){stopHold();run=null;settle();wake();}});
 
 // The pointer aims the card where it is over the card's own place (not its tilted outline, which moves under a resting pointer).
 // A finger or pen pressed down keeps aiming at the nearest edge when it slides off; a mouse that leaves the card lets it settle.
 const clamp=v=>Math.max(-.5,Math.min(.5,v));
 function aim(e){
   const r=stage.getBoundingClientRect();
-  const x=(e.clientX-r.left-stage.clientLeft-card.offsetLeft)/card.offsetWidth-.5,y=(e.clientY-r.top-stage.clientTop-card.offsetTop)/card.offsetHeight-.5;
-  const on=Math.abs(x)<=.5&&Math.abs(y)<=.5||e.pointerType!=='mouse'&&e.buttons>0;
-  ax=on?clamp(x):0;ay=on?clamp(y):0;ah=on?1:0;wake();
+  const x=(e.clientX-r.left-stage.clientLeft-card.offsetLeft-card.offsetWidth/2-(parseFloat(card.style.translate)||0))/(card.offsetWidth*cs),y=(e.clientY-r.top-stage.clientTop-card.offsetTop-card.offsetHeight/2)/(card.offsetHeight*cs);
+  // In Compare a finger that is not on the real card's half leaves the card alone (the plain card is not aimed)
+  const slid=e.pointerType!=='mouse'&&e.buttons>0&&!(mode==='compare'&&e.clientX<r.left+r.width/2);
+  const on=Math.abs(x)<=.5&&Math.abs(y)<=.5||slid;
+  if(on){ax=clamp(x);ay=clamp(y);ah=1;}else settle();
+  held=on;wake();
 }
-function rest(){if(!run&&!holdTimer){ax=ay=ah=0;wake();}}
+function rest(){held=false;if(!run&&!holdTimer){settle();wake();}}
 stage.addEventListener('pointerdown',aim);
 // Hovering sends no hb:input, so the visitor's own pointer ends a run here, then takes the card
 stage.addEventListener('pointermove',e=>{if(e.isTrusted&&(run||holdTimer)){stopHold();run=null;}aim(e);});
 ['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,rest));
 stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')rest();});
-reduce.addEventListener('change',()=>{stopHold();run=null;sx=sy=sh=ax=ay=ah=0;sp=split;draw();});
+reduce.addEventListener('change',()=>{stopHold();run=null;settle();sx=ax;sy=ay;sh=ah;sp=split;notes();look();});
 // The keyboard is a pretend pointer through the same aim: focus by keyboard ends a run and lights the card where it aims (the
 // middle at rest), each arrow key moves the aim 6% of the card (held, it repeats), and Escape or leaving the card lets it settle
 const STEP={ArrowLeft:[-1,0],ArrowRight:[1,0],ArrowUp:[0,-1],ArrowDown:[0,1]};
-let keys=false;
 card.addEventListener('focus',()=>{if(card.matches(':focus-visible')){stopHold();run=null;keys=true;ah=1;wake();}});
 card.addEventListener('keydown',e=>{
   const d=!e.altKey&&!e.ctrlKey&&!e.metaKey&&STEP[e.key];
@@ -305,10 +379,67 @@ function choices(id,pick){
   }));
 }
 choices('foil-seg',d=>{pat=d.f;card.dataset.foil=pat;draw();});
-choices('tilt-seg',d=>{T=+d.t;});
-choices('glare-seg',d=>{G=+d.g;draw();});
-document.getElementById('layers-tog').addEventListener('change',e=>{split=e.target.checked?1:0;wake();});
-draw();
+choices('tilt-seg',d=>{T=+d.t;if(mode!=='normal')draw();});
+choices('glare-seg',d=>{G=+d.g;draw();notes();cap[2].textContent=G?'+ Glare':'+ Glare (off)';if(mode==='inside')place(false);});
+document.getElementById('layers-tog').addEventListener('change',e=>{split=e.target.checked?1:0;wake();if(mode==='inside')place(true);else if(mode==='compare')look();});
+
+// The views' sizes. The card gets a little smaller (the scale property, so draw() keeps writing the whole transform) when the labels or the
+// half names need room above and below it, or the half is narrow; its text shrinks with it, as a picture
+function look(){
+  const W=stage.clientWidth,H=stage.clientHeight;
+  cw=card.offsetWidth;ch=card.offsetHeight;cs=1;
+  if(mode!=='normal')cs=Math.min(1,(H-2*(LH+GAP+4))/(ch*LIT),mode==='compare'?(W/2-20)/(cw*LIT):1);
+  card.style.scale=plain.style.scale=cs<1?cs.toFixed(3):'';
+  if(mode!=='compare')card.style.translate=plain.style.translate='';
+  else{  // the sheets of Shows the layers fan out to one side, so each card moves back by half of that and they stay in their half
+    const xs=[0,1,2,3].flatMap(k=>[[-1,-1],[1,-1],[-1,1],[1,1]].map(([a,b])=>proj(k,a*cw/2,b*ch/2,1)[0]));
+    fan=-(Math.min(...xs)+Math.max(...xs))/2;
+  }
+  if(mode==='inside')place(false);
+  draw();
+}
+// A point (u,v) of sheet k on the screen, from the card's center, with the sheets apart (a is 1) or together (0)
+function proj(k,u,v,a){
+  const p=new DOMMatrix(`scale(${cs}) perspective(1000px) rotateX(${-14*a}deg) rotateY(${26*a}deg) scale(${(reduce.matches?1:LIT)-.2*a}) translateZ(${30*k*a}px)`).transformPoint(new DOMPoint(u,v));
+  return[p.x/p.w,p.y/p.w];
+}
+// See inside's four labels, alternately above and below the card, each with a tick to its own strip. They go where the strips are drawn once
+// the glide ends (the sheets are apart and the card turned in Shows the layers), and slide there when that switch is pressed
+function place(slide){
+  const W=stage.clientWidth,cx=card.offsetLeft+cw/2,cy=card.offsetTop+ch/2;
+  const pt=cap.map((_,k)=>[-1,1].map(e=>{const[x,y]=proj(k,((k+.5)/4-.5)*cw,e*ch/2,split);return[cx+x,cy+y];}));
+  const top=Math.min(...pt.map(p=>p[0][1])),bot=Math.max(...pt.map(p=>p[1][1]));
+  [[0,2],[1,3]].forEach(row=>{
+    let edge=4;const left=row.map(k=>{const l=Math.max((pt[k][0][0]+pt[k][1][0])/2-cap[k].offsetWidth/2,edge);edge=l+cap[k].offsetWidth+GAP;return l;});
+    edge=W-4;for(let j=row.length-1;j>=0;j--){left[j]=Math.min(left[j],edge-cap[row[j]].offsetWidth);edge=left[j]-GAP;}
+    row.forEach((k,j)=>{
+      const el=cap[k],up=k%2===0,y=up?top-GAP-LH:bot+GAP;
+      if(!slide)el.style.transition='none';
+      el.style.transform=`translate(${left[j].toFixed(1)}px,${y.toFixed(1)}px)`;
+      el.style.setProperty('--k',((pt[k][0][0]+pt[k][1][0])/2-left[j]).toFixed(1)+'px');
+      el.style.setProperty('--tk',Math.max(0,up?pt[k][0][1]-y-LH-1:y-pt[k][1][1]-1).toFixed(1)+'px');
+      if(!slide){void el.offsetWidth;el.style.transition='';}
+    });
+  });
+}
+// The notes follow the glare setting and reduced motion; the markup holds the words for the usual state (and a note is written only when it changes)
+function notes(){
+  const off=G===0,still=reduce.matches;
+  [still?`Shown still and lit: the card is four flat layers, added strip by strip: the picture, a rainbow foil, a glare${off?' (turned off)':''}, and solid text panels on top.`
+    :`Inside, the card is four flat layers, added strip by strip: the picture, a rainbow foil that slides as it tilts, a glare${off?' (turned off)':' under the pointer'}, and solid text panels on top.`,
+   still?`Shown still and lit: Plain card has only its picture and text; Holographic adds a rainbow foil${off?' over its picture (its glare is turned off).':' and a glare over its picture.'}`
+    :`Plain card has only its picture and text; Holographic adds a rainbow foil that slides as the card tilts${off?', with its glare turned off':' and a glare that follows the pointer'}. Point at Holographic or press Show me.`
+  ].forEach((t,i)=>{if(noteEls[i].textContent!==t)noteEls[i].textContent=t;});
+}
+// The mode: a view takes its pose at once (Normal its flat rest) when nothing aims the card; a run or a pointer carries on
+document.addEventListener('hb:mode',e=>{
+  mode=e.detail.mode;
+  if(!run&&!holdTimer&&!held&&!keys){settle();sx=ax;sy=ay;sh=ah;}
+  card.setAttribute('aria-label',NAME[mode]);notes();look();
+});
+addEventListener('resize',()=>{if(mode!=='normal')look();});
+if(document.fonts)document.fonts.ready.then(()=>{if(mode==='inside')place(false);});
+draw();notes();
 </script>
 </body>
 </html>
