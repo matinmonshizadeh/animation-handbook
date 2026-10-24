@@ -21,9 +21,9 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Clip-Path Reveal", "name": "Clip-Path Reveal", "description": "A growing shape uncovers it while it stays still. Best for images and banners.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/02-entrance-and-exit/clip-path-reveal/", "inLanguage": "en", "articleSection": "Entrance & Exit", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Entrance & Exit, Clip-Path Reveal"}</script>
   <style>
-    :root{--ui-accent:#5fd88a;--dur:800ms;--ease:cubic-bezier(.2,.7,.3,1)}
+    :root{--ui-accent:#5fd88a;--mark:#ffa94d;--dur:800ms;--ease:cubic-bezier(.2,.7,.3,1)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d}
     .surface{width:min(400px,80%);aspect-ratio:4/3;border-radius:12px;overflow:hidden;position:relative;
       clip-path:var(--cp-out,inset(0 100% 0 0));transition:clip-path var(--dur) var(--ease);will-change:clip-path}
     .surface.in{clip-path:var(--cp-in,inset(0 0% 0 0))}
@@ -32,7 +32,60 @@
     .surface-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;text-align:center}
     .surface-label{font-size:10px;text-transform:uppercase;letter-spacing:3px;opacity:.7}
     .surface-title{font-size:clamp(22px,4vw,36px);font-weight:bold}
-    @media(prefers-reduced-motion:reduce){.surface{opacity:0;transition:opacity 400ms linear!important;clip-path:none!important}.surface.in{opacity:1}}
+    /* See inside and Compare. Their copies and words stay out of sight in Normal. */
+    .ghost,.rim,.frame,.lbl,.foot{display:none}
+    .ghost,.rim,.frame{width:min(400px,80%);aspect-ratio:4/3;border-radius:12px;overflow:hidden;position:relative}
+    .lbl{position:absolute;padding:3px 7px;border-radius:5px;background:#1b1b21;color:#f4f4f2;font:600 13px/16px var(--hb-font);white-space:nowrap}
+    .foot{position:absolute;left:6px;right:6px;bottom:6px;flex-wrap:wrap;justify-content:center;gap:6px}
+    .foot .lbl{position:static}
+    .moment{visibility:hidden}
+    /* The outline: a layer in the mark color under the picture, cut like its opening but 3px wider and opened by the same transition, so it shows
+       as a band on the opening's edge. The moving copy slides or grows its picture in a frame that never moves. */
+    .rim{background:var(--mark);clip-path:var(--rim-out);transition:clip-path var(--dur) var(--ease)}
+    .rim.in{clip-path:var(--rim-in)}
+    .mover{position:absolute;inset:0;border-radius:12px;overflow:hidden;transform:var(--mv-out);transition:transform var(--dur) var(--ease);will-change:transform}
+    .mover.in{transform:var(--mv-in)}
+    .pin::after{content:'';position:absolute;left:var(--sx,50%);width:2px;margin-left:-1px;height:var(--sh,0);background:var(--key);opacity:0}
+    .pin.top{top:6px}.pin.top::after{top:100%}
+    .pin.bot{bottom:calc(var(--foot) + 12px)}.pin.bot::after{bottom:100%}
+    .open{--key:var(--mark);border-left:3px solid var(--mark)}
+    .hid{--key:#c9c9cf;border-left:3px dashed #c9c9cf}
+    .name.one{top:6px;left:6px}.name.two{top:6px;left:calc(50% + 6px)}
+    /* See inside: the whole picture faint behind it, the outline on the opening's edge, words above, below and under */
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{display:grid;container-type:size;place-items:center;grid-template-rows:minmax(0,1fr);
+      --pt:34px;--foot:22px;padding:var(--pt) 6px var(--pb)}
+    .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);--pb:calc(var(--foot) + 40px)}
+    .stage[data-hb-mode="inside"] :is(.surface,.ghost,.rim){grid-area:1/1;width:min(400px,80%,calc(100cqh*4/3))}
+    .stage[data-hb-mode="inside"] :is(.ghost,.rim){display:block}
+    .stage[data-hb-mode="inside"] .foot{display:flex}
+    .stage[data-hb-mode="inside"] .ghost>*{opacity:.4}
+    .stage[data-hb-mode="inside"] .ghost,.stage[data-hb-mode="compare"] :is(.frame,.rim){outline:1px dashed rgba(244,244,242,.6)}
+    .stage[data-hb-mode="inside"] :is(.pin,.keep,.moment){display:block}
+    .stage[data-hb-mode="inside"].posed .pin::after{opacity:1}
+    /* Compare: the picture that moves in on the left, the real one on the right, with a held moment between plays */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));--pb:34px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] :is(.surface,.frame,.rim){width:min(400px,80%,calc(100cqh*4/3))}
+    .stage[data-hb-mode="compare"] :is(.frame,.rim){display:block}
+    .stage[data-hb-mode="compare"] .frame{grid-area:1/1}
+    .stage[data-hb-mode="compare"] :is(.rim,.surface){grid-area:1/2}
+    .stage[data-hb-mode="compare"] .rim{background:none;clip-path:none;transition:none}
+    .stage[data-hb-mode="compare"] :is(.name,.moment){display:block}
+    .stage[data-hb-mode="compare"] .foot{display:flex}
+    .stage[data-hb-mode="inside"].posed .moment,.stage[data-hb-mode="compare"].posed .moment{visibility:visible}
+    .stage[data-hb-mode="inside"].posed .surface,.stage[data-hb-mode="compare"].posed .surface{clip-path:var(--cp-pose)!important;opacity:1!important;transition:none!important}
+    .stage[data-hb-mode="inside"].posed .rim{clip-path:var(--rim-pose);transition:none}
+    .stage[data-hb-mode="compare"].posed .mover{transform:var(--mv-pose)!important;opacity:1!important;transition:none!important}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{--foot:66px}
+      .stage[data-hb-mode="inside"] .foot{flex-direction:column;align-items:center}
+      .stage[data-hb-mode="inside"] .keep{max-width:210px;white-space:normal;text-align:center}
+    }
+    @media(prefers-reduced-motion:reduce){
+      .surface{opacity:0;transition:opacity 400ms linear!important;clip-path:none!important}.surface.in{opacity:1}
+      .mover{transform:none!important;opacity:0;transition:opacity 400ms linear!important}.mover.in{opacity:1}
+      .stage[data-hb-mode="inside"]:not(.posed) .rim{display:none}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -55,6 +108,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="surface" id="surface">
         <div class="surface-bg"></div>
@@ -64,11 +122,23 @@
           <div class="surface-title">Unmasked</div>
         </div>
       </div>
+      <span class="lbl pin open" aria-hidden="true" data-hb-caption>The opening: only what is inside shows</span>
+      <span class="lbl pin hid" aria-hidden="true" data-hb-caption>Hidden, but already there</span>
+      <span class="lbl name one" aria-hidden="true" data-hb-caption>Slides in</span>
+      <span class="lbl name two" aria-hidden="true" data-hb-caption>Uncovered in place</span>
+      <div class="foot" aria-hidden="true">
+        <span class="lbl keep" data-hb-caption>The picture never moves; only the opening grows</span>
+        <span class="lbl moment" data-hb-caption>A tenth of a second in</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the faint picture is the part still hidden: it is already there and never moves. Only the outlined opening grows, uncovering more of it.</p>
+      <p data-hb-for="compare" hidden>Slides in moves the picture through its frame, so you see its far end first. Uncovered in place keeps it still and opens a window over it.</p>
     </div>
   </section>
 
@@ -168,6 +238,8 @@
   const dirSetting=document.getElementById('dir-setting');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let shape='inset',dir='left',ms=800,ease='cubic-bezier(.2,.7,.3,1)',timers=[];
+  const stage=surface.parentElement;
+  let mode='normal',running=false;
 
   const CLIPS={
     inset:{
@@ -183,9 +255,11 @@
   function getClips(){return shape==='inset'?CLIPS.inset[dir]:CLIPS[shape]}
   function dur(){return slowTog.checked?ms*3:ms}
   function applyClips(){
-    const c=getClips();
+    const c=getClips(),k=kind();
     vars.setProperty('--cp-out',c.out);
     vars.setProperty('--cp-in',c.in);
+    vars.setProperty('--rim-out',wider(c.out));vars.setProperty('--rim-in',wider(c.in));
+    vars.setProperty('--mv-out',MOVES[k]);vars.setProperty('--mv-in',k==='grow'?'scale(1)':'translate(0,0)');
   }
   function apply(){
     vars.setProperty('--dur',dur()+'ms');
@@ -193,26 +267,130 @@
     applyClips();
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){layers.forEach(el=>el.classList.toggle('in',on))}
   function revealIn(){
     // snap to the hidden clip of the current shape without a transition, so changing shape
     // or starting side never tweens between two clip shapes
-    surface.style.setProperty('transition','none','important');
-    surface.classList.remove('in');void surface.offsetWidth;
-    surface.style.removeProperty('transition');
-    surface.classList.add('in');
+    layers.forEach(el=>el.style.setProperty('transition','none','important'));
+    setIn(false);void surface.offsetWidth;
+    layers.forEach(el=>el.style.removeProperty('transition'));
+    setIn(true);
   }
   // One play reveals the surface. While Loop is on it then holds, hides it again, waits and plays
   // again; switching Loop off lets the surface finish revealed. Slow motion stretches the reveal, not the waits.
+  // In See inside and Compare a play lifts the held moment, and it comes back when the play is over
   function cycle(){
+    running=true;pose(false);
     apply();revealIn();
-    if(!loopTog.checked||!motionOk)return;
+    if(!loopTog.checked||!motionOk){endRun((motionOk?dur():400)+700);return}
     later(()=>{
-      if(!loopTog.checked)return;
-      surface.classList.remove('in');
+      if(!loopTog.checked){endRun(0);return}
+      setIn(false);
       later(cycle,dur()+400);
     },dur()+800);
   }
+  function endRun(wait){later(()=>{running=false;settle()},wait)}
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
+
+  // See inside and Compare. The moment both views hold between plays (a tenth of a second in, at the Feel's own curve), the copies they
+  // are made of (inert, no ids, made once: the whole picture faint, the outline layer, the moving picture's frame), and how the first half of Compare moves its picture instead of uncovering it.
+  const POSE_MS=100,RIM=3;
+  const CURVES={'cubic-bezier(.2,.7,.3,1)':[.2,.7,.3,1],linear:[0,0,1,1]};
+  const MOVES={left:'translate(-100%,0)',right:'translate(100%,0)',top:'translate(0,-100%)',bottom:'translate(0,100%)',grow:'scale(0)'};
+  const copy=el=>{const c=el.cloneNode(true);c.removeAttribute('id');c.inert=true;c.setAttribute('aria-hidden','true');return c};
+  const ghost=copy(surface),rim=copy(surface),frame=copy(surface),mover=document.createElement('div');
+  ghost.className='ghost';
+  rim.className='rim';rim.replaceChildren();
+  frame.className='frame';mover.className='mover';
+  mover.append(...copy(surface).children);frame.replaceChildren(mover);
+  surface.before(frame,ghost,rim);
+  const layers=[surface,rim,mover];
+  const pins=stage.querySelectorAll('.pin'),names=stage.querySelectorAll('.name');
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const NOTE={inside:notes.inside.textContent,compare:notes.compare.textContent};
+  function kind(){return shape==='inset'&&dir!=='center'?dir:'grow'}
+  // The same clip a few pixels wider: an inset gives up pixels at its edges, a circle or an oval gains them
+  function wider(c){
+    if(c.startsWith('inset'))return c.replace(/[\d.]+%/g,n=>`calc(${n} - ${RIM}px)`);
+    return c.replace(/^(\w+\()([^a]*?)\s*at/,(m,f,r)=>f+r.replace(/[\d.]+%/g,n=>`calc(${n} + ${RIM}px)`)+' at');
+  }
+  // A value between two strings that hold the same numbers, a share p of the way (the shorter list repeats)
+  function mix(a,b,p){
+    const nb=b.match(/-?[\d.]+/g);let i=0;
+    return a.replace(/-?[\d.]+/g,n=>+(+n+(nb[i++%nb.length]-n)*p).toFixed(3));
+  }
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // How far open the held moment is: by progress, so Slow motion does not move it
+  function held(){
+    const c=getClips(),k=kind(),p=curveAt(CURVES[ease],Math.min(1,POSE_MS/ms));
+    return {clip:mix(c.out,c.in,p),rim:mix(wider(c.out),wider(c.in),p),move:mix(MOVES[k],k==='grow'?'scale(1)':'translate(0,0)',p)};
+  }
+  function pose(on){
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    const h=held();
+    stage.style.setProperty('--cp-pose',h.clip);
+    stage.style.setProperty('--rim-pose',h.rim);
+    stage.style.setProperty('--mv-pose',h.move);
+  }
+  // Between plays (Loop off, and always under reduced motion) a mode holds the moment; leaving it shows the picture as it now is, at once
+  function settle(){
+    const want=mode!=='normal'&&!running&&!(loopTog.checked&&motionOk);
+    if(!want&&stage.classList.contains('posed')){
+      surface.style.setProperty('transition','none','important');
+      pose(false);void surface.offsetWidth;
+      surface.style.removeProperty('transition');
+    }else pose(want);
+    refresh();
+  }
+  function write(el,text){if(el.textContent!==text)el.textContent=text}
+  // The names and notes follow the shape and side; under reduced motion the notes say the views are held
+  function words(){
+    const grow=kind()==='grow',still=!motionOk;
+    write(names[0],grow?'Grows in':'Slides in');
+    write(notes.inside,still?'Shown still, a tenth of a second in: the faint picture is the part still hidden, already there; only the outlined opening grows over it.':NOTE.inside);
+    write(notes.compare,still?(grow?'Shown still, a tenth of a second in: Grows in shows the whole picture small, while Uncovered in place shows its middle at full size.'
+      :'Shown still, a tenth of a second in: Slides in shows the far end of the picture coming in, while Uncovered in place shows its start, still.')
+      :grow?'Grows in scales the picture up from the middle. Uncovered in place keeps it still at full size and opens a window over it.':NOTE.compare);
+  }
+  // See inside's two pins: one on the opening's edge, one on the hidden part, each in the band above or below the picture with a stem
+  // down or up to its spot (shown while the moment is held). Spots are worked out in the picture's pixels from the held clip.
+  function place(){
+    if(mode!=='inside')return;
+    const w=surface.offsetWidth,h=surface.offsetHeight,L=surface.offsetLeft,T=surface.offsetTop,n=held().clip.match(/[\d.]+/g).map(Number);
+    let a,b,flip=false;
+    if(shape==='inset'){
+      const t=n[0]*h/100,r=(n[1]??n[0])*w/100,bt=(n[2]??n[0])*h/100,l=(n[3]??n[1]??n[0])*w/100;
+      ({left:()=>{a=[w-r,0];b=[(w-r+w)/2,h-24]},right:()=>{a=[l,0];b=[l/2,h-24]},top:()=>{a=[.88*w,h-bt];b=[w/2,h-24]},
+        bottom:()=>{a=[.88*w,t];b=[w/2,24];flip=true},center:()=>{a=[w-r,t];b=[.12*w,h-24]}})[dir]();
+    }else{
+      const rx=n[0]*(shape==='circle'?Math.hypot(w,h)/Math.SQRT2:w)/100,ry=shape==='circle'?rx:n[1]*h/100;
+      a=[w/2+rx*Math.SQRT1_2,h/2-ry*Math.SQRT1_2];b=[.12*w,h-24];
+    }
+    const put=(el,[x,y],low)=>{
+      el.classList.toggle('top',!low);el.classList.toggle('bot',low);
+      const ew=el.offsetWidth,px=L+x,py=Math.min(Math.max(T+y,T+10),T+h-10);
+      const left=Math.min(Math.max(px-ew/2,6),stage.clientWidth-ew-6);
+      el.style.left=left+'px';
+      el.style.setProperty('--sx',Math.min(Math.max(px-left,8),ew-8)+'px');
+      el.style.setProperty('--sh',Math.max(0,low?el.offsetTop-py:py-el.offsetTop-el.offsetHeight)+'px');
+    };
+    put(pins[0],a,flip);put(pins[1],b,!flip);
+  }
+  function refresh(){
+    words();
+    if(stage.classList.contains('posed'))pose(true);
+    place();
+  }
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;settle()});
+  new ResizeObserver(place).observe(stage);
+  document.fonts.ready.then(place);
 
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
@@ -221,6 +399,7 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('shape-seg',d=>{shape=d.shape;dirSetting.hidden=shape!=='inset'});
@@ -228,6 +407,7 @@
   choices('speed-seg',d=>{ms=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
   apply();
+  refresh();
 </script>
 </body>
 </html>
