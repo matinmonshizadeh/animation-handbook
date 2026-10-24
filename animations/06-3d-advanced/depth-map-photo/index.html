@@ -334,7 +334,7 @@ function tick(ts){
     if(run.t0===null)run.t0=ts;
     const p=Math.min(1,(ts-run.t0)/RUN_MS),e=p*p*(3-2*p),q=Math.min(1,p/.15),l=1-q*q*(3-2*q); // l: the view leaving where it stood
     sx=.9*Math.sin(2*Math.PI*e)+l*run.from[0];sy=.5*Math.sin(4*Math.PI*e)+l*run.from[1];
-    if(p<1)more=true;else{run=null;sx=sy=0;aimHome();more=ax!==0||ay!==0;}
+    if(p<1)more=true;else{run=null;pointerAim=false;sx=sy=0;aimHome();more=ax!==0||ay!==0;}
   }else{
     const k=1-Math.pow(1-K,dt/FRAME);
     sx+=(ax-sx)*k;sy+=(ay-sy)*k;
@@ -373,7 +373,9 @@ function aim(e){if(reduce.matches)return;const r=stage.getBoundingClientRect();
   ax=clamp((e.clientX-r.left)/r.width*2-1);ay=clamp((e.clientY-r.top)/r.height*2-1);wake();}
 const toMiddle=()=>{pointerAim=false;if(!run&&!reduce.matches){aimHome();wake();}};
 stage.addEventListener('pointerdown',aim);
-stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches){run=null;wake();}aim(e);});
+// In Compare a pointer off "With depth" aims nothing, so it leaves a run playing too
+const offDeep=e=>{if(mode!=='compare')return false;const r=stage.getBoundingClientRect(),c=V[1].c,x=e.clientX-r.left-stage.clientLeft-c.x,y=e.clientY-r.top-stage.clientTop-c.y;return x<0||x>c.w||y<-STRIP||y>c.h;};
+stage.addEventListener('pointermove',e=>{if(e.isTrusted&&run&&!reduce.matches&&!offDeep(e)){run=null;wake();}aim(e);});
 ['pointerleave','pointercancel'].forEach(t=>stage.addEventListener(t,toMiddle));
 stage.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')toMiddle();});
 // The keyboard is a pretend pointer through the same aim, heard on the stage (the 2D fallback swaps the canvas): focus by keyboard
@@ -446,7 +448,7 @@ function place(){
   };
   const peak=at(.6,.38),gw=Math.floor(GRAY*cw);
   put('map',0,0,[gw-14],gw-5);
-  put('near',tx,ty-.13*m-14,[0,90]);
+  put('near',tx,ty-.13*m-14,[0,90],gw);
   put('lines',cw,0,[PHONE.matches?Math.floor(cw*.5):350,136,128]);
   put('far',peak[0],peak[1]-16,[0]);
   put('hold',cw*.6,at(0,.575)[1]-16,[0,100]);
