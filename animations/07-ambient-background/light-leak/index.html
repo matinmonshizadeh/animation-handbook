@@ -36,6 +36,48 @@
     /* Light spots: each floats up once and removes itself when it ends. "both" keeps a spot hidden during its start delay. */
     .bokeh{position:absolute;border-radius:50%;pointer-events:none;z-index:4;animation:bokeh-float linear both;filter:blur(8px)}
     @keyframes bokeh-float{from{transform:translateY(100%) scale(0);opacity:0}20%{opacity:.8}80%{opacity:.5}to{transform:translateY(-120%) scale(1.5);opacity:0}}
+    /* See inside and Compare: the script builds their parts once; each shows only in its mode. */
+    .in-only,.cmp-only,.half,.spots{display:none}
+    .lab{position:relative;z-index:9;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-wrap:balance}
+    .stage[data-hb-mode="inside"] .in-only{display:block}
+    .stage[data-hb-mode="inside"] .scene,.stage[data-hb-mode="compare"] .scene{flex-direction:column;justify-content:center;gap:8px}
+    /* See inside: the photo, a graph of one leak under it (across: time, up: how strong) that fills the room left, and the glow's words
+       on the side where the light has gone. A corner at the bottom turns the column over, so the graph never sits on the glow. */
+    .stage[data-hb-mode="inside"] .scene{padding:10px clamp(10px,3vw,24px)}
+    .stage[data-hb-mode="inside"] .scene.flip{flex-direction:column-reverse}
+    .stage[data-hb-mode="inside"] .photo-mock{flex:none;height:clamp(60px,30%,130px)}
+    .stage[data-hb-mode="inside"] .photo-cap{z-index:7}
+    .stage[data-hb-mode="inside"] .cap-shape{max-width:62%;text-wrap:wrap}
+    .stage[data-hb-mode="inside"] .scene[data-side="l"] .cap-shape{align-self:flex-start}
+    .stage[data-hb-mode="inside"] .scene[data-side="r"] .cap-shape{align-self:flex-end}
+    .stage[data-hb-mode="inside"] .graph{display:grid;grid-template-rows:auto minmax(0,1fr) auto;gap:4px}
+    .graph{position:relative;z-index:7;flex:1 1 0;width:100%;max-width:520px;min-height:92px;max-height:170px;padding:6px 8px;border:1px solid rgba(255,255,255,.12);border-radius:10px;background:rgba(7,12,18,.88)}
+    .g1{justify-self:start}
+    .g2{justify-self:end}
+    .plot{position:relative;min-height:0}
+    .plot svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .plot path{fill:none;stroke:var(--lk);stroke-width:3;stroke-linecap:round}
+    .plot .ax{stroke:rgba(244,244,242,.35);stroke-width:1.5}
+    .plot .ceil{stroke:rgba(244,244,242,.6);stroke-width:1.5;stroke-dasharray:3 4}
+    .plot .gap{stroke-dasharray:2 7}
+    .plot .dot{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:2}
+    .lines{position:absolute;inset:0;z-index:6;width:100%;height:100%;pointer-events:none}
+    .lines path{fill:none;stroke:rgba(0,0,0,.55);stroke-width:5;stroke-linecap:round}
+    .lines .dash path{stroke:#f4f4f2;stroke-width:2;stroke-dasharray:7 6}
+    /* Compare: each half is half the box: its name on top, the photo, and a row of its last five leaks. The right half is the real photo
+       and leak; the left is a copy with its own leak layer. */
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;z-index:8;border-left:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .half{display:block;position:absolute;top:0;bottom:0;left:0;width:50%;overflow:hidden;isolation:isolate}
+    .stage[data-hb-mode="compare"]>.scene,.stage[data-hb-mode="compare"]>.leak{left:50%}
+    .stage[data-hb-mode="compare"] .scene{padding:46px 8px 8px}
+    .stage[data-hb-mode="compare"] .cmp-only,.stage[data-hb-mode="compare"] .spots{display:block}
+    .stage[data-hb-mode="compare"] .photo-mock{flex:none;height:clamp(110px,50%,150px);padding:10px}
+    .half-name{position:absolute;top:10px;left:50%;transform:translateX(-50%);white-space:nowrap}
+    .spots{position:absolute;inset:0;z-index:4;overflow:hidden;pointer-events:none}
+    .spots.b{left:50%}
+    .ticks{position:relative;flex:none;width:100%;max-width:300px;height:34px;border-bottom:1px solid rgba(244,244,242,.35)}
+    .tk{position:absolute;left:0;bottom:0;width:4px;height:100%;border-radius:2px 2px 0 0;background:var(--lk);transform-origin:50% 100%}
+    @media(max-width:600px){.lab{font-size:12px}.stage[data-hb-mode="inside"] .photo-mock{height:clamp(56px,22%,90px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -58,6 +100,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>Leaks come at random, a few seconds apart. Pause it to look closely, or turn on slow motion to see each leak fade.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="scene">
         <div class="photo-mock"><div class="photo-cap">ambient · atmospheric · analog warmth</div></div>
@@ -67,6 +114,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed lines show how far the glow reaches from its corner. The graph shows one leak: it fades in, holds, fades out, then stays dark for a random while.</p>
+      <p data-hb-for="compare" hidden>Evenly timed lights up after the same wait, at the same strength, like a machine. At random varies both, like a real film camera; the marks under each photo are its last leaks.</p>
     </div>
   </section>
 
@@ -182,6 +233,8 @@
   const vars=document.documentElement.style;
   let minGap=1,maxGap=3,dur=1200,intensity=.55,bokehOn=false;
   let curColor='rgba(255,165,50,';
+  // For the views: the view on show, Compare's copy of the leak layer, the leak under way (fade, brightness it was lit at, its peak) and how long its hold lasts.
+  let mode='normal',twinLeak=null,lit={d:dur,i:intensity,p:intensity},holdMs=0,firstHold=true;
 
   // Pause freezes the leak under way: its fade stops where it is and the timer keeps the time it had left.
   // The floating light spots are CSS keyframes, which the Pause button holds by itself; only the fade is held here.
@@ -195,11 +248,15 @@
 
   // The gradient is painted here because its colour is live-editable; the dir-* class says where it comes from.
   const CORNER={'dir-tl':'-10% -10%','dir-tr':'110% -10%','dir-bl':'-10% 110%','dir-br':'110% 110%'};
+  // Where the glow's stops sit, in percent: the corner glow's four and the middle band's three (See inside draws its lines from them).
+  const GLOW=[0,20,50,70],BAND=[40,50,60];
+  const curDir=()=>[...leak.classList].find(n=>n.startsWith('dir-'));
   function applyColor(){
-    const c=curColor,dir=[...leak.classList].find(n=>n.startsWith('dir-'));
+    const c=curColor,dir=curDir();
     leak.style.background=dir==='dir-h'
-      ?`linear-gradient(90deg,transparent,${c}.6) 40%,${c}.8) 50%,${c}.6) 60%,transparent)`
-      :`radial-gradient(ellipse at ${CORNER[dir]},${c}.9) 0%,${c}.5) 20%,${c}.1) 50%,transparent 70%)`;
+      ?`linear-gradient(90deg,transparent,${c}.6) ${BAND[0]}%,${c}.8) ${BAND[1]}%,${c}.6) ${BAND[2]}%,transparent)`
+      :`radial-gradient(ellipse at ${CORNER[dir]},${c}.9) ${GLOW[0]}%,${c}.5) ${GLOW[1]}%,${c}.1) ${GLOW[2]}%,transparent ${GLOW[3]}%)`;
+    if(twinLeak)twinLeak.style.background=leak.style.background;
   }
 
   function randomGap(){return(minGap+Math.random()*(maxGap-minGap))*1000}
@@ -209,6 +266,7 @@
     leak.style.setProperty('--leak-dur',d+'ms');
     leak.style.setProperty('--leak-peak',(intensity*(.75+Math.random()*.25)).toFixed(3));
     leak.classList.add('active');
+    lit={d,i:intensity,p:+leak.style.getPropertyValue('--leak-peak')};
   }
 
   // One leak: fade in, hold 200ms at the peak, fade out, then a dark gap. The next leak starts only when the glow is gone.
@@ -216,6 +274,7 @@
   function flash(){
     const slow=slowTog.checked?3:1,d=dur*slow;
     light(d);
+    leakStarted(d);
     if(bokehOn)spawnBokeh(slow);
     wait(()=>fadeOut(d),d+200);
   }
@@ -225,15 +284,18 @@
     leak.classList.remove('active');
     fadeD=d;gapTotal=d+randomGap();
     wait(flash,gapTotal);
+    if(mode==='inside')placeDot();
   }
 
-  function spawnBokeh(slow){
-    for(let i=0;i<3;i++){
+  // In Compare the real leak's spots go into the right half, and a phone gives each half half the spots
+  function spawnBokeh(slow,host=mode==='compare'?hostB:stage){
+    const n=mode==='compare'&&matchMedia('(max-width:600px),(max-height:500px)').matches?1:3;
+    for(let i=0;i<n;i++){
       const b=document.createElement('div');b.className='bokeh';
       const sz=20+Math.random()*40;
       b.style.cssText=`width:${sz}px;height:${sz}px;background:${curColor}.6);left:${20+Math.random()*60}%;bottom:0;animation-duration:${(3+Math.random()*4)*slow}s;animation-delay:${Math.random()*.5}s`;
       b.addEventListener('animationend',()=>b.remove());
-      stage.appendChild(b);
+      host.appendChild(b);
     }
   }
 
@@ -278,7 +340,170 @@
   const firstFade=dur;
   light(firstFade);
   leak.getAnimations().forEach(a=>a.finish());
-  wait(()=>fadeOut(firstFade),randomGap());
+  holdMs=randomGap();
+  wait(()=>{firstHold=false;fadeOut(firstFade)},holdMs);
+
+  // ── See inside and Compare: built once, shown only in their mode; Normal never touches them. They draw from the page's own numbers:
+  // the glow's stops, the fade, the gap range, the brightness, and the timer chain's next, due and left.
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const TOP=.85,EVEN=.875,CORNERS={'dir-tl':'top left','dir-tr':'top right','dir-bl':'bottom left','dir-br':'bottom right'};
+  const scene=stage.querySelector('.scene'),leakCS=getComputedStyle(leak),txt=(e,s)=>{if(e.textContent!==s)e.textContent=s};
+  const cap=(cls,s='')=>`<span class="lab ${cls}" data-hb-caption aria-hidden="true">${s}</span>`;
+  // Compare: a name and a row of five ticks in each half. The left half is a copy of the scene (inert, no ids) with its own leak layer.
+  scene.insertAdjacentHTML('beforeend',cap('half-name cmp-only','At random')+'<div class="ticks cmp-only" aria-hidden="true">'+'<i class="tk"></i>'.repeat(5)+'</div>');
+  const sceneA=scene.cloneNode(true);
+  stage.insertAdjacentHTML('beforeend','<div class="half" aria-hidden="true"><div class="leak"></div><div class="spots"></div></div><div class="spots b"></div>');
+  const half=stage.querySelector('.half'),hostA=half.querySelector('.spots'),hostB=stage.querySelector('.spots.b');
+  twinLeak=half.querySelector('.leak');half.inert=true;half.prepend(sceneA);
+  txt(sceneA.querySelector('.half-name'),'Evenly timed');
+  const ticksB=scene.querySelector('.ticks'),rowA=[...sceneA.querySelectorAll('.tk')],rowB=[...ticksB.children];
+  // See inside: the graph, the glow's words and the dashed lines over the whole box
+  scene.insertAdjacentHTML('beforeend','<div class="graph in-only" aria-hidden="true">'+cap('g1')+'<div class="plot"><svg><path class="ax"/><path class="ceil"/><path class="gap"/><path class="curve"/><circle class="dot" r="5"/></svg></div>'+cap('g2')+'</div>'+cap('cap-shape in-only'));
+  stage.insertAdjacentHTML('beforeend','<svg class="lines in-only" aria-hidden="true"><g><path/><path/></g><g class="dash"><path/><path/></g></svg>');
+  const [g1,g2]=scene.querySelectorAll('.g1,.g2'),capShape=scene.querySelector('.cap-shape'),plot=scene.querySelector('.plot'),svg=plot.firstChild;
+  const [ax,ceil,gap,curve]=svg.children,dot=svg.lastChild,lines=stage.lastElementChild,linePaths=lines.querySelectorAll('path');
+
+  // The dashed lines: ellipses round the corner at the 20% and 70% stops (farthest-corner: the farthest sides' ellipse times the square root of 2), or the band's 40% and 60%.
+  function drawLines(){
+    const W=stage.clientWidth,H=stage.clientHeight,dir=curDir();
+    let d=[BAND[0],BAND[2]].map(p=>`M${W*p/100} 0V${H}`);
+    if(dir!=='dir-h'){
+      const [px,py]=CORNER[dir].split(' ').map(parseFloat),cx=W*px/100,cy=H*py/100;
+      const rx=Math.SQRT2*Math.max(cx,W-cx),ry=Math.SQRT2*Math.max(cy,H-cy);
+      d=[GLOW[1],GLOW[3]].map(s=>{const a=rx*s/100,b=ry*s/100;return`M${cx-a} ${cy}A${a} ${b} 0 1 0 ${cx+a} ${cy}A${a} ${b} 0 1 0 ${cx-a} ${cy}`});
+    }
+    lines.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    linePaths.forEach((p,i)=>p.setAttribute('d',d[i%2]));
+  }
+
+  // The graph is the plan for one leak at the settings now: the fade in and out (three times as long in slow motion), the 200 ms hold,
+  // then the dark gap, solid for its shortest and dashed up to its longest. Its peak is this leak's own strength at the brightness now.
+  let G=null;
+  function drawGraph(){
+    const W=plot.clientWidth,H=plot.clientHeight;if(!W||!H)return;
+    const d=dur*(slowTog.checked?3:1),pk=lit.p/lit.i*intensity,T=2*d+200+maxGap*1000;
+    const x=t=>6+(W-12)*t/T,y=v=>H-6-(H-12)*Math.min(v/TOP,1),b=y(0),p=y(pk),m=x(2*d+200+minGap*1000);
+    svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+    ax.setAttribute('d',`M${x(0)} ${b}H${x(T)}`);
+    ceil.setAttribute('d',`M${x(0)} ${y(intensity)}H${x(T)}`);
+    curve.setAttribute('d',`M${x(0)} ${b}C${x(d*.42)} ${b} ${x(d*.58)} ${p} ${x(d)} ${p}H${x(d+200)}C${x(d*1.42+200)} ${p} ${x(d*1.58+200)} ${b} ${x(2*d+200)} ${b}H${m}`);
+    gap.setAttribute('d',`M${m} ${b}H${x(T)}`);
+    txt(g1,'One leak: fades in, holds, fades out'+(bokehOn?', then light spots float up':''));
+    txt(g2,`then dark for a random ${minGap} to ${maxGap} seconds`);
+    G={x,y,d,pk,T};
+  }
+  // The dot: across with the time since this leak began (the wait under way, less what is left of it, so it stops when the chain is held),
+  // up with the leak layer's real opacity. The first leak waits at the top. Under reduced motion a playing chain puts it at the end of the part under way.
+  function placeDot(){
+    if(!G||mode!=='inside')return;
+    const gapPart=next===flash,rem=paused?left:Math.max(0,due-performance.now()),e=(gapPart?gapTotal:holdMs)-rem,k=G.d/lit.d,end=!motionOk&&!paused;
+    let t=G.d+100,o=end?(gapPart?0:1):Math.min(parseFloat(leakCS.opacity)/lit.p,1);
+    if(gapPart)t=end?2*G.d+200:e<lit.d?G.d+200+e*k:2*G.d+200+e-lit.d;
+    else if(!firstHold&&!end)t=e<lit.d?e*k:G.d+Math.min(e-lit.d,200);
+    dot.style.transform=`translate(${G.x(Math.min(t,G.T))}px,${G.y(o*G.pk)}px)`;
+  }
+  let raf=0;
+  function ride(){
+    cancelAnimationFrame(raf);raf=0;
+    if(mode!=='inside'||paused||!motionOk)return;
+    const step=()=>{placeDot();raf=requestAnimationFrame(step)};step();
+  }
+
+  // The ticks: a row of the last five leaks, each as tall as its peak and spaced by the time between them. Evenly timed has five equal
+  // ones; At random starts from a fixed plan and takes each real leak as it starts (the time since the one before, how strong).
+  const rnd=[{f:.5,r:.98},{f:.95,r:.77},{f:.1,r:.92},{f:.75,r:.75},{f:0,r:.95}];
+  function leakStarted(d){
+    rnd.push({iv:holdMs+gapTotal,r:lit.p/lit.i});rnd.shift();
+    holdMs=d+200;
+    if(mode==='inside'){drawGraph();placeDot()}
+    if(mode==='compare')placeTicks();
+  }
+  function placeTicks(){
+    const W=ticksB.clientWidth;if(!W)return;
+    const base=2*dur*(slowTog.checked?3:1)+200,iv=l=>l.iv??base+(minGap+l.f*(maxGap-minGap))*1000;
+    // Leaks timed at an earlier, longer setting widen the scale, so all five ticks stay in the row
+    const s=.9*(W-8)/Math.max(4*(base+maxGap*1000),rnd.slice(1).reduce((a,l)=>a+iv(l),0));
+    const put=(row,list)=>{
+      let x=W-6;
+      for(let i=4;i>=0;i--){
+        row[i].style.transform=`translateX(${Math.max(x-2,0)}px) scaleY(${Math.min(list[i].r*intensity/TOP,1)})`;
+        x-=iv(list[i])*s;
+      }
+    };
+    put(rowA,Array(5).fill({iv:base+(minGap+maxGap)*500,r:EVEN}));put(rowB,rnd);
+  }
+
+  // Evenly timed: its own small chain (wait() keeps only one timer), every leak after the same wait and at the same strength, held and
+  // resumed with the page's. Pause already holds its fade, a transition in the stage.
+  let eTimer=0,eNext=null,eDue=0,eLeft=0,eTotal=0,eFade=0,eBeat=0;
+  const beat=()=>(minGap+maxGap)*500;
+  function eWait(fn,ms){clearTimeout(eTimer);eNext=fn;if(paused){eLeft=ms;return}eDue=performance.now()+ms;eTimer=setTimeout(()=>{eNext=null;fn()},ms)}
+  function eFlash(){
+    const s=slowTog.checked?3:1,d=dur*s;
+    if(twinLeak.style.opacity){twinLeak.style.transition='';void twinLeak.offsetWidth;twinLeak.style.opacity=''}
+    twinLeak.style.setProperty('--leak-dur',d+'ms');
+    twinLeak.style.setProperty('--leak-peak',(intensity*EVEN).toFixed(3));
+    twinLeak.classList.add('active');
+    if(bokehOn)spawnBokeh(s,hostA);
+    eWait(()=>{twinLeak.classList.remove('active');eFade=d;eBeat=beat();eTotal=d+eBeat;eWait(eFlash,eTotal)},d+200);
+  }
+  // Time between leaks: a dark wait under way is planned again from the new beat, as the page does for its own
+  function eReplan(){
+    if(eNext!==eFlash||beat()===eBeat)return;
+    const waited=eTotal-(paused?eLeft:Math.max(0,eDue-performance.now()));
+    eBeat=beat();eTotal=eFade+eBeat;eWait(eFlash,Math.max(0,eTotal-waited));
+  }
+  // Entering: the copy starts lit from dark with a fade in, or, held, shows the real leak's light as it is. Leaving: its chain stops.
+  function enterCompare(){
+    stage.querySelectorAll(':scope>.bokeh').forEach(b=>b.remove());
+    void half.offsetWidth;
+    if(paused){twinLeak.style.transition='none';twinLeak.style.opacity=leakCS.opacity}
+    else eFlash();
+  }
+  function leaveCompare(){
+    clearTimeout(eTimer);eNext=null;
+    twinLeak.classList.remove('active');twinLeak.style.opacity=twinLeak.style.transition='';
+    hostA.textContent=hostB.textContent='';
+  }
+
+  // Notes: the markup holds the corner's words for moving; a band, and a loop held under reduced motion, get their own
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const words={inside:notes.inside.textContent,compare:notes.compare.textContent};
+  function setNotes(){
+    const still=!motionOk&&paused,band=curDir()==='dir-h';
+    txt(notes.inside,still
+      ?`Inside, shown still: the dashed lines show ${band?'where the glow is brightest':'how far the glow reaches'}, and the graph shows one leak fading in, holding and fading out, then a random dark wait.`
+      :band?words.inside.replace('how far the glow reaches from its corner','where the glow is brightest, down the middle'):words.inside);
+    txt(notes.compare,still?'Shown still: the marks under each photo are its last five leaks, equal and evenly spaced in Evenly timed, uneven in At random.':words.compare);
+  }
+  function refresh(){
+    vars.setProperty('--lk',curColor+'1)');
+    const dir=curDir();
+    if(mode==='inside'){
+      scene.classList.toggle('flip',dir[4]==='b');scene.dataset.side=dir==='dir-h'?'c':dir[5]==='l'?'r':'l';
+      txt(capShape,dir==='dir-h'?'Brightest down the middle':`Light from the ${CORNERS[dir]} corner, gone by the outer line`);
+      drawLines();drawGraph();placeDot();
+    }
+    if(mode==='compare'){eReplan();placeTicks()}
+    setNotes();
+  }
+
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(was==='compare'&&mode!=='compare')leaveCompare();
+    if(mode==='compare'&&was!=='compare')enterCompare();
+    refresh();ride();
+  });
+  document.addEventListener('hb:pause',e=>{
+    if(e.detail.paused){clearTimeout(eTimer);if(eNext)eLeft=Math.max(0,eDue-performance.now())}
+    else if(mode==='compare'){if(eNext)eWait(eNext,eLeft);else eFlash()}
+    placeDot();ride();setNotes();
+  });
+  document.addEventListener('click',e=>{if(e.target.closest('#dir-seg,#gap-seg,#speed-seg,#bri-seg,#color-sw'))refresh()});
+  document.addEventListener('change',e=>{if(e.target.matches('#spots-tog,#slow-tog'))refresh()});
+  new ResizeObserver(()=>{if(mode!=='normal')refresh()}).observe(stage);
+  new ResizeObserver(()=>{if(mode==='inside'){drawGraph();placeDot()}}).observe(plot);
+  applyColor();
 </script>
 </body>
 </html>
