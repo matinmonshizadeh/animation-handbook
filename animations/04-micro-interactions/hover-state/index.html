@@ -34,31 +34,98 @@
     /* 1. Color change */
     .h-color{transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
     @media(hover:hover){.h-color:hover{background:#2a201a;border-color:var(--ui-accent)}}
-    .h-color:active,.h-color:focus-visible,.h-color.is-demo{background:#2a201a;border-color:var(--ui-accent)}
+    .h-color:active,.h-color:focus-visible,.h-color.is-demo,
+    .stage[data-hb-mode="inside"] .twin.h-color{background:#2a201a;border-color:var(--ui-accent)}
     /* 2. Grow */
     .h-scale{transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-scale:hover{transform:scale(1.03)}}
-    .h-scale:active,.h-scale:focus-visible,.h-scale.is-demo{transform:scale(1.03)}
+    .h-scale:active,.h-scale:focus-visible,.h-scale.is-demo,.stage[data-hb-mode="inside"] .twin.h-scale{transform:scale(1.03)}
     /* 3. Lift: the card moves up and its shadow, a layer of its own, fades in */
     .h-lift{overflow:visible;transition:transform var(--dur) var(--ease)}
     .h-lift::after{content:'';position:absolute;inset:0;border-radius:inherit;box-shadow:0 8px 24px rgba(0,0,0,.6);opacity:0;pointer-events:none;transition:opacity var(--dur) var(--ease)}
     @media(hover:hover){.h-lift:hover{transform:translateY(-4px)}.h-lift:hover::after{opacity:1}}
-    .h-lift:active,.h-lift:focus-visible,.h-lift.is-demo{transform:translateY(-4px)}
-    .h-lift:active::after,.h-lift:focus-visible::after,.h-lift.is-demo::after{opacity:1}
+    .h-lift:active,.h-lift:focus-visible,.h-lift.is-demo,.stage[data-hb-mode="inside"] .twin.h-lift{transform:translateY(-4px)}
+    .h-lift:active::after,.h-lift:focus-visible::after,.h-lift.is-demo::after,.stage[data-hb-mode="inside"] .twin.h-lift::after{opacity:1}
     /* 4. Underline: a line as wide as the link, scaled out from the left */
     .h-underline .card-link{display:inline-block;align-self:flex-start;position:relative;color:var(--ui-accent);font-size:15px;font-weight:700}
     .h-underline .card-link::after{content:'';position:absolute;bottom:-2px;left:0;width:100%;height:1px;background:var(--ui-accent);transform:scaleX(0);transform-origin:left;transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-underline:hover .card-link::after{transform:scaleX(1)}}
-    .h-underline:active .card-link::after,.h-underline:focus-visible .card-link::after,.h-underline.is-demo .card-link::after{transform:scaleX(1)}
+    .h-underline:active .card-link::after,.h-underline:focus-visible .card-link::after,.h-underline.is-demo .card-link::after,
+    .stage[data-hb-mode="inside"] .twin.h-underline .card-link::after{transform:scaleX(1)}
     /* 5. Arrow nudge */
     .h-icon-row{display:flex;align-items:center;gap:8px}
     .arrow{display:inline-block;transition:transform var(--dur) var(--ease);font-size:14px}
     @media(hover:hover){.h-icon:hover .arrow{transform:translateX(6px)}}
-    .h-icon:active .arrow,.h-icon:focus-visible .arrow,.h-icon.is-demo .arrow{transform:translateX(6px)}
+    .h-icon:active .arrow,.h-icon:focus-visible .arrow,.h-icon.is-demo .arrow,.stage[data-hb-mode="inside"] .twin.h-icon .arrow{transform:translateX(6px)}
     /* 6. Sweep */
     .h-sweep::before{content:'';position:absolute;inset:0;background:rgba(255,157,92,.13);transform:translateX(-100%);transition:transform var(--dur) var(--ease)}
     @media(hover:hover){.h-sweep:hover::before{transform:translateX(0)}}
-    .h-sweep:active::before,.h-sweep:focus-visible::before,.h-sweep.is-demo::before{transform:translateX(0)}
+    .h-sweep:active::before,.h-sweep:focus-visible::before,.h-sweep.is-demo::before,.stage[data-hb-mode="inside"] .twin.h-sweep::before{transform:translateX(0)}
+    /* See inside and Compare. The script gives every card a copy (a twin: inert, with an arrow beside it) and the markup holds the heads,
+       the caption and two pointers; none of it shows in Normal. See inside sets each twin in its card's pointed-at look (the rules
+       above name it) beside the real card, which still reacts. Compare puts the twins, at rest, in the left half: cards that never react. */
+    .twin-box,.pair-arrow,.heads,.vtag,.cursor{display:none}
+    .twin-box{position:relative;pointer-events:none}
+    .twin-box.moves::after{content:'';position:absolute;inset:0;border:1px dashed rgba(244,244,242,.45);border-radius:8px;pointer-events:none;display:none}
+    .vtag{position:relative;z-index:2;justify-self:start;align-self:center;padding:3px 7px;border:1px solid rgba(255,255,255,.14);border-radius:5px;background:rgba(11,11,13,.94);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap}
+    .vtag.cap{grid-column:1/-1;max-width:100%;white-space:normal}
+    .pair-arrow{align-items:center;justify-content:center;color:#a8a8b2}
+    .pair-arrow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+    .cursor{position:absolute;left:-1px;top:-1px;z-index:4;width:17px;height:25px;pointer-events:none;visibility:hidden}
+    .cursor path{fill:#f4f4f2;stroke:#0b0b0d;stroke-width:1.5;stroke-linejoin:round}
+    .cursor.ghost{opacity:.7}
+    .stage[data-hb-mode="inside"] .hgrid,.stage[data-hb-mode="compare"] .hgrid{position:relative;grid-auto-flow:row dense;gap:8px 0;grid-template-columns:minmax(0,1fr) 20px minmax(0,1fr) 14px minmax(0,1fr) 20px minmax(0,1fr)}
+    .stage[data-hb-mode="compare"] .hgrid{grid-template-columns:minmax(0,1fr) 8px minmax(0,1fr) 28px minmax(0,1fr) 8px minmax(0,1fr)}
+    .stage[data-hb-mode="compare"] .hgrid::before{content:'';position:absolute;left:50%;top:0;bottom:0;border-left:1px dashed rgba(255,255,255,.16)}
+    .stage[data-hb-mode="inside"] .hcard,.stage[data-hb-mode="compare"] .hcard{min-height:56px;padding:8px 10px}
+    .stage[data-hb-mode="inside"] .twin-box,.stage[data-hb-mode="compare"] .twin-box{display:grid}
+    .stage[data-hb-mode="inside"] .pair-arrow,.stage[data-hb-mode="inside"] .hd-in,.stage[data-hb-mode="compare"] .hd-cmp,.stage[data-hb-mode="inside"] .cap,.stage[data-hb-mode="compare"] .cap{display:block}
+    .stage[data-hb-mode="inside"] .pair-arrow{display:flex}
+    .stage[data-hb-mode="compare"] .cursor{display:block}
+    .stage[data-hb-mode="inside"] .twin-box.moves::after{display:block}
+    .stage[data-hb-mode="inside"] .heads,.stage[data-hb-mode="compare"] .heads{display:grid;grid-column:1/-1;grid-row:1;grid-template-columns:inherit;column-gap:0}
+    .stage[data-hb-mode="inside"] .at-point{grid-column:3}
+    .stage[data-hb-mode="compare"] .never{grid-column:1/4}
+    .stage[data-hb-mode="compare"] .reacts{grid-column:5/-1}
+    .stage[data-hb-mode="compare"] .cap{grid-column:5/-1;justify-self:end}
+    .stage[data-hb-mode="compare"] .hgrid:not(.posed) .cap{visibility:hidden}
+    /* Each pair is the real card, an arrow and its twin: columns 1 to 3, then 5 to 7. In Compare the twins fill the left half, the real cards the right. */
+    .stage[data-hb-mode="inside"] .hgrid>:nth-child(6n+1 of .hcard,.pair-arrow,.twin-box){grid-column:1}
+    .stage[data-hb-mode="inside"] .hgrid>:nth-child(6n+2 of .hcard,.pair-arrow,.twin-box){grid-column:2}
+    .stage[data-hb-mode="inside"] .hgrid>:nth-child(6n+3 of .hcard,.pair-arrow,.twin-box){grid-column:3}
+    .stage[data-hb-mode="inside"] .hgrid>:nth-child(6n+4 of .hcard,.pair-arrow,.twin-box){grid-column:5}
+    .stage[data-hb-mode="inside"] .hgrid>:nth-child(6n+5 of .hcard,.pair-arrow,.twin-box){grid-column:6}
+    .stage[data-hb-mode="inside"] .hgrid>:nth-child(6n+6 of .hcard,.pair-arrow,.twin-box){grid-column:7}
+    .stage[data-hb-mode="compare"] .hgrid>:nth-child(6n+3 of .hcard,.pair-arrow,.twin-box){grid-column:1}
+    .stage[data-hb-mode="compare"] .hgrid>:nth-child(6n+6 of .hcard,.pair-arrow,.twin-box){grid-column:3}
+    .stage[data-hb-mode="compare"] .hgrid>:nth-child(6n+1 of .hcard,.pair-arrow,.twin-box){grid-column:5}
+    .stage[data-hb-mode="compare"] .hgrid>:nth-child(6n+4 of .hcard,.pair-arrow,.twin-box){grid-column:7}
+    /* A narrow box has room for three pairs only (Color change, Underline and Sweep, the clearest changes) in one column */
+    @media(max-width:760px){
+      .stage[data-hb-mode="inside"] .hgrid{grid-template-columns:minmax(0,1fr) 18px minmax(0,1fr)}
+      .stage[data-hb-mode="compare"] .hgrid{grid-template-columns:minmax(0,1fr) 22px minmax(0,1fr)}
+      .stage[data-hb-mode="inside"] .hgrid>:is(.h-scale,.h-lift,.h-icon,.skip),.stage[data-hb-mode="compare"] .hgrid>:is(.h-scale,.h-lift,.h-icon,.skip){display:none}
+      .stage[data-hb-mode="inside"] .hgrid>:nth-child(3n+1 of .hcard,.pair-arrow,.twin-box){grid-column:1}
+      .stage[data-hb-mode="inside"] .hgrid>:nth-child(3n+2 of .hcard,.pair-arrow,.twin-box){grid-column:2}
+      .stage[data-hb-mode="inside"] .hgrid>:nth-child(3n+3 of .hcard,.pair-arrow,.twin-box){grid-column:3}
+      .stage[data-hb-mode="compare"] .hgrid>:nth-child(3n+3 of .hcard,.pair-arrow,.twin-box){grid-column:1}
+      .stage[data-hb-mode="compare"] .hgrid>:nth-child(3n+1 of .hcard,.pair-arrow,.twin-box){grid-column:3}
+      .stage[data-hb-mode="compare"] .never{grid-column:1}
+      .stage[data-hb-mode="compare"] .reacts{grid-column:3}
+      .stage[data-hb-mode="compare"] .cap{grid-column:1/-1}
+    }
+    @media(max-width:760px){
+      .stage[data-hb-mode="inside"] .hcard,.stage[data-hb-mode="compare"] .hcard{min-height:52px;padding-block:6px}
+    }
+    @media(max-height:620px){
+      .stage[data-hb-mode="inside"] .hgrid,.stage[data-hb-mode="compare"] .hgrid{row-gap:6px}
+      .stage[data-hb-mode="inside"] .hcard,.stage[data-hb-mode="compare"] .hcard{min-height:48px;padding-block:4px}
+    }
+    @media(max-width:600px){.stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{padding:12px 10px}}
+    /* The twins and the posed tint skip their transitions for the one style change that a mode or a setting makes */
+    .stage.snap .twin,.stage.snap .twin::before,.stage.snap .twin::after,.stage.snap .twin *,.stage.snap .twin *::before,.stage.snap .twin *::after,.stage.snap-pose .hgrid>.h-sweep::before{transition:none!important}
+    /* Compare at rest: the real Sweep card's tint caught a tenth of a second after the pointer arrived (--pose is set from the page's own curve) */
+    .stage[data-hb-mode="compare"] .hgrid.posed>.h-sweep::before{transform:translateX(var(--pose,-100%))}
     /* Reduced motion: hover states still change, but without the tween */
     @media(prefers-reduced-motion:reduce){.h-color,.h-scale,.h-lift,.h-lift::after,.arrow,.h-underline .card-link::after,.h-sweep::before{transition:none!important}}
   </style>
@@ -83,6 +150,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Hover it</h2><p>Point at a card (press and hold it on a phone, or Tab to it), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div style="width:100%">
         <div class="hgrid">
@@ -92,12 +164,23 @@
           <div class="hcard h-underline" tabindex="0" role="button"><span class="card-link">Underline</span></div>
           <div class="hcard h-icon" tabindex="0" role="button"><div class="h-icon-row"><div class="hcard-name">Arrow nudge</div><span class="arrow" aria-hidden="true">→</span></div></div>
           <div class="hcard h-sweep" tabindex="0" role="button"><div class="hcard-name">Sweep</div></div>
+          <div class="heads" aria-hidden="true">
+            <span class="vtag hd-in" data-hb-caption>At rest</span><span class="vtag hd-in at-point" data-hb-caption>When pointed at</span>
+            <span class="vtag hd-cmp never" data-hb-caption>Never reacts</span><span class="vtag hd-cmp reacts" data-hb-caption>Reacts</span>
+          </div>
+          <span class="vtag cap" data-hb-caption aria-hidden="true"></span>
+          <svg class="cursor ghost" viewBox="-1 -1 17 25" aria-hidden="true"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg>
+          <svg class="cursor pointer" viewBox="-1 -1 17 25" aria-hidden="true"><path d="M0 0V19L5 14.5L8.5 22L11.5 20.7L8 13.3H14.5Z"/></svg>
         </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each card sits beside a copy of its look when pointed at; pointing, pressing or Tab slides it from one look to the other. Point at a card, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Never reacts: the cards ignore the pointer, shown as a ghost; Reacts: each card changes as the pointer reaches it. Point at a card, or press Show me.</p>
     </div>
   </section>
 
@@ -198,6 +281,101 @@
   // A card stands for a button, and Space on a button does not scroll the page: on a card it does nothing, as a click does.
   cards.forEach(c=>c.addEventListener('keydown',e=>{if(e.key===' ')e.preventDefault()}));
 
+  // ── See inside and Compare ──
+  // Made once: a twin of every card (inert, hidden from screen readers) and an arrow beside the real card. Normal shows none of it.
+  const grid=document.querySelector('.hgrid'),SWEEP=cards.findIndex(c=>c.matches('.h-sweep'));
+  const twins=cards.map(c=>{
+    const t=c.cloneNode(true),box=document.createElement('div'),ar=document.createElement('span');
+    t.removeAttribute('tabindex');t.removeAttribute('role');t.classList.add('twin');
+    box.className='twin-box';box.setAttribute('inert','');box.setAttribute('aria-hidden','true');box.append(t);
+    ar.className='pair-arrow';ar.setAttribute('aria-hidden','true');ar.innerHTML='<svg viewBox="0 0 16 16"><path d="M2 8h11M9 4l4 4-4 4"/></svg>';
+    if(c.matches('.h-scale,.h-lift'))box.classList.add('moves');
+    if(c.matches('.h-scale,.h-lift,.h-icon'))box.classList.add('skip'),ar.classList.add('skip');
+    c.after(ar,box);
+    return box;
+  });
+  const cap=grid.querySelector('.cap'),pointer=grid.querySelector('.pointer'),ghost=grid.querySelector('.ghost');
+  const insideNote=document.querySelector('[data-hb-for="inside"]'),NOTE=insideNote.textContent;
+  const NOTE_RM='Inside, each card sits beside a copy of its look when pointed at; with reduced motion on, pointing, pressing or Tab switches it to that look at once.';
+  const TIME={300:['about a third of a second','nearly a second'],180:['about a fifth of a second','about half a second'],110:['about a tenth of a second','about a third of a second']};
+  const FEEL={ease:'slowing into place','cubic-bezier(.34,1.56,.64,1)':'going a little too far, then settling','ease-in-out':'easing in and out',linear:'at one steady pace'};
+  const CURVES={ease:[.25,.1,.25,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const RM=matchMedia('(prefers-reduced-motion: reduce)');
+  let mode='normal',ease='ease',mouse=false,lx=0,ly=0,touch=null,lastDemo=-1;
+
+  // How far a card's change has come at progress x (0 to 1) on the Feel now chosen: the curve's bezier, solved for x by halving
+  function curve(x){
+    const [a,b,c,d]=CURVES[ease]||ease.match(/-?[\d.]+/g).map(Number);
+    const at=(t,p,q)=>3*(1-t)*(1-t)*t*p+3*(1-t)*t*t*q+t*t*t;
+    let lo=0,hi=1;
+    for(let i=0;i<24;i++){const m=(lo+hi)/2;if(at(m,a,c)<x)lo=m;else hi=m}
+    return at((lo+hi)/2,b,d);
+  }
+  function say(el,t){if(el.textContent!==t)el.textContent=t}
+  // The note and the caption for the settings now, and how far in the posed Sweep tint is: a tenth of a second at Speed and Feel
+  // (the progress is fixed, so Slow motion changes the words, not the picture), all of the way where there is no tween
+  function words(){
+    const rm=RM.matches,slow=slowTog.checked;
+    say(insideNote,rm?NOTE_RM:NOTE);
+    if(mode==='inside')say(cap,rm?'Each card switches to its second look at once':`Each card changes in ${TIME[dur][+slow]}, ${FEEL[ease]}`);
+    if(mode==='compare')say(cap,rm?'Switches at once':slow?'A third of a second in':'A tenth of a second in');
+    grid.style.setProperty('--pose',((rm?1:curve(Math.min(1,.1/(dur/1000))))-1)*100+'%');
+  }
+  // Compare: a pretend pointer parked over the real Sweep card, its tint caught part way in, and the ghost over the copy's Sweep. Any
+  // input lifts it: a mouse over the box, a finger down, a card with the keyboard focus, or Show me. Then the pointer and the ghost
+  // follow the card that is pointed at, pressed, focused or shown, at the same spot on the twin.
+  function aim(){
+    const demo=cards.findIndex(c=>c.classList.contains('is-demo')),focus=cards.findIndex(c=>c.matches(':focus-visible'));
+    if(demo>=0)lastDemo=demo;else if(!running())lastDemo=-1;
+    grid.classList.toggle('posed',mode==='compare'&&!mouse&&!touch&&!running()&&focus<0);
+    if(mode!=='compare')return;
+    let i=SWEEP,fx=.72,fy=.55,drawn=true;
+    const under=(x,y)=>{const el=document.elementFromPoint(x,y),c=el&&el.closest('.hcard'),r=c&&c.getBoundingClientRect();
+      i=cards.indexOf(c);drawn=false;if(r){fx=(x-r.left)/r.width;fy=(y-r.top)/r.height}};
+    if(running()){i=demo>=0?demo:lastDemo;fx=.78;fy=.5}
+    else if(touch)under(touch.x,touch.y);
+    else if(mouse)under(lx,ly);
+    else if(focus>=0){i=focus;fx=.78;fy=.5}
+    place(pointer,cards[i],fx,fy,drawn);place(ghost,twins[i],fx,fy,true);
+  }
+  // A pointer on a card, kept inside it (and nowhere at all while the card is out of the layout)
+  function place(el,card,fx,fy,on){
+    if(!on||!card||!card.offsetParent){el.style.visibility='hidden';return}
+    const w=card.offsetWidth,h=card.offsetHeight;
+    el.style.transform=`translate(${card.offsetLeft+Math.max(2,Math.min(fx*w,w-16))}px,${card.offsetTop+Math.max(2,Math.min(fy*h,h-25))}px)`;
+    el.style.visibility='visible';
+  }
+  // Draws what a mode or a setting changes at once: the twins, and the posed tint when the pose comes, goes or changes, skip their transitions
+  function atOnce(fn){
+    const had=grid.classList.contains('posed');
+    stage.classList.add('snap');
+    fn();
+    if(had||grid.classList.contains('posed'))stage.classList.add('snap-pose');
+    void stage.offsetWidth;
+    stage.classList.remove('snap','snap-pose');
+  }
+  function refresh(){atOnce(()=>{words();aim()})}
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;refresh()});
+  addEventListener('resize',aim);
+  RM.addEventListener('change',refresh);
+  slowTog.addEventListener('change',refresh);
+  if(document.fonts)document.fonts.ready.then(aim);
+  document.getElementById('btn-demo').addEventListener('click',aim);
+  cards.forEach(c=>new MutationObserver(aim).observe(c,{attributes:true,attributeFilter:['class']}));
+  stage.addEventListener('pointerenter',e=>{if(e.pointerType==='mouse'){mouse=true;lx=e.clientX;ly=e.clientY;aim()}});
+  stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'){mouse=false;aim()}});
+  stage.addEventListener('pointermove',e=>{
+    if(e.pointerType==='mouse'){mouse=true;lx=e.clientX;ly=e.clientY}
+    else if(touch&&e.pointerId===touch.id){touch.x=e.clientX;touch.y=e.clientY}
+    else return;
+    if(mode==='compare')aim();
+  });
+  stage.addEventListener('pointerdown',e=>{if(e.pointerType!=='mouse'){touch={id:e.pointerId,x:e.clientX,y:e.clientY};aim()}});
+  ['pointerup','pointercancel'].forEach(t=>stage.addEventListener(t,e=>{if(touch&&e.pointerId===touch.id){touch=null;aim()}}));
+  stage.addEventListener('focusin',aim);
+  stage.addEventListener('focusout',aim);
+  words();
+
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
@@ -205,8 +383,8 @@
       pick(b.dataset);
     }));
   }
-  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms')});
-  choices('feel-seg',d=>{vars.setProperty('--ease',d.ease)});
+  choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms');refresh()});
+  choices('feel-seg',d=>{ease=d.ease;vars.setProperty('--ease',d.ease);refresh()});
 </script>
 </body>
 </html>
