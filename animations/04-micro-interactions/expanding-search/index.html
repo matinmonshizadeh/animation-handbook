@@ -296,7 +296,7 @@
   // The field opens and looks focused (is-demo) without taking the real focus, "pricing" is typed a letter every 80ms, and after a
   // pause it closes the way the settings say: the focus look leaves (Closes when you leave it) or the close button is pressed. At
   // Normal speed it is closed again at 2.4 s. A real press on Show me lets go of a field that still has the focus (this also closes
-  // closes the phone keyboard); the press on arrival leaves a visitor who is already in the field alone, but the press that follows a
+  // the phone keyboard); the press on arrival leaves a visitor who is already in the field alone, but the press that follows a
   // See inside or Compare press (letThrough) goes ahead, so the view is seen working.
   $('btn-demo').addEventListener('click',e=>{
     const inStage=stage.contains(document.activeElement);
@@ -333,7 +333,8 @@
       pick(b.dataset);
     }));
   }
-  choices('side-seg',d=>{bar.classList.toggle('to-right',d.side==='right');place()});
+  // Closed, the rim jumps to the icon's new end with it instead of sliding across the toolbar
+  choices('side-seg',d=>{const jump=!bar.classList.contains('open');if(jump)rim.style.transition='none';bar.classList.toggle('to-right',d.side==='right');if(jump){void rim.offsetWidth;rim.style.transition=''}place()});
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--dur',dur+'ms');place()});
   [leaveTog,slowTog].forEach(c=>c.addEventListener('change',place));
   // ---- Compare: the first half is an inert, id-free copy of the app that opens at once and mirrors the real one
@@ -370,7 +371,7 @@
     twinBar.classList.toggle('open',bar.classList.contains('open')||posed);
     twinBar.classList.toggle('foc',field.matches(':focus-within'));
     twinClose.classList.toggle('hit',sclose.classList.contains('hit'));
-    texts.forEach(t=>{t.textContent=input.value||input.placeholder;t.classList.toggle('ph',!input.value)});
+    texts.forEach(t=>{t.textContent=input.value||input.placeholder;t.classList.toggle('ph',!input.value);t.scrollLeft=input.scrollLeft});
   }
   function setText(v){input.value=v;sync()}
   function snap(fn){
@@ -384,13 +385,15 @@
     const on=mode==='compare'&&!running()&&!bar.classList.contains('open')&&field.getAnimations().length===0;
     if(on===posed)return;
     posed=on;
-    snap(()=>{stage.classList.toggle('posed',on);sync()});
+    // Lifted because the field has begun to open (a press on the icon): no snap, or its opening would jump to its end
+    const lift=()=>{stage.classList.toggle('posed',on);sync()};
+    if(!on&&bar.classList.contains('open'))lift();else snap(lift);
     notes();
   }
   new MutationObserver(()=>{sync();pose()}).observe(bar,{attributes:true,attributeFilter:['class'],subtree:true});
   ['focusin','focusout'].forEach(t=>field.addEventListener(t,()=>setTimeout(sync)));
   field.addEventListener('transitionend',pose);field.addEventListener('transitioncancel',pose);
-  input.addEventListener('input',sync);
+  ['input','scroll'].forEach(t=>input.addEventListener(t,sync));
 
   // ---- Notes: the markup holds the default words; reduced motion swaps them (and back), writing only when the words change
   const reduced=matchMedia('(prefers-reduced-motion:reduce)');
