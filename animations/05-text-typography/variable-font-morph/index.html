@@ -41,6 +41,53 @@
       -webkit-user-select:none;user-select:none
     }
     @media(prefers-reduced-motion:reduce){.vf-text{transition:none!important}}
+
+    /* ── See inside and Compare ── */
+    :root{--vp:clamp(20px,4vw,48px)}
+    .stage{position:relative}
+    .vfi,.vfc{position:absolute;z-index:2;pointer-events:none;visibility:hidden}
+    .vfc{inset:0}
+    .vfi{left:var(--vp);right:var(--vp);bottom:var(--vp);display:flex;flex-direction:column;gap:10px}
+    .vfl{padding:3px 7px;border-radius:5px;background:rgba(4,6,12,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-wrap:balance}
+    /* the twins of the word: the holder keeps Normal's layout; Jumps reads the same variables with no easing */
+    .vfh,.vfjump{display:none}
+    .vfh{visibility:hidden}
+    .vfjump{font-weight:var(--cw,var(--wght));font-variation-settings:'wght' var(--cw,var(--wght));transform:skewX(calc(var(--cs,var(--slnt)) * 1deg));transition:none}
+    .vfm{display:none;position:absolute;left:0;top:0;max-width:none;visibility:hidden;font-weight:900;font-variation-settings:'wght' 900;transform:none;transition:none}
+    /* See inside: the word sits above a bar that is one font's range of weights; the dot rides it by the word's own weight and easing */
+    .vfrow{display:flex;align-items:center;gap:12px}
+    .vfend{flex:none;font-size:14px;white-space:nowrap;text-wrap:wrap}
+    .vfreg{font-weight:400}
+    .vfblk{font-weight:900}
+    .vftrack{position:relative;flex:1;min-width:0;height:24px}
+    .vfwedge{position:absolute;left:0;right:0;top:50%;height:12px;margin-top:-6px;background:linear-gradient(90deg,rgba(255,255,255,.22),rgba(255,255,255,.62));clip-path:polygon(0 40%,100% 0,100% 100%,0 60%)}
+    .vftk{position:absolute;top:50%;width:2px;height:22px;margin:-11px 0 0 -1px;border-radius:1px;background:#f4f4f2}
+    .vfdot{position:absolute;left:0;top:50%;width:16px;height:16px;margin:-8px 0 0 -8px;border-radius:50%;border:2px solid #04060c;background:var(--ui-accent);
+      transform:translateX(calc((var(--wght) - 400) / 500 * var(--tw,0px)));transition:transform var(--morph-dur) cubic-bezier(.4,0,.2,1)}
+    @media(prefers-reduced-motion:reduce){.vfdot{transition:none}}
+    .vfcaps{display:flex;flex-wrap:wrap;justify-content:center;gap:8px 10px}
+    .vfcaps .vfl{max-width:100%}
+    .vflean{position:relative;display:inline-block;width:24px;height:20px;margin-right:6px;vertical-align:-5px}
+    .vflean::before,.vflean::after{content:"";position:absolute;left:11px;bottom:0;height:20px;border-left:2px dashed #c9ccd6}
+    .vflean::after{border-left:2px solid var(--ui-accent);transform-origin:50% 100%;transform:rotate(24deg)}
+    .vfcap.off .vflean::after{display:none}
+    .stage[data-hb-mode="inside"] .vfi{visibility:visible}
+    .stage[data-hb-mode="inside"] #vf-text{translate:0 var(--vty,0px);scale:var(--vs,1)}
+    .stage[data-hb-mode="inside"] .vfm,.stage[data-hb-mode="compare"] .vfm{display:block}
+    /* Compare: the word in each half, broken into the same lines and drawn the same size; the holder keeps the box the height Normal gives it */
+    .vfn,.vfp{position:absolute;width:max-content;max-width:calc(50% - 14px);text-align:center;translate:-50% 0}
+    .vfn{top:10px;font-weight:700}
+    .vfp{bottom:10px;visibility:hidden}
+    .vfa{left:25%}
+    .vfb{left:75%}
+    .vfdiv{position:absolute;left:50%;top:10px;bottom:10px;border-left:1px dashed rgba(244,244,242,.2)}
+    .stage[data-hb-mode="compare"] .vfc{visibility:visible}
+    .stage[data-hb-mode="compare"].vfposed .vfp{visibility:visible}
+    .stage[data-hb-mode="compare"] .vfh,.stage[data-hb-mode="compare"] .vfjump{display:block}
+    .stage[data-hb-mode="compare"] :is(#vf-text,.vfjump){position:absolute;top:var(--vt,0px);width:max-content;max-width:none;white-space:nowrap;scale:var(--vs,1);translate:-50% 0}
+    .stage[data-hb-mode="compare"] #vf-text{left:75%}
+    .stage[data-hb-mode="compare"] .vfjump{left:25%}
+    .stage[data-hb-mode="compare"] #vf-text{z-index:1}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -63,12 +110,42 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow" id="stage">
       <div class="vf-text" id="vf-text">Type</div>
+      <div class="vf-text vfh" aria-hidden="true" inert>Type</div>
+      <div class="vf-text vfjump" aria-hidden="true" inert>Type</div>
+      <div class="vf-text vfm" aria-hidden="true" inert>Type</div>
+      <div class="vfi" aria-hidden="true" inert>
+        <div class="vfrow">
+          <span class="vfl vfend vfreg" data-hb-caption>Regular</span>
+          <div class="vftrack"><i class="vfwedge"></i><i class="vftk" style="left:0"></i><i class="vftk" style="left:20%"></i><i class="vftk" style="left:60%"></i><i class="vftk" style="left:100%"></i><i class="vfdot"></i></div>
+          <span class="vfl vfend vfblk" data-hb-caption>Black</span>
+        </div>
+        <div class="vfcaps">
+          <span class="vfl vfg" data-hb-caption>Glides through every weight in between, in about half a second</span>
+          <span class="vfl vfcap" data-hb-caption><span class="vflean"></span><span class="vflt">Leans by tilting a little</span></span>
+        </div>
+      </div>
+      <div class="vfc" aria-hidden="true" inert>
+        <i class="vfdiv"></i>
+        <span class="vfl vfn vfa" data-hb-caption>Jumps</span>
+        <span class="vfl vfn vfb" data-hb-caption>Glides</span>
+        <span class="vfl vfp vfa" data-hb-caption>At the next style</span>
+        <span class="vfl vfp vfb" data-hb-caption>Half way through a change</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the word slides along one font's range of weights, from regular to black, and rests at a few stops on the way; the dot shows where it is now.</p>
+      <p data-hb-for="compare" hidden>Jumps snaps from one style to the next, as two separate fonts would. Glides moves through every weight in between, because one variable font holds them all.</p>
     </div>
   </section>
 
@@ -198,6 +275,111 @@
     }));
   }
   choices('speed-seg',d=>{morph=+d.dur});
+
+  // ── See inside and Compare ──
+  // Both are drawn from the loop's own numbers. See inside: the dot rides the bar by the word's own --wght with its easing, so Pause
+  // and Slow motion reach it with the word. Compare: Jumps is a twin that reads the same variables with no easing; while the
+  // loop rests paused, the next change is posed half way by inline styles on the word and on the twin, and lifted at once.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const $=s=>stage.querySelector(s);
+  const vfi=$('.vfi'),vfm=$('.vfm'),jump=$('.vfjump'),track=$('.vftrack');
+  const twins=[...stage.querySelectorAll('.vf-text:not(#vf-text)')];
+  const tipA=$('.vfp.vfa'),tipB=$('.vfp.vfb'),glide=$('.vfg'),leanCap=$('.vfcap'),leanWords=$('.vflt');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],plain=notes.map(n=>n.textContent);
+  // Under reduced motion the loop starts paused, so both views are stills; once Play has moved it on, the words say so
+  const still=[
+    "Shown still: the bar is one font's whole range of weights, from regular to black, and the dot marks where the word rests on it.",
+    'Shown still, half way through a change: Jumps is already at the next style, while Glides is in between, a weight that only a variable font can show.'];
+  const jumping=[
+    "With reduced motion on, the word and its dot jump from stop to stop along one font's range of weights, regular to black.",
+    'With reduced motion on, Jumps and Glides both jump from style to style. Press Pause to see them half way through a change.'];
+  let mode='normal';
+  const put=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  const describe=()=>notes.forEach((n,i)=>put(n,!reduceMQ.matches?plain[i]:paused?still[i]:jumping[i]));
+  const ago=ms=>ms<=450?'about a third of a second':ms<=800?'about half a second':ms<=1250?'about a second':ms<=2100?'nearly two seconds':'about three seconds';
+  function captions(){
+    put(glide,reduceMQ.matches?'The weights in between are skipped with reduced motion':'Glides through every weight in between, in '+ago(curDur()));
+    put(leanWords,leanTog.checked?'Leans by tilting a little':'Lean is off: stays upright');
+    leanCap.classList.toggle('off',!leanTog.checked);
+    if(mode!=='normal')layout();
+  }
+  const src=()=>txtIn.value.trim()?txtIn.value:'Type';
+  function sync(){twins.forEach(w=>put(w,src()))}
+  // The lines of a text as it wraps now, one string each
+  function linesOf(el){
+    const n=el.firstChild,r=document.createRange(),out=[];let top=null;
+    for(let i=0;i<n.length;i++){
+      r.setStart(n,i);r.setEnd(n,i+1);
+      const b=r.getBoundingClientRect();
+      if(!b.height)continue;
+      if(top===null||b.top-top>b.height/2){out.push('');top=b.top}
+      out[out.length-1]+=n.data[i];
+    }
+    return out.map(l=>l.trim());
+  }
+  const fill=(el,lines)=>el.replaceChildren(...lines.flatMap((l,i)=>i?[document.createElement('br'),l]:[l]));
+  let broken=false;
+  // Where the word goes: above the bar in See inside, and one line in the right half in Compare, both scaled alike to fit
+  function layout(){
+    track.style.setProperty('--tw',track.clientWidth+'px');
+    if(broken&&mode!=='compare'){vfText.textContent=jump.textContent=src();broken=false}
+    if(mode==='normal')return;
+    const st=getComputedStyle(stage),W=stage.clientWidth,H=stage.clientHeight,fs=parseFloat(getComputedStyle(vfText).fontSize);
+    let s,ty=0,at=0;
+    if(mode==='inside'){
+      const low=vfi.offsetHeight+10;
+      vfm.style.width=vfText.offsetWidth+'px';vfm.style.overflowWrap='';
+      s=Math.min(1,(H-parseFloat(st.paddingTop)-parseFloat(st.paddingBottom)-low)/vfm.offsetHeight);
+      ty=-low/2;
+    }else{
+      // the largest size at which the text, broken to fit a half, still fits between the names and the notes (a word is broken
+      // only when even half size does not hold it); the lines it breaks into at its black weight are kept in both halves, so the
+      // two never wrap apart
+      const room=W/2-24-.3*fs;
+      for(const least of [.5,.13]){
+        vfm.style.overflowWrap=least===.5?'normal':'anywhere';
+        for(s=1;s>least;s-=.04){vfm.style.width=room/s+'px';if(vfm.offsetHeight*s<=H-96&&vfm.scrollWidth<=room/s+1)break}
+        if(s>least)break;
+      }
+      const lines=linesOf(vfm);
+      fill(vfText,lines);fill(jump,lines);broken=true;
+      at=(H-vfText.offsetHeight)/2;
+    }
+    stage.style.setProperty('--vs',s);stage.style.setProperty('--vty',ty+'px');stage.style.setProperty('--vt',at+'px');
+  }
+  const num=n=>+vars.getPropertyValue(n);
+  function unpose(){
+    if(!vfText.style.transition)return;
+    vfText.style.fontWeight=vfText.style.fontVariationSettings=vfText.style.transform='';
+    void vfText.offsetWidth; // the true style is drawn with the easing off, then the easing comes back
+    vfText.style.transition='';
+    jump.style.cssText='';
+  }
+  function pose(){
+    // Paused: the labels say where the word is. At rest the next change is posed half way; caught in the middle of one, the true
+    // frames already differ, so nothing is posed
+    const stopped=mode==='compare'&&paused,on=stopped&&!held.length;
+    stage.classList.toggle('vfposed',stopped);
+    put(tipA,on?'At the next style':'Already at the new style');
+    put(tipB,on?'Half way through a change':'Still on its way');
+    if(!on)return unpose();
+    const w=num('--wght'),k=num('--slnt'),to=PRESETS[idx%PRESETS.length],k2=leanTog.checked?to.slnt:0,mid=(w+to.wght)/2;
+    vfText.style.transition='none';
+    vfText.style.fontWeight=mid;
+    vfText.style.fontVariationSettings="'wght' "+mid;
+    vfText.style.transform='skewX('+(k+k2)/2+'deg)';
+    jump.style.cssText='--cw:'+to.wght+';--cs:'+k2;
+  }
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;layout();pose()});
+  document.addEventListener('hb:pause',()=>{describe();pose()});
+  reduceMQ.addEventListener('change',()=>{describe();captions();pose()});
+  leanTog.addEventListener('change',()=>{captions();pose()});
+  slowTog.addEventListener('change',captions);
+  document.getElementById('speed-seg').addEventListener('click',captions);
+  txtIn.addEventListener('input',()=>{sync();layout()});
+  new ResizeObserver(layout).observe(stage);
+  if(document.fonts)document.fonts.ready.then(layout);
+  sync();captions();
 
   step();
 </script>
