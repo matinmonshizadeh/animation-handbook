@@ -40,6 +40,56 @@
     .btn{min-width:64px;height:44px;padding:0 16px;border:1px solid rgba(255,255,255,.16);border-radius:8px;background:#1d1d23;color:var(--ui-text);font:600 16px/1 var(--hb-font);cursor:pointer}
     @media(hover:hover){.btn:hover{border-color:var(--ui-accent)}}
     .sr-only{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+    /* See inside and Compare: their parts stay out of sight in Normal; their words sit on a dark backing */
+    .xi,.cm,.cp{display:none}
+    .lbl{padding:3px 6px;border-radius:5px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-wrap:balance}
+    .gh{display:none;position:absolute;top:0;width:.64em;height:1.1em;border:1.5px dashed rgba(244,244,242,.55);border-radius:6px;pointer-events:none}
+    .ar{position:relative;flex:none;align-self:stretch;width:12px}
+    .ar::before{content:"";position:absolute;left:5px;top:5px;bottom:5px;width:2px;background:var(--ui-accent)}
+    .ar i{position:absolute;left:0;border:6px solid transparent}
+    .au{top:0;border-top-width:0!important;border-bottom:7px solid var(--ui-accent)!important}
+    .ad{bottom:0;border-bottom-width:0!important;border-top:7px solid var(--ui-accent)!important}
+    .xd[data-d="up"] .ad,.xd[data-d="down"] .au{display:none}
+    /* See inside: the card widens to give the words room and each window grows to show part of the digit above and below (--ext,
+       set by the script from the room the box has); the column outside the real one-line window is dimmed, not hidden, and that
+       window is outlined. The column gets a 9 before its first 0 and a 1 after its last, so every digit has both neighbors. */
+    .stage[data-hb-mode="inside"]{padding:clamp(4px,1.6vw,16px)}
+    .stage[data-hb-mode="inside"] .counter{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:10px clamp(4px,1.5vw,8px);max-width:640px;padding:10px clamp(4px,2vw,12px)}
+    .stage[data-hb-mode="inside"] .cap{display:none}
+    .stage[data-hb-mode="inside"] .xi{display:block}
+    .stage[data-hb-mode="inside"] .xd{display:flex;grid-area:2/3;align-self:stretch;align-items:center;gap:4px}
+    .stage[data-hb-mode="inside"] .num{grid-area:2/2;font-size:clamp(32px,10vw,76px)}
+    .stage[data-hb-mode="inside"] .xt{grid-area:1/1/2/4;justify-self:center;text-align:center}
+    .stage[data-hb-mode="inside"] .xw{grid-area:2/1;justify-self:end;text-align:right}
+    .stage[data-hb-mode="inside"] .xs{grid-area:3/1/4/4;justify-self:center;text-align:center}
+    .stage[data-hb-mode="inside"] .btns{grid-area:4/1/5/4;justify-self:center}
+    .stage[data-hb-mode="inside"] .wheel{position:relative;height:calc(1.1em + 2*var(--ext,0px));
+      --m:linear-gradient(transparent,rgba(0,0,0,.45) calc(var(--ext,0px)*.35),rgba(0,0,0,.45) var(--ext,0px),#000 0,#000 calc(var(--ext,0px) + 1.1em),rgba(0,0,0,.45) 0,rgba(0,0,0,.45) calc(1.1em + var(--ext,0px)*1.65),transparent);
+      -webkit-mask-image:var(--m);mask-image:var(--m)}
+    .stage[data-hb-mode="inside"] .wheel::after{content:"";position:absolute;left:0;right:0;top:var(--ext,0px);height:1.1em;border:1.5px dashed var(--ui-accent);border-radius:6px}
+    .stage[data-hb-mode="inside"] .strip{position:relative;height:12.1em;margin-top:var(--ext,0px)}
+    .stage[data-hb-mode="inside"] .strip::before{content:"9\A 0\A 1\A 2\A 3\A 4\A 5\A 6\A 7\A 8\A 9\A 0\A 1";position:absolute;inset:-1.1em 0 auto}
+    /* Compare: two numbers side by side, the real buttons in one row under both. On the left a copy whose windows are slid sideways
+       to where the font's own digit widths set each digit; on the right the real number, every window the same width. Between
+       presses both are held part way through a change, with a dashed box where each digit stood before it. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr) auto auto;gap:8px clamp(8px,2vw,16px);padding:12px clamp(8px,2vw,16px)}
+    .stage[data-hb-mode="compare"] .counter{display:contents}
+    .stage[data-hb-mode="compare"] .cap{display:none}
+    .stage[data-hb-mode="compare"] .cm{display:block}
+    .stage[data-hb-mode="compare"] .num{position:relative;z-index:1;justify-self:center;align-self:center;font-size:clamp(32px,12.5vw,88px)}
+    .stage[data-hb-mode="compare"] .num:not(.cp){grid-area:2/2}
+    .stage[data-hb-mode="compare"] .cp{display:flex;grid-area:2/1}
+    .stage[data-hb-mode="compare"] .pane{grid-row:2;align-self:stretch;z-index:0;border:1px solid rgba(255,255,255,.1);border-radius:14px;background:var(--card)}
+    .stage[data-hb-mode="compare"] .p1{grid-column:1}
+    .stage[data-hb-mode="compare"] .p2{grid-column:2}
+    .stage[data-hb-mode="compare"] .nm1{grid-area:1/1;justify-self:center}
+    .stage[data-hb-mode="compare"] .nm2{grid-area:1/2;justify-self:center}
+    .stage[data-hb-mode="compare"] .pc{grid-area:3/1/4/3;justify-self:center;text-align:center;visibility:hidden}
+    .stage[data-hb-mode="compare"] .btns{grid-area:4/1/5/3;justify-self:center}
+    .stage[data-hb-mode="compare"].posed .pc{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .gh{display:block}
+    @media(max-width:600px){.lbl{font:600 12px/1.25 var(--hb-font);padding:2px 5px}}
+    @media(max-height:640px){.stage[data-hb-mode="inside"] .num{font-size:clamp(32px,10vw,56px)}.stage[data-hb-mode="compare"] .num{font-size:clamp(32px,11vw,64px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -62,22 +112,40 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap −1, +1 or Random to change the number (Reset brings it back), or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="counter">
         <p class="cap" id="cap">Visitors today</p>
         <div class="num" aria-hidden="true"><span class="wheel"><span class="strip"></span></span><span class="sep">,</span><span class="wheel"><span class="strip"></span></span><span class="wheel"><span class="strip"></span></span><span class="wheel"><span class="strip"></span></span></div>
         <p class="sr-only" id="value" aria-live="polite">2,048</p>
+        <p class="lbl xi xt" aria-hidden="true" data-hb-caption>A column of 0 to 9 slides behind each window</p>
+        <p class="lbl xi xw" aria-hidden="true" data-hb-caption>Window: one digit shows</p>
+        <div class="xi xd" data-d="short" aria-hidden="true"><span class="ar"><i class="au"></i><i class="ad"></i></span><p class="lbl xl" id="l-dir" data-hb-caption>Rolls the shorter way</p></div>
+        <p class="lbl xi xs" id="l-speed" aria-hidden="true" data-hb-caption>Right digit first, each roll about half a second</p>
         <div class="btns">
           <button class="btn" type="button" data-add="-1" aria-label="Subtract 1">−1</button>
           <button class="btn" type="button" data-add="1" aria-label="Add 1">+1</button>
           <button class="btn" type="button" data-add="0">Random</button>
         </div>
       </div>
+      <div class="pane cm p1" aria-hidden="true"></div>
+      <div class="pane cm p2" aria-hidden="true"></div>
+      <p class="lbl cm nm1" aria-hidden="true" data-hb-caption>Shifts sideways</p>
+      <p class="lbl cm nm2" aria-hidden="true" data-hb-caption>Equal widths</p>
+      <p class="lbl cm pc" aria-hidden="true" data-hb-caption>Dashed boxes: where each digit stood before the change</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each digit is a window over a column of 0 to 9: a change slides the column, so the new digit rolls into view. Press −1, +1 or Random, or Show me.</p>
+      <p data-hb-for="compare" hidden>Shifts sideways: each digit takes only its own width, so the number jumps sideways; Equal widths: every digit has the same room, so the number stays in place. Press −1, +1, Random or Show me.</p>
     </div>
   </section>
 
@@ -153,13 +221,21 @@
 <script>
   const $=id=>document.getElementById(id);
   const slowTog=$('slow-tog'),valueEl=$('value'),reduceMq=matchMedia('(prefers-reduced-motion:reduce)');
-  const START=2048,STAGGER=70;
-  let value=START,dur=550,dir='short',oneByOne=true,raf=0;
+  const START=2048,STAGGER=70,POSE_MS=400,EQ=[0,.94,1.58,2.22];
+  let value=START,dur=550,dir='short',oneByOne=true,raf=0,base=START,mode='normal',posed=false,dirty=false,runDone=false,poseT=0,adv=null;
+  const numEl=document.querySelector('.num'),counter=numEl.parentElement,stage=counter.parentElement;
+  // Compare's left half: a copy of the number whose windows keep their size and are only slid sideways (see lay). Each window of
+  // the number also gets a dashed box, for the place it stood before a change; the copy is made from it, then hidden from everyone.
+  for(let i=0;i<4;i++){const g=document.createElement('span');g.className='gh';g.style.left=EQ[i]+'em';numEl.append(g)}
+  const cp=numEl.cloneNode(true),cws=[...cp.querySelectorAll('.wheel')],csep=cp.querySelector('.sep'),cgh=[...cp.querySelectorAll('.gh')];
+  cp.classList.add('cp');cp.inert=true;cp.setAttribute('aria-hidden','true');stage.append(cp);
   // Each wheel keeps a position that only grows or shrinks: 7 shows a 7, and so do 17 and -3. A roll moves it from where it is
   // drawn now (mid-roll too) to its new target, so a roll that starts before the last one ended carries on without a jump.
-  const wheels=[...document.querySelectorAll('.wheel')].map(el=>({el,strip:el.firstChild,pos:0,from:0,to:0,t0:0,ms:1}));
+  const wheels=[...numEl.querySelectorAll('.wheel')].map((el,i)=>({el,strip:el.firstChild,cel:cws[i],cs:cws[i].firstChild,pos:0,from:0,to:0,t0:0,ms:1}));
   const digitsOf=v=>String(v).padStart(4,'0').split('').map(Number);
-  function draw(w){w.strip.style.transform=`translateY(${(-(((w.pos%10)+10)%10)*100/11).toFixed(3)}%)`}
+  function draw(w){w.cs.style.transform=w.strip.style.transform=`translateY(${(-(((w.pos%10)+10)%10)*100/11).toFixed(3)}%)`}
+  // How many steps a wheel turns from the digit it shows to the one it should show, the way Direction says
+  function turn(shown,target){let s=(target-shown+10)%10;if(dir==='down')s-=10;else if(dir==='short'&&s>5)s-=10;return s}
 
   // The frame loop: every moving wheel is placed by the time passed since its start, eased out, so it runs at the same speed at any
   // frame rate. It stops when every wheel has reached its target.
@@ -173,30 +249,32 @@
       if(k<1)moving=true;
     }
     raf=moving?requestAnimationFrame(frame):0;
+    if(!raf){settle(900,runDone);runDone=false}
   }
 
   // Shows v: every digit that changes rolls the way Direction says, the ones on the left a little after the ones on their right when
   // Digits one after another is on; a wheel still rolling turns toward its new digit at once. Slow motion makes the rolls and the steps
   // between them three times as long. Under reduced motion the digit is swapped at once and fades in.
   function show(v,quiet){
+    clearTimeout(poseT);lift();dirty=true;if(!quiet)runDone=false;
     v=((v%10000)+10000)%10000;
     const target=digitsOf(v),slow=slowTog.checked?3:1,now=performance.now();
     let n=0;
     for(let i=wheels.length-1;i>=0;i--){
       const w=wheels[i],shown=((Math.round(w.to)%10)+10)%10;
       if(target[i]===shown)continue;
-      let steps=(target[i]-shown+10)%10;
-      if(dir==='down')steps-=10;else if(dir==='short'&&steps>5)steps-=10;
+      const steps=turn(shown,target[i]);
       const delay=oneByOne&&w.pos===w.to?n*STAGGER*slow:0;n++;
       w.from=w.pos;w.to+=steps;w.t0=now+delay;w.ms=dur*slow;
       if(reduceMq.matches){
         w.pos=w.to;draw(w);
-        w.el.classList.remove('fade');void w.el.offsetWidth;w.el.style.animationDelay=delay+'ms';w.el.classList.add('fade');
+        for(const el of [w.el,w.cel]){el.classList.remove('fade');void el.offsetWidth;el.style.animationDelay=delay+'ms';el.classList.add('fade')}
       }
     }
-    value=v;
+    value=v;lay();
     if(!quiet)valueEl.textContent=v.toLocaleString('en-US');
     if(!raf&&!reduceMq.matches)raf=requestAnimationFrame(frame);
+    if(reduceMq.matches){settle(900,runDone);runDone=false}
   }
   wheels.forEach((w,i)=>{w.pos=w.to=digitsOf(START)[i];draw(w)});
 
@@ -217,37 +295,127 @@
   function running(){return runTimers.length>0}
   // A run stopped partway leaves its number on the stage, so screen readers are given that number too (say), unless the press that
   // stopped it is on −1, +1 or Random, whose own number follows. This listener is added before the shared script's, so it runs first.
-  function stopRun(say){if(!runTimers.length)return;runTimers.forEach(clearTimeout);runTimers=[];if(say)valueEl.textContent=value.toLocaleString('en-US')}
+  function stopRun(say){runDone=false;if(!runTimers.length)return;runTimers.forEach(clearTimeout);runTimers=[];if(say)valueEl.textContent=value.toLocaleString('en-US')}
   let onButton=false;
   ['pointerdown','keydown','click','wheel','touchstart'].forEach(t=>document.querySelector('.stage').addEventListener(t,e=>{
     onButton=!!e.target.closest('.btn')&&(t==='pointerdown'||t==='click'||e.key==='Enter'||e.key===' ')},true));
   // The number goes up by one, then jumps to a number whose every digit is different, then rolls back to where it started. Each
   // step waits for the roll before it (one or two digits, then all four); the holds grow when the rolls are short, so the run lasts
   // two to four seconds at any Roll speed. It says nothing aloud.
+  // A Show me pressed while one is still running starts from the number that run started from, so it too ends where they began.
   $('btn-demo').addEventListener('click',()=>{
-    stopRun(true);
-    const v=value,d=digitsOf(v),far=d.map((x,i)=>(x+3+2*i)%10);
+    const v=running()?base:value;base=v;
+    stopRun(true);lift();
+    const d=digitsOf(v),far=d.map((x,i)=>(x+3+2*i)%10);
     if(!far[0])far[0]=1;
     const stagger=oneByOne?STAGGER:0,roll=dur+3*stagger,pad=Math.max(0,2100-(dur+stagger+2*roll+700));
-    if(reduceMq.matches){later(()=>show(v+1,true),0,0);later(()=>show(+far.join(''),true),0,900);later(()=>show(v,true),0,1800);return}
+    if(reduceMq.matches){later(()=>show(v+1,true),0,0);later(()=>show(+far.join(''),true),0,900);later(()=>{runDone=true;show(v,true)},0,1800);return}
     later(()=>show(v+1,true),0,150);
     later(()=>show(+far.join(''),true),dur+stagger,350+pad/2);
-    later(()=>show(v,true),dur+stagger+roll,700+pad);
+    later(()=>{runDone=true;show(v,true)},dur+stagger+roll,700+pad);
   });
   $('btn-reset').addEventListener('click',()=>{stopRun(false);show(START)});
   // The visitor pressed, typed or touched inside the stage: the run stops and the number stays as it is.
-  document.addEventListener('hb:input',()=>{if(running())stopRun(!onButton)});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun(!onButton);if(!onButton)settle(900)}});
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);changed();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms});
   choices('dir-seg',d=>{dir=d.dir});
-  $('stagger-tog').addEventListener('change',e=>{oneByOne=e.target.checked});
+  $('stagger-tog').addEventListener('change',e=>{oneByOne=e.target.checked;changed()});
+  slowTog.addEventListener('change',refresh);
+
+  // ---- See inside and Compare ----
+  // The advance widths (in em) of the digits 0 to 9 and the comma in the page's own font, measured once the font is there
+  function measure(){
+    const m=document.createElement('span'),fs=parseFloat(getComputedStyle(numEl).fontSize);
+    m.style.cssText='position:absolute;visibility:hidden;white-space:pre';numEl.append(m);
+    adv=[...'0123456789,'].map(c=>{m.textContent=c;return m.getBoundingClientRect().width/fs});
+    m.remove();
+  }
+  // Where a number set in those widths puts its four digits and its comma, as a shift in em from the equal windows (.64 each, the comma .3)
+  function shifts(v){
+    const d=digitsOf(v),a=[adv[d[0]],adv[10],adv[d[1]],adv[d[2]],adv[d[3]]],mid=[.32,.79,1.26,1.9,2.54];
+    let x=(2.86-a.reduce((s,n)=>s+n,0))/2;
+    return a.map((n,i)=>{x+=n;return x-n/2-mid[i]});
+  }
+  // The copy's windows take the shifts of the number it shows (of the held number when posed); its dashed boxes the shifts of the
+  // number shown now. Nothing glides: a shift is written once and the number jumps.
+  function lay(){
+    if(!adv)return;
+    const o=shifts(posed?poseNo():value),b=shifts(value);
+    [cws[0],csep,cws[1],cws[2],cws[3]].forEach((el,i)=>{el.style.transform=`translateX(${o[i].toFixed(3)}em)`});
+    cgh.forEach((g,i)=>{g.style.left=(EQ[i]+b[[0,2,3,4][i]]).toFixed(3)+'em'});
+  }
+  // Compare's resting moment: the change from the shown number to 1,111 (to 2,048 when that is shown) part way in, 0.4 seconds, each
+  // column where Roll speed, Direction and the one-after-another delay put it by then (by progress, so Slow motion keeps it), set
+  // on the drawn place only. A press, a Show me or leaving Compare puts the columns back on their digits first.
+  const poseNo=()=>value===1111?START:1111;
+  function pose(){
+    posed=true;
+    const tg=digitsOf(poseNo());let n=0;
+    for(let i=wheels.length-1;i>=0;i--){
+      const w=wheels[i],shown=((Math.round(w.to)%10)+10)%10;
+      w.pos=w.to;
+      if(tg[i]!==shown){
+        const t=POSE_MS-(oneByOne?n*STAGGER:0);n++;
+        if(t>0)w.pos+=turn(shown,tg[i])*(1-Math.pow(1-Math.min(1,t/dur),3));
+      }
+      draw(w);
+    }
+    stage.classList.add('posed');lay();
+  }
+  function lift(){
+    if(!posed)return;
+    posed=false;stage.classList.remove('posed');
+    wheels.forEach(w=>{w.pos=w.to;draw(w)});lay();
+  }
+  // The browser keeps the way the columns' layers were drawn while they moved (or while a screenshot of the whole page was taken), a
+  // hair off where a column's rest is not a whole pixel, so at rest in Normal the number is built again, within one frame
+  function renew(){
+    if(!dirty||mode!=='normal'||raf||running())return;
+    dirty=false;numEl.style.display='none';void numEl.offsetWidth;numEl.style.display='';
+  }
+  // Nothing rolling and no run under way: after a moment that shows the number the last change reached, Compare rests posed (when
+  // andPose: after a mode press and the end of a Show me run, not after the visitor's own press, which it would undo on screen)
+  function settle(wait,andPose){
+    clearTimeout(poseT);
+    const go=()=>{if(andPose&&mode==='compare'&&!raf&&!running())pose();renew()};
+    if(wait)poseT=setTimeout(go,wait);else go();
+  }
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),NOTE_IN=noteIn.textContent,lDir=$('l-dir'),lSpeed=$('l-speed'),xd=document.querySelector('.xd');
+  const NOTE_STILL='Inside, shown still: each digit is a window over a column of 0 to 9, and a change would slide the column; with reduced motion the new digit fades in instead.';
+  const say=ms=>ms<=400?'about a third of a second':ms<=700?'about half a second':ms<=1000?'almost a second':ms<=1800?'about a second and a half':ms<=2200?'about two seconds':'about three seconds';
+  const put=(el,t)=>{if(el.textContent!==t)el.textContent=t};
+  // See inside: the words and arrow for the settings, then the room: the windows grow until the card fills the box, to half a digit
+  function refresh(){
+    const still=reduceMq.matches;
+    put(noteIn,still?NOTE_STILL:NOTE_IN);
+    if(mode!=='inside')return;
+    xd.dataset.d=dir;
+    put(lDir,(still?'Would roll ':'Rolls ')+{up:'up',down:'down',short:'the shorter way'}[dir]);
+    put(lSpeed,(oneByOne?'Right digit first, ':'All digits together, ')+(still?'each fades in':'each roll '+say(dur*(slowTog.checked?3:1))));
+    const fs=parseFloat(getComputedStyle(numEl).fontSize),cs=getComputedStyle(stage);
+    counter.style.setProperty('--ext','0px');
+    const room=stage.clientHeight-parseFloat(cs.paddingTop)-parseFloat(cs.paddingBottom)-counter.offsetHeight;
+    counter.style.setProperty('--ext',Math.max(0,Math.min(.55*fs,room/2-1)).toFixed(1)+'px');
+  }
+  const idle=()=>mode==='compare'&&!raf&&!running();
+  function changed(){refresh();if(idle())pose()}
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(was==='compare'&&mode!=='compare')lift();
+    refresh();settle(0,true);
+  });
+  new ResizeObserver(()=>{if(mode==='inside')refresh();if(idle())pose()}).observe(stage);
+  reduceMq.addEventListener('change',refresh);
+  const ready=()=>{measure();lay();if(posed)pose();refresh()};
+  ready();document.fonts.ready.then(ready);document.fonts.addEventListener('loadingdone',ready);
 </script>
 </body>
 </html>
