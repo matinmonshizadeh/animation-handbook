@@ -49,6 +49,61 @@
     .real-img{width:100%;height:72px;border-radius:6px;background:linear-gradient(135deg,#0d2b5e,#1a4a8c);margin-bottom:12px;display:flex;align-items:center;justify-content:center;font-size:11px;opacity:.6}
     .real-text{font-size:11px;color:var(--ui-muted);line-height:1.6}
     @media(prefers-reduced-motion:reduce){.skel{animation:none!important;opacity:.6}}
+    /* See inside and Compare. Their words sit on dark pills, and the gray blocks are lighter there or they would not show on the dark box. */
+    .joins,.cap,.nxt,.twin,.full,.jump{display:none}
+    .cap{position:absolute;z-index:3;width:max-content;padding:3px 8px;border-radius:6px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-align:center;text-wrap:balance}
+    .joins rect,.joins line{fill:none;stroke:rgba(244,244,242,.5);stroke-width:1.25;stroke-dasharray:5 4;vector-effect:non-scaling-stroke}
+    .joins .lift{stroke:rgba(244,244,242,.3)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative;--skel-bg:#465269}
+    /* See inside: the content stays in the dashed frame and the gray blocks lift up and to the left, each joined to the piece it stands for.
+       The script sets the size (--s), the place (--tx, --ty) and the lift (--lx, --ly). While loading the content shows faint under the
+       pulsing blocks; once it has faded in, the blocks hold still and faint. */
+    .stage[data-hb-mode="inside"] .cap-in{display:block}
+    .stage[data-hb-mode="inside"] .card-wrap{translate:var(--tx) var(--ty);scale:var(--s);border-color:transparent}
+    .stage[data-hb-mode="inside"] .joins{display:block;position:absolute;inset:0;z-index:-1;overflow:visible}
+    .stage[data-hb-mode="inside"] #skel-content{translate:var(--lx) var(--ly);visibility:visible!important}
+    .stage[data-hb-mode="inside"] .real:not(.visible){opacity:.25}
+    .stage[data-hb-mode="inside"].shown #skel-content{opacity:.65;transition:opacity var(--fade-dur) ease}
+    .stage[data-hb-mode="inside"].shown .skel{animation-play-state:paused}
+    /* Compare: the card twice, pinned to the top of each half with the next item on the page (a faint bar) under it. On the left a copy that
+       is an empty frame until the content arrives, then grows at once; on the right the card itself. Between plays the left shows the
+       frame with where it will grow (--full) and the right holds half way through loading, the blocks still at their dimmest. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px clamp(8px,2vw,24px);align-items:start;
+      align-content:start;justify-items:center;padding:10px clamp(8px,2vw,24px)}
+    .stage[data-hb-mode="compare"] .name{display:block;position:relative;grid-row:1}
+    .stage[data-hb-mode="compare"] .name.a,.stage[data-hb-mode="compare"] .twin{grid-column:1}
+    .stage[data-hb-mode="compare"] .name.b,.stage[data-hb-mode="compare"] #card{grid-column:2}
+    .stage[data-hb-mode="compare"] .twin,.stage[data-hb-mode="compare"] #card{grid-row:2}
+    .stage[data-hb-mode="compare"] .twin{display:grid;min-height:48px}
+    .stage[data-hb-mode="compare"] .twin .real{display:none;opacity:1;transition:none}
+    .stage[data-hb-mode="compare"] .twin.on{min-height:var(--full)}
+    .stage[data-hb-mode="compare"] .twin.on .real{display:block}
+    .stage[data-hb-mode="compare"] .nxt{display:block;position:absolute;left:0;top:calc(100% + 10px);width:60%;height:12px;border-radius:6px;background:rgba(244,244,242,.18)}
+    .stage[data-hb-mode="compare"] .card-wrap>.cap{display:block;left:0;right:0;top:calc(100% + 28px);width:auto}
+    .stage[data-hb-mode="compare"] .card-wrap>.push{left:32px;top:calc(100% + 26px);text-align:left}
+    .stage[data-hb-mode="compare"] .twin.on>.cap{display:none}
+    .stage[data-hb-mode="compare"] .twin:not(.on) .full{display:block;position:absolute;left:-1px;right:-1px;top:calc(100% - 1px);height:calc(var(--full) - 47px);
+      border:1.5px dashed rgba(244,244,242,.4);border-top:0;border-radius:0 0 10px 10px}
+    .stage[data-hb-mode="compare"] .twin:not(.on) .jump{display:block;position:absolute;left:20px;top:calc(100% + 22px);width:2px;height:calc(var(--full) - 48px);background:rgba(244,244,242,.7)}
+    .jump::after{content:'';position:absolute;left:-4px;bottom:-1px;border:5px solid transparent;border-top:8px solid rgba(244,244,242,.7);border-bottom:0}
+    .stage[data-hb-mode="compare"].posed #skel-content{visibility:visible!important}
+    .stage[data-hb-mode="compare"].posed .skel{animation:none!important;opacity:var(--pulse-min)}
+    .stage[data-hb-mode="compare"].posed .real{opacity:0!important;transition:none!important}
+    .stage[data-hb-mode="inside"].tight .sk-img,.stage[data-hb-mode="inside"].tight .real-img,
+    .stage[data-hb-mode="compare"].tight .sk-img,.stage[data-hb-mode="compare"].tight .real-img{display:none}
+    .stage[data-hb-mode="compare"].tight .card-wrap{padding:12px}
+    .stage[data-hb-mode="compare"].tight .sk-avatar,.stage[data-hb-mode="compare"].tight .avatar{width:44px;height:44px}
+    .stage[data-hb-mode="compare"].tight .real-header{margin-bottom:10px}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"].tight .card-wrap{padding:8px}
+      .stage[data-hb-mode="compare"].tight .sk-avatar,.stage[data-hb-mode="compare"].tight .avatar{width:36px;height:36px;font-size:16px}
+      .stage[data-hb-mode="compare"].tight .skel-header,.stage[data-hb-mode="compare"].tight .real-header{gap:10px}
+      .stage[data-hb-mode="compare"].tight .real-header{margin-bottom:8px}
+      .stage[data-hb-mode="compare"].tight .real-text{line-height:1.4}
+      .stage[data-hb-mode="compare"]{row-gap:6px;padding-top:8px}
+      .cap{font-size:12px}
+    }
+    @media(prefers-reduced-motion:reduce){.stage[data-hb-mode="compare"].posed .skel{opacity:.6}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -71,8 +126,14 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="card-wrap" id="card">
+        <svg class="joins" aria-hidden="true"><rect class="lift" rx="10"/><rect rx="10"/><line/><line/><line/><line/><line/></svg>
         <!-- Skeleton -->
         <div id="skel-content">
           <div class="skel-header">
@@ -93,12 +154,24 @@
           <div class="real-img">[ Landscape Photography ]</div>
           <div class="real-text">New coastal landscapes, shot where the light meets the water.</div>
         </div>
+        <span class="nxt" aria-hidden="true"></span>
+        <p class="cap hold" aria-hidden="true" data-hb-caption></p>
       </div>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption>Gray blocks shaped like the content</p>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption>The content arrives in the same place</p>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption></p>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption></p>
+      <p class="cap name a" aria-hidden="true" data-hb-caption>Blank, then jumps</p>
+      <p class="cap name b" aria-hidden="true" data-hb-caption>Holds the space</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the gray blocks are lifted off the card: each is shaped like a piece of the content, which fades in underneath, in the same place.</p>
+      <p data-hb-for="compare" hidden>Blank, then jumps: the empty card grows when the content arrives and pushes the next item down; Holds the space: gray blocks keep its size, so nothing moves.</p>
     </div>
   </section>
 
@@ -182,11 +255,14 @@
 </main>
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
+  const card=document.getElementById('card'),stage=card.parentElement;
   const skelEl=document.getElementById('skel-content'),realEl=document.getElementById('real-content');
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let pulseMs=1500,pulseMin='0.5',loadDur=2000,timers=[];
+  // See inside and Compare: which one shows, whether the content is shown now, and whether a play is under way
+  let mode='normal',revealed=false,running=false;
 
   // Slow motion triples the movements (the pulse and the fade), never Loading time or the hold.
   function mult(){return slowTog.checked?3:1}
@@ -208,6 +284,7 @@
   // fade is switched off for the change, a reflow makes it stick, then the fade is switched back on for the reveal.
   function showPlaceholders(){
     skelEl.style.visibility='';
+    shown(false);
     realEl.style.transition='none';
     realEl.classList.remove('visible');
     realEl.setAttribute('aria-hidden','true');
@@ -216,6 +293,7 @@
   }
   function reveal(){
     skelEl.style.visibility='hidden';
+    shown(true);
     realEl.classList.add('visible');
     realEl.removeAttribute('aria-hidden');
   }
@@ -223,26 +301,139 @@
   // holds 1600ms after its fade ends; Loop is checked then, so switching it off leaves the content shown.
   // Slow motion stretches the pulse and the fade, not Loading time or the hold.
   function cycle(){
+    running=true;
     apply();
+    setPose(false);
     showPlaceholders();
     const fade=400*mult();
     later(()=>{
       reveal();
       later(()=>{
-        if(!loopTog.checked||!motionOk)return;
+        if(!loopTog.checked||!motionOk){running=false;if(mode==='compare')setPose(true);return}
         cycle();
       },fade+1600);
     },loadDur);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // ── See inside and Compare ──
+  const $$=q=>[...stage.querySelectorAll(q)];
+  const [cBlocks,cContent,cPulse,cLoad]=$$('.cap-in'),cHold=card.querySelector('.hold');
+  const P=10,G=8; // how far captions keep from the box's edge and from each other
+  // Compare's left card: a copy that stays an empty frame until the content arrives, then shows it at once, so the card grows
+  // and pushes the next item down. It has no ids and is out of reach of the keyboard and screen readers.
+  const twin=card.cloneNode(true);
+  twin.querySelector('#skel-content').remove();twin.querySelector('.joins').remove();
+  twin.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  twin.removeAttribute('id');twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  const push=twin.querySelector('.hold');push.className='cap push';push.textContent='Will be pushed down';
+  twin.insertAdjacentHTML('beforeend','<i class="full"></i><i class="jump"></i>');
+  card.before(twin);
+  if(!motionOk)document.querySelector('[data-hb-for="inside"]').textContent=
+    'Inside, the gray blocks are lifted off the card, shown still: each is shaped like a piece of the content, which appears underneath, in the same place.';
+
+  function shown(on){revealed=on;stage.classList.toggle('shown',on);syncTwin()}
+  function syncTwin(){twin.classList.toggle('on',revealed&&!stage.classList.contains('posed'))}
+  // Compare's rest pose: half way through loading. Leaving it shows the card as it now is, at once.
+  function setPose(on){
+    if(stage.classList.contains('posed')!==on){
+      realEl.style.transition='none';
+      stage.classList.toggle('posed',on);
+      void realEl.offsetWidth;realEl.style.transition='';
+    }
+    syncTwin();
+  }
+
+  const NUM=['','a','two','three','four','five','six','seven','eight','nine'];
+  // Seconds as a beginner says them, to the nearest half ("every" drops the "a")
+  function secs(ms,every){
+    const n=Math.max(1,Math.round(ms/500)),w=n>>1,t=!w?'half a second':n&1?(w>1?NUM[w]+' and a half seconds':'a second and a half'):w>1?NUM[w]+' seconds':'a second';
+    return (Math.abs(ms-n*500)>60?'about ':'')+(every?'every '+t.replace(/^a /,''):t);
+  }
+  // The captions that depend on the settings, in the page's own numbers (Slow motion triples the pulse)
+  function words(){
+    const dim=+pulseMin>.6?'a little':+pulseMin>.4?'to half':'a lot',wait=secs(loadDur),beat=secs(pulseMs*mult(),1);
+    cPulse.textContent=motionOk?'Pulses '+beat+', dimming '+dim:'With reduced motion on, the blocks hold still';
+    cLoad.textContent='After '+wait+' the content fades in';
+    cHold.textContent=(motionOk?'Pulses '+beat:'The blocks hold still')+'; '+(stage.clientWidth<560?'content':'the content comes')+' after '+wait;
+  }
+  // Puts a band of captions at an edge: side by side when the box is wide, else one above the other. Returns its height.
+  function band(list,edge,up){
+    const W=stage.clientWidth,two=W>=560,each=two?(W-2*P-G)/2:W-2*P;
+    list.forEach(c=>{c.style.left=c.style.top='0px';c.style.maxWidth=each+'px';c.style.textAlign='center'});
+    const h=two?Math.max(...list.map(c=>c.offsetHeight)):list.reduce((t,c)=>t+c.offsetHeight+G,-G);
+    let y=up?edge:edge-h;
+    list.forEach((c,i)=>{
+      c.style.left=(two?P+i*(each+G)+(each-c.offsetWidth)/2:(W-c.offsetWidth)/2)+'px';c.style.top=y+'px';
+      if(!two)y+=c.offsetHeight+G;
+    });
+    return h;
+  }
+  // A column of captions from y down, their left edges at x or their right edges at x
+  function stack(list,x,y,w,align){
+    list.forEach(c=>{c.style.left=c.style.top='0px';c.style.maxWidth=w+'px';c.style.textAlign=align});
+    list.forEach(c=>{c.style.left=(align==='left'?x:x-c.offsetWidth)+'px';c.style.top=y+'px';y+=c.offsetHeight+G});
+  }
+  // See inside: the card at the size that fits, its blocks lifted up and to the left. A wide box puts the blocks' two captions to the
+  // left of them and the content's two to the right of the card; a narrower one puts them in bands above and below.
+  function placeInside(){
+    stage.classList.toggle('tight',stage.clientWidth<560); // a narrow box leaves out the picture, to give the rest more room
+    const W=stage.clientWidth,H=stage.clientHeight,cw=card.offsetWidth,ch=card.offsetHeight,lx=Math.round(cw*.24),ly=Math.round(ch*.28);
+    const sH=Math.min(1,(H-2*P)/(ch+ly)),col=(W-sH*(cw+lx))/2-P-G;
+    let s=sH,gx=(W-s*(cw+lx))/2,gy=(H-s*(ch+ly))/2;
+    if(col>=170){
+      stack([cBlocks,cPulse],gx-G,gy,col,'right');stack([cContent,cLoad],gx+s*(lx+cw)+G,gy+s*ly,col,'left');
+    }else{
+      const top=band([cBlocks,cPulse],P,true),bot=band([cContent,cLoad],H-P,false),y0=P+top+G,room=H-P-bot-G-y0;
+      s=Math.max(.25,Math.min(1,room/(ch+ly),(W-2*P)/(cw+lx)));gx=(W-s*(cw+lx))/2;gy=y0+(room-s*(ch+ly))/2;
+    }
+    const v=(k,x)=>stage.style.setProperty(k,x);
+    v('--s',s);v('--tx',gx+s*(lx+cw/2)-W/2+'px');v('--ty',gy+s*(ly+ch/2)-H/2+'px');v('--lx',-lx+'px');v('--ly',-ly+'px');
+    // The dashed frames and the joins, in the card's own pixels: block to piece, left edge to left edge
+    const cr=card.getBoundingClientRect(),at=e=>{const r=e.getBoundingClientRect();return{x:(r.left-cr.left)/s,y:(r.top-cr.top)/s,w:r.width/s,h:r.height/s}};
+    const [f1,f2]=$$('.joins rect'),blocks=[...skelEl.querySelectorAll('.sk-avatar,.sk-line,.sk-img')].map(at);
+    const rows=blocks.splice(4),text={x:rows[0].x,y:rows[0].y,h:rows[2].y+rows[2].h-rows[0].y};
+    f1.setAttribute('x',-1-lx);f1.setAttribute('y',-1-ly);f2.setAttribute('x',-1);f2.setAttribute('y',-1);
+    [f1,f2].forEach(f=>{f.setAttribute('width',cw);f.setAttribute('height',ch)});
+    blocks.push(text);
+    $$('.joins line').forEach((l,i)=>{
+      const b=blocks[i],p=at(realEl.querySelector(['.avatar','.real-name','.real-meta','.real-img','.real-text'][i]));
+      l.style.display=b.w?'':'none'; // the picture's join goes with the picture
+      l.setAttribute('x1',b.x);l.setAttribute('y1',b.y+b.h/2);l.setAttribute('x2',p.x);l.setAttribute('y2',p.y+p.h/2);
+    });
+  }
+  // Compare: a short box or a phone leaves out the picture (and its gray block) in both cards; --full is the card's height
+  function placeCompare(){
+    stage.classList.toggle('tight',matchMedia('(max-width:600px),(max-height:500px)').matches||stage.clientHeight<360);
+    stage.style.setProperty('--full',card.offsetHeight+'px');
+  }
+  function drawMode(){
+    if(mode==='normal')return setPose(false);
+    apply();words();
+    setPose(mode==='compare'&&!running);
+    if(mode==='inside')placeInside();else placeCompare();
+  }
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    // Entering or leaving See inside shows its picture at once: the content see-through (or hidden) while it is still to come,
+    // and the blocks faint once it has arrived; the page's own fades run only in a play
+    const snap=el=>{el.style.transition='none';void el.offsetWidth;el.style.transition=''};
+    if((was==='inside'||mode==='inside')&&!realEl.classList.contains('visible'))snap(realEl);
+    if(was!=='inside'&&mode==='inside'&&revealed)snap(skelEl);
+    drawMode();
+  });
+  new ResizeObserver(()=>{if(mode!=='normal')drawMode()}).observe(stage);
+  document.fonts.ready.then(drawMode);
+
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  slowTog.addEventListener('change',drawMode);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      drawMode();
     }));
   }
   choices('pulse-seg',d=>{pulseMs=+d.ms});
