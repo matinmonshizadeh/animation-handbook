@@ -27,6 +27,28 @@
     canvas{display:block;width:100%;height:100%}
     .fallback{position:absolute;inset:0;display:none;flex-direction:column;justify-content:center;gap:8px;padding:clamp(16px,5vw,32px);background:#0b0b0d;font-size:13px;line-height:1.7;color:rgba(255,255,255,.72);overflow-y:auto;white-space:pre-wrap}
     .fallback strong{color:#f4f4f2;font-weight:600}
+    /* See inside and Compare: plain words over the picture, and a side view of one ray (the scene itself is drawn by the shader) */
+    .cap{position:absolute;padding:3px 8px;border-radius:5px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/17px var(--hb-font);pointer-events:none}
+    .ibox,.xcap,.key,.half{display:none}
+    .stage[data-hb-mode="inside"] :is(.ibox,.xcap){display:flex}
+    .stage[data-hb-mode="inside"].steps .key{display:grid}
+    .stage[data-hb-mode="compare"] .half{display:block}
+    .stage.no-gl :is(.ibox,.xcap,.key,.half),.stage.no-gl::after{display:none!important}
+    .ibox{position:absolute;left:10px;bottom:10px;width:min(300px,calc(50% - 30px));max-height:62%;flex-direction:column;gap:6px;pointer-events:none}
+    .ibox>.cap{position:static;flex:none;align-self:flex-start}
+    .pane{position:relative;flex:0 1 150px;min-height:56px;border:1px solid rgba(255,255,255,.2);border-radius:8px;overflow:hidden;background:#0d1117}
+    .pane canvas{position:absolute;inset:0}
+    .stop{top:6px;right:6px;white-space:nowrap}
+    .stage[data-hb-mode="inside"]::after{content:"";position:absolute;left:50%;top:50%;width:22px;height:22px;margin:-11px 0 0 -11px;pointer-events:none;filter:drop-shadow(0 0 1px #000);
+      background:linear-gradient(#ffd166,#ffd166) center/100% 2px no-repeat,linear-gradient(#ffd166,#ffd166) center/2px 100% no-repeat}
+    .xcap{left:calc(50% + 18px);top:calc(50% - 22px);white-space:nowrap}
+    .key{left:10px;top:10px;white-space:nowrap}
+    .key i{display:inline-block;width:10px;height:10px;margin-right:6px;border-radius:2px;background:#0000cc}
+    .key span+span i{background:#ff4d00}
+    .half{top:10px;white-space:nowrap}
+    .h1{left:10px}.h2{left:calc(50% + 10px)}
+    @media (max-width:600px) and (min-height:501px){.ibox{width:auto;right:10px;max-height:calc(50% - 22px)}.pane{flex-basis:84px}}
+    @media (max-width:600px),(max-height:500px){.cap{font-size:12px;line-height:16px}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -49,13 +71,30 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <canvas id="cvs" role="img" aria-label="A 3D scene of shapes on a floor, seen by a camera that keeps circling them"></canvas>
       <div class="fallback" id="fallback"></div>
+      <div class="ibox" aria-hidden="true">
+        <p class="cap" data-hb-caption>One ray, seen from the side: each circle reaches the nearest surface, so the ray jumps that far</p>
+        <div class="pane"><canvas id="side"></canvas><p class="cap stop" id="stop-cap" data-hb-caption hidden>Ran out of steps</p></div>
+      </div>
+      <p class="cap xcap" aria-hidden="true" data-hb-caption>This pixel's ray</p>
+      <p class="cap key" aria-hidden="true" data-hb-caption><span><i></i>Blue: the ray finished in a few steps</span><span><i></i>Red: it needed many steps</span></p>
+      <p class="cap half h1" aria-hidden="true" data-hb-caption>Too few steps</p>
+      <p class="cap half h2" aria-hidden="true" data-hb-caption>Enough steps</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, every pixel sends a ray into the scene. The side view shows one: each circle reaches the nearest surface, so the ray jumps that far, in smaller and smaller steps near a shape.</p>
+      <p data-hb-for="compare" hidden>Too few steps stops many rays before they reach a surface, so the floor and edges go missing. Enough steps, as set in Detail, lets far more arrive; Low still loses some.</p>
     </div>
   </section>
 
@@ -154,7 +193,7 @@
 const VS=`attribute vec2 a;void main(){gl_Position=vec4(a,0.,1.);}`;
 const FS=`
 precision mediump float;
-uniform vec2 uRes;uniform float uT,uCamAng;uniform int uScene,uMaxSteps;uniform bool uAO,uShadow,uDebug;
+uniform vec2 uRes,uOrigin;uniform float uT,uCamAng;uniform int uScene,uMaxSteps;uniform bool uAO,uShadow,uDebug;
 
 float sdSph(vec3 p,float r){return length(p)-r;}
 float sdBox(vec3 p,vec3 b){vec3 q=abs(p)-b;return length(max(q,0.))+min(max(q.x,max(q.y,q.z)),0.);}
@@ -197,7 +236,7 @@ float ao(vec3 p,vec3 n){float a=0.;for(int i=1;i<=5;i++){float d=float(i)*.12;a+
 float softshadow(vec3 ro,vec3 rd){float t=.05,sh=1.;for(int i=0;i<20;i++){float d=map(ro+rd*t).x;if(d<.001)return 0.;sh=min(sh,10.*d/t);t+=d;if(t>6.)break;}return sh;}
 
 void main(){
-  vec2 uv=(gl_FragCoord.xy-.5*uRes)/min(uRes.x,uRes.y);
+  vec2 uv=(gl_FragCoord.xy-uOrigin-.5*uRes)/min(uRes.x,uRes.y);
   float angle=uCamAng;
   vec3 ro=vec3(sin(angle)*3.8,.6+sin(uT*.2)*.3,cos(angle)*3.8);
   vec3 ta=vec3(0.,-.1,0.);
@@ -237,7 +276,12 @@ const stage=document.getElementById('stage'),cvs=document.getElementById('cvs');
 const fallback=document.getElementById('fallback'),slowTog=document.getElementById('slow-tog');
 let W=0,H=0,gl,prog,U=null,raf=null,paused=false,last=null,curT=0,camA=0;
 let SCENE=0,CAM_SPD=0.6,DETAIL=1,AO=true,SHADOW=false,DEBUG=false;
-const UNIFORMS=['uRes','uT','uCamAng','uScene','uMaxSteps','uAO','uShadow','uDebug'];
+// See inside and Compare: the mode on show, and what the canvas says it shows in each one
+let mode='normal';
+const NAMES={normal:cvs.getAttribute('aria-label'),
+  inside:'The 3D scene with one ray drawn from the side: it steps toward the shapes in jumps as big as the gap to the nearest surface',
+  compare:'The scene twice: rays allowed too few steps, with the floor and edges missing, and rays allowed enough'};
+const UNIFORMS=['uRes','uOrigin','uT','uCamAng','uScene','uMaxSteps','uAO','uShadow','uDebug'];
 // The most steps a ray may take at Low, Medium and High: on computers, then on phones
 const STEPS=[[24,48,96],[16,32,64]];
 // Phones are screens up to 600px wide, or up to 500px tall when held sideways
@@ -251,7 +295,7 @@ let MAX_STEPS=steps();
 function qScale(){const dpr=window.devicePixelRatio||1;return Math.min(PHONE.matches?Math.min(dpr,0.7):Math.min(dpr,1.5),Math.sqrt(300000/Math.max(1,stage.clientWidth*stage.clientHeight)));}
 function fail(msg,detail){
   cvs.hidden=true;
-  fallback.style.display='flex';
+  fallback.style.display='flex';stage.classList.add('no-gl');
   fallback.innerHTML='';
   const s=document.createElement('strong');s.textContent=msg;fallback.appendChild(s);
   if(detail){const p=document.createElement('div');p.textContent=detail;fallback.appendChild(p);}
@@ -275,7 +319,7 @@ function init(){
   const a=gl.getAttribLocation(prog,'a');
   gl.enableVertexAttribArray(a);gl.vertexAttribPointer(a,2,gl.FLOAT,false,0,0);
   U={};UNIFORMS.forEach(n=>{U[n]=gl.getUniformLocation(prog,n);});
-  fallback.style.display='none';cvs.hidden=false;
+  fallback.style.display='none';stage.classList.remove('no-gl');cvs.hidden=false;
   return true;
 }
 // Sizes the canvas to the stage and the phone limits, and says whether anything changed. Setting the size clears the
@@ -303,16 +347,118 @@ function render(ts){
 }
 function draw(t){
   gl.useProgram(prog);
-  gl.uniform2f(U.uRes,W,H);
   gl.uniform1f(U.uT,t);
   gl.uniform1f(U.uCamAng,camA);
   gl.uniform1i(U.uScene,SCENE);
-  gl.uniform1i(U.uMaxSteps,MAX_STEPS);
   gl.uniform1i(U.uAO,AO?1:0);
   gl.uniform1i(U.uShadow,SHADOW?1:0);
   gl.uniform1i(U.uDebug,DEBUG?1:0);
+  // Compare: one context, two pictures with a thin line between them; the first lets each ray take a quarter of the steps
+  if(mode==='compare'){
+    const w=(W>>1)-Math.max(1,Math.round(W/400));
+    gl.viewport(0,0,W,H);gl.clearColor(.17,.17,.2,1);gl.clear(gl.COLOR_BUFFER_BIT);
+    view(0,w,Math.max(1,MAX_STEPS>>2));view(W-w,w,MAX_STEPS);
+    gl.viewport(0,0,W,H);
+  }else{
+    view(0,W,MAX_STEPS);
+    if(mode==='inside')drawSide(t);
+  }
+}
+// One picture in a part of the canvas, x and w in canvas pixels; the shader measures from the part's own corner
+function view(x,w,maxSteps){
+  gl.viewport(x,0,w,H);
+  gl.uniform2f(U.uOrigin,x,0);
+  gl.uniform2f(U.uRes,w,H);
+  gl.uniform1i(U.uMaxSteps,maxSteps);
   gl.drawArrays(gl.TRIANGLE_STRIP,0,4);
 }
+
+// See inside: one ray, seen from the side. A copy of the shader's scene (the same shapes, numbers and clock) is cut by the upright
+// plane through the camera and the middle of the scene; the middle pixel's ray is then marched through that cut, step by step, as the shader does.
+const mod=(x,y)=>x-y*Math.floor(x/y);
+const sdBox=(x,y,z,a,b,c)=>{const qx=Math.abs(x)-a,qy=Math.abs(y)-b,qz=Math.abs(z)-c;return Math.sqrt(Math.max(qx,0)**2+Math.max(qy,0)**2+Math.max(qz,0)**2)+Math.min(Math.max(qx,qy,qz),0);};
+const smin=(a,b,k)=>{const h=Math.min(Math.max(.5+.5*(b-a)/k,0),1);return b+(a-b)*h-k*h*(1-h);};
+let hitId=0; // which material the last mapJS call ended on: 0 floor, 1 blue, 2 orange
+function mapJS(x,y,z,t,sc){
+  const pl=y+1.2;let d,a,c,s,u,v;
+  if(sc===0){
+    d=Math.sqrt(x*x+(y+Math.sin(t*.4)*.1)**2+z*z)-.62;
+    a=t*.5;c=Math.cos(a);s=Math.sin(a);u=x+1.4;v=z-.2;
+    d=smin(d,sdBox(u*c-v*s,y,u*s+v*c,.38,.38,.38),.42);
+    a=t*.4;c=Math.cos(a);s=Math.sin(a);u=x-1.4;v=y+.15;
+    d=smin(d,Math.sqrt((Math.sqrt((u*c-v*s)**2+z*z)-.52)**2+(u*s+v*c)**2)-.19,.32);
+    hitId=d<pl?1:0;return Math.min(d,pl);
+  }
+  if(sc===1){
+    const A=Math.sqrt(x*x+y*y+z*z)-.82,B=sdBox(x,y,z,.56,.56,.56),C=Math.sqrt((x-.12)**2+(y-.12)**2+(z-.12)**2)-.38;
+    const s2=Math.min(Math.max(A,-B),C);hitId=s2===C?2:1;
+    d=Math.min(s2,pl);if(d===pl)hitId=0;return d;
+  }
+  u=mod(x+1.5,3)-1.5;v=mod(z+1.5,3)-1.5;a=t*.2;c=Math.cos(a);s=Math.sin(a);
+  const X=Math.abs(mod(x*2,2))-1,Y=Math.abs(mod(z*2,2))-1,Z=Math.abs(mod(y*2,2))-1;
+  const cross=Math.min(sdBox(X,Y,Z,.22,1,1),Math.min(sdBox(Y,X,Z,.22,1,1),sdBox(Z,Y,X,.22,1,1)));
+  d=Math.min(Math.max(sdBox(u*c-v*s,y,u*s+v*c,.5,.5,.5),-cross),pl);hitId=d===pl?0:1;return d;
+}
+const side=document.getElementById('side'),sctx=side.getContext('2d'),pane=side.parentNode,stopCap=document.getElementById('stop-cap');
+const grid=document.createElement('canvas'),gctx=grid.getContext('2d'),RT=new Float64Array(96),RH=new Float64Array(96); // RT: where each step of the ray started, RH: how far the nearest surface was
+const MATS=[[.3,.35,.38],[.22,.44,.82],[.78,.38,.18]].map(m=>m.map(c=>c*255));
+const ray={n:0,end:'',te:0,ox:0,oy:0,oz:0,dy:0,dh:0},gridN=[0,0];
+let dist=null,did=null,gimg=null,vk=1,vh=1; // the coarse grid (distance, nearest material), the smoothed picture and the view's scale
+// Scene units to bitmap pixels: the camera sits half a unit in from the left, the floor's foot at the bottom
+const SX=s=>(s+.5)*vk,SY=y=>vh-(y+1.45)*vk,rx=i=>SX(RT[i]*ray.dh),ry=i=>SY(ray.oy+RT[i]*ray.dy);
+function dot(x,y,r){sctx.beginPath();sctx.arc(x,y,r,0,6.2832);sctx.fill();}
+function marchRay(t,ang,sc,maxSteps){
+  const ox=Math.sin(ang)*3.8,oy=.6+Math.sin(t*.2)*.3,oz=Math.cos(ang)*3.8,l=Math.sqrt(ox*ox+(oy+.1)**2+oz*oz),dx=-ox/l,dy=(-.1-oy)/l,dz=-oz/l;
+  let tt=0;ray.end='out';ray.n=0;
+  for(let i=0;i<maxSteps;i++){
+    const h=mapJS(ox+dx*tt,oy+dy*tt,oz+dz*tt,t,sc);RT[i]=tt;RH[i]=h;ray.n=i+1;
+    if(h<.001){ray.end='hit';break;}
+    tt+=h*.9;if(tt>22){ray.end='away';break;}
+  }
+  ray.te=tt;ray.ox=ox;ray.oy=oy;ray.oz=oz;ray.dy=dy;ray.dh=Math.sqrt(dx*dx+dz*dz);
+}
+function sizeSide(){
+  const cw=pane.clientWidth,ch=pane.clientHeight;if(!cw||!ch)return;
+  // About 80 by 45 points on computers, half as many on phones; the picture is smoothed between them at about two pixels a cell
+  const q=Math.min(window.devicePixelRatio||1,2),cell=PHONE.matches?4.2:3.5,nx=Math.ceil(cw/cell),ny=Math.ceil(ch/cell),ox=Math.ceil(cw/2),oy=Math.ceil(ch/2);
+  side.width=Math.round(cw*q);side.height=Math.round(ch*q);grid.width=ox;grid.height=oy;
+  gridN[0]=nx;gridN[1]=ny;dist=new Float32Array(nx*ny);did=new Uint8Array(nx*ny);gimg=gctx.createImageData(ox,oy);
+}
+function drawSide(t){
+  const w=side.width,h=side.height;if(!gimg||!w)return;
+  const q=w/pane.clientWidth,nx=gridN[0],ny=gridN[1],ox=gimg.width,oy=gimg.height,px=gimg.data,hx=-Math.sin(camA),hz=-Math.cos(camA);
+  vk=Math.min(w/6.5,h/2.5);vh=h;marchRay(t,camA,SCENE,MAX_STEPS);
+  const cw=(w/vk)/nx,pw=(w/vk)/ox,n=ray.n; // a grid cell and an output pixel, in scene units
+  for(let j=0;j<ny;j++)for(let i=0;i<nx;i++){
+    const s=(i+.5)*cw-.5;dist[j*nx+i]=mapJS(ray.ox+s*hx,(ny-j-.5)/ny*(h/vk)-1.45,ray.oz+s*hz,t,SCENE);did[j*nx+i]=hitId;
+  }
+  // The cut: the distance is blended between grid points at every output pixel, so the edge of a shape comes out clean
+  for(let j=0,o=0;j<oy;j++){
+    const v=Math.min(Math.max((j+.5)/oy*ny-.5,0),ny-1.001),j0=v|0,fy=v-j0;
+    for(let i=0;i<ox;i++,o+=4){
+      const u=Math.min(Math.max((i+.5)/ox*nx-.5,0),nx-1.001),fx=u-(u|0),p=j0*nx+(u|0);
+      const d=(dist[p]*(1-fx)+dist[p+1]*fx)*(1-fy)+(dist[p+nx]*(1-fx)+dist[p+nx+1]*fx)*fy,m=MATS[did[p+(fx>.5)+(fy>.5)*nx]],e=.8+.45*Math.exp(Math.min(d,0)*28);
+      px[o]=m[0]*e;px[o+1]=m[1]*e;px[o+2]=m[2]*e;px[o+3]=(.5-d/pw)*255;
+    }
+  }
+  gctx.putImageData(gimg,0,0);sctx.clearRect(0,0,w,h);sctx.drawImage(grid,0,0,w,h);
+  // The ray, with a circle at each step as big as the gap to the nearest surface
+  sctx.lineWidth=1.5*q;sctx.strokeStyle='rgba(63,214,196,.95)';sctx.fillStyle='rgba(63,214,196,.1)';
+  for(let i=0;i<n;i++){sctx.beginPath();sctx.arc(rx(i),ry(i),Math.max(RH[i],0)*vk,0,6.2832);sctx.fill();sctx.stroke();}
+  const ex=SX(ray.te*ray.dh),ey=SY(ray.oy+ray.te*ray.dy),lost=ray.end==='out';
+  sctx.lineWidth=2*q;sctx.strokeStyle=sctx.fillStyle='#ffd166';
+  sctx.beginPath();sctx.moveTo(SX(0),SY(ray.oy));
+  for(let i=0;i<n;i++)sctx.lineTo(rx(i),ry(i));
+  sctx.lineTo(ex,ey);sctx.stroke();
+  for(let i=1;i<n;i++)dot(rx(i),ry(i),2.5*q);
+  sctx.fillStyle='#fff';dot(SX(0),SY(ray.oy),4.5*q);
+  sctx.strokeStyle='#ff6b5e';sctx.beginPath();
+  if(ray.end==='hit')sctx.arc(ex,ey,6*q,0,6.2832);
+  else if(lost){const r=5*q;sctx.moveTo(ex-r,ey-r);sctx.lineTo(ex+r,ey+r);sctx.moveTo(ex+r,ey-r);sctx.lineTo(ex-r,ey+r);}
+  sctx.stroke();
+  if(stopCap.hidden===lost)stopCap.hidden=!lost;
+}
+new ResizeObserver(()=>{sizeSide();if(mode==='inside'&&gl&&U)draw(curT);}).observe(pane);
 
 // Play carries on from the clock and the angle it stopped at; it never stacks a second loop.
 function start(){if(raf!==null||!gl||!U)return;last=null;raf=requestAnimationFrame(render);}
@@ -323,6 +469,14 @@ function stop(){if(raf!==null)cancelAnimationFrame(raf);raf=null;}
 document.addEventListener('hb:pause',e=>{
   paused=e.detail.paused;
   if(paused)stop();else start();
+});
+
+// The mode switch: draw the mode at once; the canvas's name says what it shows.
+document.addEventListener('hb:mode',e=>{
+  mode=e.detail.mode;
+  cvs.setAttribute('aria-label',NAMES[mode]);
+  sizeSide();
+  if(gl&&U)draw(curT);
 });
 
 if(init()){
@@ -350,7 +504,7 @@ choices('cam-seg',d=>{CAM_SPD=+d.spd;});
 choices('detail-seg',d=>{DETAIL=+d.detail;MAX_STEPS=steps();refresh();});
 document.getElementById('shadow-tog').addEventListener('change',e=>{SHADOW=e.target.checked;refresh();});
 document.getElementById('ao-tog').addEventListener('change',e=>{AO=e.target.checked;refresh();});
-document.getElementById('debug-tog').addEventListener('change',e=>{DEBUG=e.target.checked;refresh();});
+document.getElementById('debug-tog').addEventListener('change',e=>{DEBUG=e.target.checked;stage.classList.toggle('steps',DEBUG);refresh();});
 </script>
 </body>
 </html>
