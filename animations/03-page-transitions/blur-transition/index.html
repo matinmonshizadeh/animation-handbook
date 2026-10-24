@@ -83,10 +83,13 @@
       .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
       .stage[data-hb-mode="compare"] .ph{font-size:16px}
     }
-    /* Phones and short windows leave the page area short: the page keeps only its eyebrow and heading in both modes */
+    /* Phones and short windows leave the page area short: the page keeps only its eyebrow and heading in both modes. See inside also
+       loses the strip's height, so it does the same just above each strip step (680px tall, and 761 to 790), where the area is under the tallest page */
     @media(max-width:600px),(max-height:650px){
-      .stage[data-hb-mode="inside"] .pp,.stage[data-hb-mode="inside"] .pgrid,.stage[data-hb-mode="inside"] .pstat{display:none}
       .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    @media(max-width:600px),(max-height:680px),(min-height:761px) and (max-height:790px){
+      .stage[data-hb-mode="inside"] .pp,.stage[data-hb-mode="inside"] .pgrid,.stage[data-hb-mode="inside"] .pstat{display:none}
     }
     /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
     @media(max-width:360px){
@@ -399,7 +402,7 @@
     if(mode!=='inside'||!W)return;
     const p=plan(),span=SPAN*(slowTog.checked?3:1),fade=fadeTog.checked;
     CAP.old.textContent=fade?'Old page blurs and fades out':'Old page blurs out';
-    CAP.nw.textContent=fade?'New page fades into focus':'New page comes into focus';
+    CAP.nw.textContent=fade?'New page fades into focus':'New page sharpens';
     CAP.len.textContent='Each half: '+LONG[p.d];
     Object.values(CAP).forEach(c=>{c.style.left=c.style.top='0px';c.style.width=''});
     const rowH=CAP.swap.offsetHeight,sw=CAP.swap.offsetWidth,lw=CAP.len.offsetWidth,gut=Math.max(CAP.old.offsetWidth,CAP.nw.offsetWidth);
@@ -437,7 +440,7 @@
   function pose(){
     const on=mode!=='normal'&&(!motionOk||!animating&&!wayBack);
     stage.classList.toggle('posed',on);
-    if(!on)return;
+    if(!on){if(mode==='inside'&&G&&wayBack&&!animating)placeMark(runTotal);return}
     const v=curve(REST),set=(k,x)=>stage.style.setProperty(k,x);
     set('--pb',(maxBlur*v).toFixed(1)+'px');set('--po',fadeTog.checked?1-v:1);set('--pt',1-v);
     if(mode==='inside'&&G){cancelAnimationFrame(markRaf);markRaf=0;placeMark(REST*plan().d)}
