@@ -74,6 +74,43 @@
       .card-tag{font-size:10px;letter-spacing:1px}
       .card-body{font-size:12px;line-height:1.4}
     }
+    /* See inside and Compare */
+    .clear,.cap{display:none}
+    .cap{position:absolute;z-index:3;left:0;top:0;padding:2px 7px;border-radius:5px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* See inside: the colors lose their own blur, so each is a plain circle with a dashed outline; the cards stay as set, so the same
+       circles and dots come out soft through them */
+    .stage[data-hb-mode="inside"] .blob{filter:none;outline:2px dashed rgba(255,255,255,.85)}
+    .stage[data-hb-mode="inside"] .c-a,.stage[data-hb-mode="inside"] .c-b,.stage[data-hb-mode="inside"] .c-c{display:block}
+    /* Compare: a row of three cards for each half, one above the other (the first half's copies are in .clear, the real cards sit in
+       the second half by grid placement); the dots cover the box evenly, so both rows have some behind them */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(4,auto);align-content:center;align-items:stretch;gap:4px 8px;padding:12px}
+    .stage[data-hb-mode="compare"]::after{--dots:rgba(255,255,255,.32);-webkit-mask-image:none;mask-image:none}
+    .stage[data-hb-mode="compare"] .clear{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;grid-column:1/-1;grid-row:2}
+    .stage[data-hb-mode="compare"] .clear .glass-card{backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+    .stage[data-hb-mode="compare"] .glass-card{width:auto;min-width:0;min-height:80px;padding:10px 8px;border-radius:12px;gap:4px}
+    .stage[data-hb-mode="compare"] .card-title{font-size:13px}
+    .stage[data-hb-mode="compare"] .card-tag{font-size:10px;letter-spacing:1px}
+    .stage[data-hb-mode="compare"] .card-body{display:none}
+    .stage[data-hb-mode="compare"]>.g1{grid-column:1;grid-row:4}
+    .stage[data-hb-mode="compare"]>.g2{grid-column:2;grid-row:4}
+    .stage[data-hb-mode="compare"]>.g3{grid-column:3;grid-row:4}
+    .stage[data-hb-mode="compare"] .h-a,.stage[data-hb-mode="compare"] .h-b{display:block;position:relative;justify-self:start;grid-column:1/-1}
+    .stage[data-hb-mode="compare"] .h-a{grid-row:1}
+    .stage[data-hb-mode="compare"] .h-b{grid-row:3;margin-top:6px}
+    @media(min-width:960px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:repeat(3,minmax(0,1fr)) 16px repeat(3,minmax(0,1fr));grid-template-rows:auto auto;gap:6px 10px}
+      .stage[data-hb-mode="compare"]::before{content:"";grid-column:4;grid-row:1/3;justify-self:center;width:1px;background:rgba(255,255,255,.25)}
+      .stage[data-hb-mode="compare"] .clear{grid-column:1/4}
+      .stage[data-hb-mode="compare"] .glass-card{min-height:200px;padding:16px 12px;border-radius:16px;gap:8px}
+      .stage[data-hb-mode="compare"] .card-title{font-size:16px}
+      .stage[data-hb-mode="compare"] .card-tag{font-size:11px;letter-spacing:2px}
+      .stage[data-hb-mode="compare"] .card-body{display:block}
+      .stage[data-hb-mode="compare"]>.g1{grid-column:5;grid-row:2}
+      .stage[data-hb-mode="compare"]>.g2{grid-column:6;grid-row:2}
+      .stage[data-hb-mode="compare"]>.g3{grid-column:7;grid-row:2}
+      .stage[data-hb-mode="compare"] .h-a{grid-column:1/4}
+      .stage[data-hb-mode="compare"] .h-b{grid-column:5/8;grid-row:1;margin-top:0}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -96,6 +133,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="blob b1" aria-hidden="true"></div>
       <div class="blob b2" aria-hidden="true"></div>
@@ -116,10 +158,20 @@
         <div class="card-title">Shifting tint</div>
         <div class="card-body">The tint keeps changing.</div>
       </div>
+      <div class="clear" id="clear" aria-hidden="true" inert></div>
+      <p class="cap c-a" aria-hidden="true" data-hb-caption>Behind: plain color circles and dots</p>
+      <p class="cap c-b" aria-hidden="true" data-hb-caption>The glass blurs what is behind it</p>
+      <p class="cap c-c" aria-hidden="true" data-hb-caption>Tint and light edge finish the glass</p>
+      <p class="cap h-a" aria-hidden="true" data-hb-caption>Clear glass</p>
+      <p class="cap h-b" aria-hidden="true" data-hb-caption>Frosted glass</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the soft colors are plain circles, shown here without their own blur, drifting behind a dot pattern. The glass blurs whatever passes behind it, so they soften only through the cards.</p>
+      <p data-hb-for="compare" hidden>Clear glass has the tint and the light edge but no blur, so the dots behind it show sharp. Frosted glass blurs them into a soft glow.</p>
     </div>
   </section>
 
@@ -226,6 +278,51 @@
 <script>
   const root=document.documentElement.style;
   const stage=document.getElementById('stage');
+  // The notes: Frost Off, and a picture held still under reduced motion (the loop starts paused), say so. The markup holds the usual
+  // words, and a note is rewritten only when its words change.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],usual=notes.map(n=>n.textContent);
+  const inside=['Shown still. Inside, the soft colors are plain circles, drawn here without their own blur, behind a dot pattern.',
+    ' The glass blurs whatever is behind it, so they soften only through the cards.',' Frost is Off, so the glass does not blur them.'];
+  let paused=reduceMQ.matches,frostOff=false;
+  function describe(){
+    const still=reduceMQ.matches&&paused;
+    const words=[
+      still?inside[0]+inside[frostOff?2:1]:frostOff?usual[0].slice(0,usual[0].indexOf('. ')+1)+inside[2]:usual[0],
+      frostOff?'Frost is Off, so Clear glass and Frosted glass look the same. Pick a frost in Try it to see the difference.':usual[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
+  }
+  describe();
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  // Compare's first half is three copies of the real cards, made once, without the backdrop blur and the middle card's breathing.
+  // The copy of the shifting card starts its tint cycle when it is shown, so it is set to the real card's moment on every entry
+  // and after the Shifting tint switch changes.
+  const real=[...stage.querySelectorAll(':scope > .glass-card')],caps=['a','b','c'].map(k=>stage.querySelector('.c-'+k));
+  real.forEach(c=>{const k=c.cloneNode(true);k.classList.remove('g2');document.getElementById('clear').appendChild(k)});
+  function syncTint(){
+    const r=real[2].getAnimations()[0],c=stage.querySelector('.clear .g3').getAnimations()[0];
+    if(r&&c&&r.currentTime!=null)c.currentTime=r.currentTime;
+  }
+  // See inside's three captions sit above and below the row of cards, from the cards' measured places (again on a resize and when
+  // the font arrives). Where the stage is short, the first two share the band above the row, side by side.
+  function place(){
+    if(stage.dataset.hbMode!=='inside')return;
+    const [a,b,c]=caps,W=stage.clientWidth,H=stage.clientHeight;
+    caps.forEach(el=>{el.style.left=el.style.top='0px'});
+    const top=Math.min(...real.map(g=>g.offsetTop)),bottom=Math.max(...real.map(g=>g.offsetTop+g.offsetHeight)),left=real[0].offsetLeft,mid=(left+real[2].offsetLeft+real[2].offsetWidth)/2;
+    const at=(el,x,y)=>{el.style.left=Math.max(4,Math.min(x,W-el.offsetWidth-4))+'px';el.style.top=y+'px'};
+    const ay=Math.max(4,Math.min(5,top-a.offsetHeight-4)),by=top-b.offsetHeight-3;
+    const ax=10+a.offsetWidth+8,bx=mid-b.offsetWidth/2;
+    at(a,10,ay);
+    at(b,by<ay+a.offsetHeight+3&&bx<ax?ax:bx,by);
+    at(c,mid-c.offsetWidth/2,Math.min(H-c.offsetHeight-4,bottom+4));
+  }
+  document.addEventListener('hb:mode',e=>{
+    if(e.detail.mode==='inside')place();
+    if(e.detail.mode==='compare')syncTint();
+  });
+  addEventListener('resize',place);
+  if(document.fonts)document.fonts.ready.then(place);
   let secs=8;
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -237,6 +334,7 @@
   // Off keeps the last blur in --blur, so choosing a strength again brings it back
   choices('frost-seg',d=>{
     stage.classList.toggle('no-bf',d.blur==='off');
+    frostOff=d.blur==='off';describe();
     if(d.blur!=='off')root.setProperty('--blur',d.blur);
   });
   choices('op-seg',d=>{root.setProperty('--glass-op',d.op)});
@@ -259,7 +357,8 @@
     document.querySelector('.g2').style.animation=e.target.checked?'':'none';
   });
   document.getElementById('shift-tog').addEventListener('change',e=>{
-    document.querySelector('.g3').style.animation=e.target.checked?'':'none';
+    document.querySelectorAll('.g3').forEach(g=>{g.style.animation=e.target.checked?'':'none'});
+    syncTint();
   });
 </script>
 </body>
