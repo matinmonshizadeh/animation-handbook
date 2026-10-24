@@ -52,6 +52,45 @@
     .w4{--y:80%;--k:1;--s:.9;--o:-.8;--fill:var(--c4)}
     @keyframes drift{to{transform:translateX(-50%)}}
     @keyframes bob{from{transform:translateY(-1.2cqh)}to{transform:translateY(1.2cqh)}}
+
+    /* See inside and Compare. Everything they add is hidden in Normal, and the layers' own rules above are never touched. */
+    .stage{--pace:1;--u:calc((50cqw - 26px)/1.905)}
+    .twin,.ins,.cmp,.so,.mid{display:none}
+    .stage[data-hb-mode="inside"] .hero,.stage[data-hb-mode="compare"] .hero{display:none}
+    .twin{position:absolute;inset:0 50% 0 0;overflow:hidden}
+    .ins,.cmp{position:absolute;inset:0;pointer-events:none}
+    .cap{max-width:100%;padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font)}
+    /* An arrow points the way the layer slides and is as long as its pace: one over its cycle share, times the Speed setting */
+    .ar{position:relative;display:block;flex:none;width:calc(var(--u)*var(--pace)/var(--s));height:10px}
+    .ar::before{content:"";position:absolute;left:6px;right:0;top:3.5px;height:3px;border-radius:2px;background:#f4f4f2}
+    .ar::after{content:"";position:absolute;left:0;top:0;border:solid transparent;border-width:5px 8px 5px 0;border-right-color:#f4f4f2}
+    /* See inside: every layer is drawn at half size from its left edge (scale leaves its own movement running), so its strip,
+       twice as wide as the box, fits the box's width. The script places the strips one under another, far at the top. */
+    .stage[data-hb-mode="inside"] .wave{top:var(--st);bottom:auto;height:calc(var(--S)*2);scale:.5;transform-origin:0 0}
+    .stage[data-hb-mode="inside"] .track{position:relative;outline:3px solid rgba(244,244,242,.6);outline-offset:-3px}
+    .stage[data-hb-mode="inside"] .so,.stage[data-hb-mode="inside"] .mid{display:block;position:absolute;top:0;bottom:0}
+    .stage[data-hb-mode="inside"] .so{left:0;width:200%;outline:3px dashed rgba(244,244,242,.5);outline-offset:-3px}
+    .stage[data-hb-mode="inside"] .mid{left:50%;border-left:3px dashed #f4f4f2}
+    .stage[data-hb-mode="inside"] .ins{display:block}
+    .ins .veil,.ins .win{position:absolute}
+    .ins .veil{left:50%;right:0;background:rgba(4,11,22,.5)}
+    .ins .win{left:0;width:50%;border:2px dashed var(--ui-accent)}
+    .ins .top,.ins .bot{position:absolute;left:6px;right:6px;display:flex;flex-wrap:wrap;align-items:flex-start;gap:4px 6px}
+    .ins .top .cap:first-child{text-wrap:balance}
+    .ins .bot .cap:first-child{max-width:calc(50% - 4px)}
+    .ins .top .cap:last-child,.ins .bot .cap:last-child{margin-left:auto}
+    .chip{position:absolute;right:6px;display:flex;align-items:center;height:16px;padding:0 6px;border-radius:6px;background:rgba(8,8,10,.9)}
+    /* Compare: the first half is the copy of the layers, the second the page's own layers moved to the right half */
+    .stage[data-hb-mode="compare"] .wave{left:50%;overflow:hidden}
+    .stage[data-hb-mode="compare"] .twin{display:block}
+    .stage[data-hb-mode="compare"] .twin .wave{--s:1.25;left:0}
+    .stage[data-hb-mode="compare"] .cmp{display:grid;grid-template-columns:1fr 1fr}
+    .cmp::after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;margin-left:-1px;background:rgba(244,244,242,.55)}
+    .half{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;padding:8px 6px}
+    .half .cap{white-space:nowrap}
+    .gauge{align-self:flex-start;display:flex;flex-direction:column;align-items:flex-end;gap:1px;padding:5px 7px;border-radius:6px;background:rgba(8,8,10,.9)}
+    .gauge.same .ar{--s:1.25}
+    .ins [hidden],.cmp [hidden]{display:none}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -74,6 +113,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <!-- One path of ten whole waves; each layer's viewBox shows the first ten, eight, six or four of them -->
       <svg class="defs" aria-hidden="true"><defs><path id="wv" d="M0 0C18 0 32 40 50 40S82 0 100 0S132 40 150 40S182 0 200 0S232 40 250 40S282 0 300 0S332 40 350 40S382 0 400 0S432 40 450 40S482 0 500 0S532 40 550 40S582 0 600 0S632 40 650 40S682 0 700 0S732 40 750 40S782 0 800 0S832 40 850 40S882 0 900 0S932 40 950 40S982 0 1000 0V40H0Z"/></defs></svg>
@@ -89,6 +133,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each strip is shown whole at half size: twice as wide as the box, so when it starts over the box never sees a seam. Near strips slide faster than far ones.</p>
+      <p data-hb-for="compare" hidden>Same pace slides every layer at one speed, so the water looks like one flat sheet. Near ones faster gives the near layers a quicker pace, so the water looks deep.</p>
     </div>
   </section>
 
@@ -183,7 +231,70 @@
 <script>
   const stage=document.querySelector('.stage');
   const waves=[...document.querySelectorAll('.wave')];
-  let secs=24;
+  let secs=24,count=4,amp=11;
+
+  // Under reduced motion the layers are held, so while they are held the notes say what the still picture shows; Play brings
+  // back the moving words and Pause the still ones. A note is written only when its words change.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
+  const still=[
+    "Inside, shown still: each strip appears whole at half size, twice as wide as the box. The arrows show each strip's pace, the near ones fastest.",
+    "Shown still: the arrows show each layer's pace, all the same in Same pace and quicker toward the front in Near ones faster."];
+  let paused=reduceMQ.matches;
+  function describe(){notes.forEach((n,i)=>{const words=reduceMQ.matches&&paused?still[i]:moving[i];if(n.textContent!==words)n.textContent=words})}
+  describe();
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  reduceMQ.addEventListener('change',describe);
+
+  // Made once: Compare's first half is a copy of the layers (no ids, inert, hidden from screen readers), See inside adds to each
+  // layer the outline where its strip starts (it bobs but never slides) and a line at the strip's middle (it rides the track).
+  const mk=(tag,cls,html)=>{const e=document.createElement(tag);e.className=cls;if(html)e.innerHTML=html;return e};
+  const cap=t=>`<p class="cap" data-hb-caption>${t}</p>`;
+  const arrows='<i class="ar w1"></i><i class="ar w2"></i><i class="ar w3"></i><i class="ar w4"></i>';
+  const twin=mk('div','twin');
+  const copies=waves.map(w=>twin.appendChild(w.cloneNode(true)));
+  waves.forEach(w=>{w.prepend(mk('b','so'));w.querySelector('.track').append(mk('b','mid'))});
+  const ins=mk('div','ins','<b class="veil"></b><b class="win"></b>'+[1,2,3,4].map(n=>`<span class="chip w${n}"><i class="ar"></i></span>`).join('')
+    +'<div class="top">'+cap('Each strip is twice as wide; it slides half its width, then starts over')+cap('Far: slowest')+'</div>'
+    +'<div class="bot">'+cap('The box shows only this part')+cap('Near: fastest')+'</div>');
+  const cmp=mk('div','cmp',`<div class="half">${cap('Same pace')}<div class="gauge same">${arrows}</div></div>`
+    +`<div class="half">${cap('Near ones faster')}<div class="gauge">${arrows}</div></div>`);
+  [twin,ins,cmp].forEach(e=>{e.setAttribute('aria-hidden','true');e.inert=true});
+  stage.append(twin,ins,cmp);
+
+  // Fewer layers hide the far ones first, so the near waves at the bottom always stay (the copy, the chips and the arrows too)
+  function showLayers(){
+    waves.forEach((w,i)=>{w.hidden=copies[i].hidden=i<4-count});
+    [...ins.querySelectorAll('.chip'),...cmp.querySelectorAll('.ar')].forEach((e,k)=>{e.hidden=k%4<4-count});
+  }
+
+  // The copy's animations start when Compare shows it, so they are set to the originals' time: both halves run on one clock
+  function syncCopy(){
+    waves.forEach((w,i)=>[[w,copies[i]],[w.querySelector('.track'),copies[i].querySelector('.track')]].forEach(([a,b])=>{
+      const x=a.getAnimations()[0],y=b.getAnimations()[0];
+      if(x&&y&&x.currentTime!=null)y.currentTime=x.currentTime;
+    }));
+  }
+
+  // See inside: the strips (each as tall as its biggest wave plus a little body) spread down the box, far at the top, with the
+  // window over the left half, which is what the real box shows. The captions are measured, so the rows follow their wrapping.
+  function layout(){
+    if(stage.getAttribute('data-hb-mode')!=='inside')return;
+    const H=stage.clientHeight,n=count,top=ins.querySelector('.top'),bot=ins.querySelector('.bot');
+    const hT=top.offsetHeight,hB=bot.offsetHeight,pad=4,room=H-12-hT-hB-2*pad-8;
+    const S=Math.min((amp/2+6)*H/100,(room-(n-1)*7)/n);
+    const g=7+Math.min(13,Math.max(0,room-n*S-(n-1)*7)/(3*(n-1)));
+    const G=n*S+(n-1)*g,y0=Math.max(6,(H-(hT+hB+G+2*pad+8))/2),yS=y0+hT+4+pad;
+    const at=i=>yS+(i-(4-n))*(S+g);
+    top.style.top=y0+'px';bot.style.top=yS+G+pad+4+'px';
+    ['.veil','.win'].forEach(c=>{const e=ins.querySelector(c);e.style.top=yS-pad+'px';e.style.height=G+2*pad+'px'});
+    stage.style.setProperty('--S',S+'px');
+    ins.querySelectorAll('.chip').forEach((c,i)=>{c.style.top=at(i)+(S-16)/2+'px'});
+    waves.forEach((w,i)=>w.style.setProperty('--st',at(i)+'px'));
+  }
+  document.addEventListener('hb:mode',e=>{if(e.detail.mode==='compare')syncCopy();layout()});
+  new ResizeObserver(layout).observe(stage);
+  if(document.fonts)document.fonts.ready.then(layout);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -200,11 +311,11 @@
     stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs});
     secs=next;
     stage.style.setProperty('--dur',next+'s');
+    stage.style.setProperty('--pace',24/next); // the arrows' length follows the speed, also while paused
   });
   choices('pal-seg',d=>{stage.dataset.pal=d.pal});
-  choices('amp-seg',d=>{stage.style.setProperty('--amp',d.amp)});
-  // Fewer layers hide the far ones first, so the near waves at the bottom always stay
-  choices('count-seg',d=>{waves.forEach((w,i)=>{w.hidden=i<waves.length-d.n})});
+  choices('amp-seg',d=>{amp=parseFloat(d.amp);stage.style.setProperty('--amp',d.amp);layout()});
+  choices('count-seg',d=>{count=+d.n;showLayers();layout()});
 </script>
 </body>
 </html>
