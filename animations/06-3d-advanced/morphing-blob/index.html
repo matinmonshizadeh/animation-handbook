@@ -215,7 +215,7 @@ const stage=document.getElementById('stage'),slowTog=document.getElementById('sl
 const defs=svg.querySelector('defs'),glowG=svg.querySelector('.gl'),crispG=svg.querySelector('.cr'),copyG=document.querySelector('.cp g');
 const ring=svg.querySelector('.ring'),lead=svg.querySelector('.lead'),cross=svg.querySelector('.cross');
 const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
-let mode='normal',paused=reduceMQ.matches;
+let mode='normal',paused=reduceMQ.matches,held=null;
 const LABELS={normal:svg.getAttribute('aria-label'),
   inside:'The blob\'s plain circles, each with a soft glow, with the liquid that joins close circles shown in gold and the drop that chases the pointer ringed',
   compare:'Two copies of the blob side by side: plain circles that only overlap on the left, circles that melt into one liquid shape on the right'};
@@ -353,7 +353,7 @@ document.addEventListener('hb:pause',e=>{
   paused=e.detail.paused;
   describe();
   if(paused){cancelAnimationFrame(raf);raf=null;}
-  else start();
+  else{held=null;start();}
 });
 
 // Under reduced motion the blob starts paused, so both views are still pictures and their notes say so; after Play they
@@ -370,12 +370,17 @@ reduceMQ.addEventListener('change',describe);
 
 // The mode switch: the view is drawn at once from the same circles, whether the blob moves or is paused. In a view the drop and
 // the pointer's target stay inside the picture they are shown in.
+// Paused, Normal's phase, drop and target are held while a view shows and put back by Normal unless it played since, and a
+// view paused where no two circles are close enough to join poses the next moment where they are
 document.addEventListener('hb:mode',e=>{
+  if(paused&&mode==='normal')held={phase,x:drop.x,y:drop.y,px:pointer.x,py:pointer.y};
   mode=e.detail.mode;
   svg.setAttribute('aria-label',LABELS[mode]);
-  keepIn(pointer);keepIn(drop);
+  if(mode==='normal'&&held){phase=held.phase;drop.x=held.x;drop.y=held.y;pointer.x=held.px;pointer.y=held.py;held=null;}
+  keepIn(pointer);keepIn(drop);pose();
   place();
 });
+function pose(){if(paused&&mode!=='normal')for(let k=0;k<600&&!melts();k++)phase+=.05;}
 function keepIn(p){
   if(mode==='normal')return;
   const m=svg.getScreenCTM(),r=svg.getBoundingClientRect(),k=drop.r+4;
@@ -411,7 +416,7 @@ function choices(id,pick){
 }
 choices('goo-seg',d=>{blur.setAttribute('stdDeviation',d.goo);glow();});
 // Choosing the count already chosen must not make new random circles
-choices('count-seg',d=>{const n=+d.count;if(n===blobs.length)return;build(n);place();});
+choices('count-seg',d=>{const n=+d.count;if(n===blobs.length)return;build(n);pose();place();});
 choices('speed-seg',d=>{speed=+d.speed;});
 
 build(6);
