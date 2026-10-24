@@ -414,21 +414,25 @@
     }
   }
   // Compare: the pointer's place in each half (a ghost ring and the faint light), or the pretend pointer parked near the right edge in the pose
-  let pu=-1,pv=-1,pTwo=false;
+  let pu=-1,pv=-1,pTwo=false,mp=null;
   function ghosts(){
-    const show=posed||pu>=0,x=posed?bw*.9:pu,y=posed?bh/2:pv,lit=show&&spotOn&&(posed||hasMouse&&!paused);
+    const show=posed||pu>=0,x=posed?bw*.9:pu,y=posed?bh/2:pv,lit=show&&spotOn&&(posed||hasMouse);
     halves.forEach((o,i)=>{
-      o.lt.style.opacity=lit?1:0;
+      // as in Normal, Pause holds the light where it is: only the pointer leaving or the switch puts it out
+      if(!lit)o.lt.style.opacity=0;
+      else if(posed||!paused){o.lt.style.opacity=1;tr(o.lt,x,y)}
       o.gh.hidden=!show||(!posed&&pTwo===!!i);
       o.ln.hidden=!posed;
       if(!show)return;
-      tr(o.lt,x,y);tr(o.gh,x,y);
+      tr(o.gh,x,y);
       tr(o.ln,bw/2,bh/2,`rotate(${Math.atan2(y-bh/2,x-bw/2).toFixed(3)}rad) scaleX(${Math.hypot(x-bw/2,y-bh/2).toFixed(1)})`);
     });
   }
   stage.addEventListener('pointermove',e=>{
-    if(e.pointerType!=='mouse'||mode!=='compare'||posed)return;
-    [pu,pv,pTwo]=local(...at(e));
+    if(e.pointerType!=='mouse')return;
+    mp=at(e);
+    if(mode!=='compare'||posed)return;
+    [pu,pv,pTwo]=local(...mp);
     ghosts();
   });
   stage.addEventListener('pointerleave',e=>{if(e.pointerType==='mouse'&&pu>=0){pu=-1;ghosts()}});
@@ -506,8 +510,10 @@
   }
   function dealt(){
     posed=mode!=='normal'&&reduced.matches&&paused;
-    if(mode!=='compare')pu=-1;
-    dims();redraw();
+    dims();
+    // a mouse already over the box shows its ghost ring and light in Compare at once, before it moves
+    pu=-1;if(mode==='compare'&&!posed&&hasMouse&&mp)[pu,pv,pTwo]=local(...mp);
+    redraw();
     if(mode!=='normal')lay();
     notes();
   }
