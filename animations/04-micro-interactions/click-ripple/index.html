@@ -315,8 +315,18 @@
     stage.classList.toggle('lift',lift);
     if(mode==='normal')return;
     const s=stage.getBoundingClientRect(),ox=s.left+stage.clientLeft,oy=s.top+stage.clientTop,W=stage.clientWidth,H=stage.clientHeight;
+    if(mode==='compare'){
+      // the room under the Primary button for the caption's lines comes first: it moves every button the marks are placed on
+      const left=btns[0].getBoundingClientRect().left-ox;
+      poseCap.style.left=left+'px';poseCap.style.maxWidth=(W-8-left)+'px';
+      stage.style.setProperty('--cap-gap',Math.max(12,poseCap.offsetHeight-10)+'px');
+    }
     btns.forEach((b,i)=>{
-      const w=b.offsetWidth,h=b.offsetHeight,size=Math.max(w,h)*2,x=fromCenter?w/2:ACROSS[i]*w,e=eased(mode==='inside'?MOMENT[i]:Math.min(50/dur,1));
+      const w=b.offsetWidth,h=b.offsetHeight,size=Math.max(w,h)*2,x=fromCenter?w/2:ACROSS[i]*w;
+      // See inside: a small Ripple size would leave the first circle under its marker and the second hardly past the edges, so those two
+      // moments come later in the press (the share of the time where the circle reaches this size); the least size grows with Ripple size
+      const k=Math.sqrt(scale/1.5),least=[Math.min(28*k,h-8),1.5*h*k,0][i];
+      const e=mode==='inside'?Math.max(eased(MOMENT[i]),least/(size*scale)):eased(Math.min(50/dur,1));
       const at0=`width:${size}px;height:${size}px;left:${x-size/2}px;top:${h/2-size/2}px;transform:scale(${scale*e})`;
       still[i].style.cssText=at0+`;background:rgba(${color},${opacity});opacity:${1-e}`;
       // See inside also draws the circle's edge, a thin line the fade does not touch (its width is made up for the scale)
@@ -338,9 +348,6 @@
       });
     }else{
       // the caption goes under the Primary button, in the room the Secondary row leaves for its lines (one or two)
-      const left=btns[0].getBoundingClientRect().left-ox;
-      poseCap.style.left=left+'px';poseCap.style.maxWidth=(W-8-left)+'px';
-      stage.style.setProperty('--cap-gap',Math.max(12,poseCap.offsetHeight-10)+'px');
       poseCap.style.top=(btns[0].getBoundingClientRect().bottom-oy+3)+'px';poseCap.style.visibility=lift?'hidden':'';
     }
   }
