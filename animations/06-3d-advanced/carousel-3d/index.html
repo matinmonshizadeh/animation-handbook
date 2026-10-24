@@ -50,8 +50,45 @@
     .arrow svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
     .count{min-width:64px;text-align:center;font-size:14px;font-weight:600;color:#d6d6da;font-variant-numeric:tabular-nums}
     .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+    .strip,.cap,.hname,.floor,.hub,.spoke,.num{display:none}
+    .cap,.hname{position:absolute;z-index:3;padding:4px 8px;border-radius:8px;background:rgba(8,8,12,.9);color:#f4f4f2;font:600 12px/16px var(--hb-font);
+      white-space:nowrap;pointer-events:none}
+    .cap:nth-of-type(-n+2){border-left:3px solid #f0b84a} /* gold like the marks they name */
+    .hname{top:6px;left:8px;border-radius:999px}
+    /* See inside: the camera rises 26 degrees more (the page's own 14 add up when Seen from above is on) and the ring is pushed
+       back until all of it and the four captions fit, which the script works out (--iy, --iz). The cards turn see-through, so the
+       floor, its middle and the spokes show behind the front ones. The floor, middle and spokes lie flat at the cards' feet. */
+    .stage[data-hb-mode="inside"] .tilt{rotate:1 0 0 -26deg}
+    .stage[data-hb-mode="inside"] .push{translate:0 var(--iy,0px) var(--iz,0px)}
+    .stage[data-hb-mode="inside"] .view.ready .push,.stage[data-hb-mode="compare"] .view.ready .push{transition:translate .6s cubic-bezier(.22,1,.36,1)}
+    .stage[data-hb-mode="inside"] .cap,.stage[data-hb-mode="inside"] .floor,.stage[data-hb-mode="inside"] .hub,.stage[data-hb-mode="inside"] .spoke{display:block}
+    .stage[data-hb-mode="inside"] .num{display:grid}
+    .stage[data-hb-mode="inside"] .face{opacity:.5}
+    .stage[data-hb-mode="inside"] .back{background:linear-gradient(hsl(var(--h) 30% 30%),hsl(var(--h) 34% 18%))}
+    .floor,.hub,.spoke{position:absolute;pointer-events:none;transform:rotateX(90deg)}
+    .floor{left:calc(50% - var(--r));top:calc(100% - var(--r));width:calc(var(--r) * 2);height:calc(var(--r) * 2);border-radius:50%;
+      border:2px dashed rgba(244,244,242,.6);background:conic-gradient(from calc(180deg - var(--step)),rgba(240,184,74,.5) var(--step),transparent 0)}
+    .hub{left:calc(50% - 9px);top:calc(100% - 9px);width:18px;height:18px;border-radius:50%;background:#f0b84a}
+    .spoke{left:50%;top:calc(100% - 1.5px);width:var(--r);height:3px;transform-origin:0 50%;background:#f0b84a}
+    .num{position:absolute;top:7%;left:9%;place-items:center;width:1.7em;height:1.7em;border-radius:50%;font:700 var(--bs,13px)/1 var(--hb-font);
+      background:rgba(8,8,12,.92);color:#f4f4f2;border:.1em solid #f0b84a;transform:translateZ(2px);backface-visibility:hidden;-webkit-backface-visibility:hidden;pointer-events:none}
+    /* Compare: a flat row of the same cards beside the ring (above it on phones); both halves start below their names */
+    .strip{position:relative;overflow:hidden}
+    .lane{position:absolute;left:50%;top:var(--np,0px);bottom:0;width:min(100%,var(--lane,100%));translate:-50% 0;overflow:hidden;display:grid;place-items:center;
+      -webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
+    .scard{grid-area:1/1;position:relative;width:var(--cw,160px);aspect-ratio:3/4}
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto}
+    .stage[data-hb-mode="compare"] .strip{display:block;box-shadow:inset -1px 0 0 rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .hname{display:block}
+    .stage[data-hb-mode="compare"] .nav{grid-column:1/-1}
+    .stage[data-hb-mode="compare"] .push{translate:0 var(--iy,0px)}
+    .stage[data-hb-mode="compare"] .view{padding-top:var(--np);perspective-origin:50% calc(50% + var(--np) / 2)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:var(--strip-h,auto) minmax(0,1fr) auto}
+      .stage[data-hb-mode="compare"] .strip{box-shadow:inset 0 -1px 0 rgba(255,255,255,.14)}
+    }
     @media(hover:hover){.arrow:hover{background:rgba(255,255,255,.14);border-color:rgba(255,255,255,.4)}}
-    @media(prefers-reduced-motion:reduce){.view.ready .tilt{transition:none}}
+    @media(prefers-reduced-motion:reduce){.view.ready .tilt,.stage[data-hb-mode="inside"] .view.ready .push,.stage[data-hb-mode="compare"] .view.ready .push{transition:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -74,9 +111,20 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Drag it</h2><p>Drag the cards sideways and let go, use the arrows, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
+      <div class="strip" aria-hidden="true" inert><span class="hname" data-hb-caption>Flat row</span><div class="lane"></div></div>
       <div class="view" id="view" tabindex="0" role="group" aria-roledescription="carousel" aria-label="Picture cards. Drag sideways or press the arrow keys to turn the ring.">
         <div class="push"><div class="tilt"><div class="ring" id="ring"></div></div></div>
+        <span class="cap" data-hb-caption aria-hidden="true">Each card turned<br>an eighth of a circle</span>
+        <span class="cap" data-hb-caption aria-hidden="true">All pushed out<br>the same distance</span>
+        <span class="cap" data-hb-caption aria-hidden="true">The whole<br>ring turns</span>
+        <span class="cap" data-hb-caption aria-hidden="true">Far cards<br>show their backs</span>
+        <span class="hname" data-hb-caption aria-hidden="true">3D ring</span>
       </div>
       <div class="nav">
         <button class="arrow" type="button" id="prev" aria-label="Previous card"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 18-6-6 6-6"/></svg></button>
@@ -88,6 +136,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Seen from higher up, each card is turned an equal share of the circle and pushed out the same distance (the spokes); the whole ring turns. Drag it or press Show me.</p>
+      <p data-hb-for="compare" hidden>Flat row: the same cards slide past in a line. 3D ring: they stand in a circle, so the ones beside the front lean away and the ones behind show their backs.</p>
     </div>
   </section>
 
@@ -158,39 +210,110 @@
 <script>
   const view=document.getElementById('view'),ring=document.getElementById('ring');
   const countEl=document.getElementById('count'),statusEl=document.getElementById('status');
+  const stage=document.getElementById('stage'),strip=stage.querySelector('.strip'),lane=strip.querySelector('.lane'),nav=stage.querySelector('.nav');
+  const caps=[...view.querySelectorAll('.cap')];
   const reduce=matchMedia('(prefers-reduced-motion:reduce)');
   // Twelve pictures around the color wheel, 30° of hue apart; a ring of N cards takes N of them, spread evenly
   const NAMES=['Canyon','Dunes','Savanna','Meadow','Forest','Jungle','Lagoon','Glacier','Fjord','Dusk','Orchids','Coral'];
   const FRAME=1000/60,K=.09,GLIDE=FRAME/-Math.log(1-K); // the settle closes 9% of the gap every 60th of a second; GLIDE is its time constant (ms)
   const P=900,RUN_MS=3000,SPIN=12;                       // the camera's distance (px), a Show me run (ms), Spins by itself (degrees a second)
+  const NP=32;                                           // the room Compare leaves above each half for its name (px)
   let N=8,step=45,R=200,angle=0,target=null,drag=null,run=null,spinOn=false,spinV=0,idle=0,raf=0,lastT=null,front=-1,holdTimer=0,names=[];
+  let mode='normal',tiltOn=true,CW=160,slides=[],homeA=0;
+
+  // The mode switch: the box changes size in Compare, so the sizes are worked out again and drawn at once, with no easing
+  const LABELS={normal:view.getAttribute('aria-label'),
+    inside:'The ring seen from higher up, with a dashed floor circle, a gold spoke to each card and a number on each front. Drag sideways or press the arrow keys to turn it.',
+    compare:'A flat row of cards next to the 3D ring. Drag the ring or press the arrow keys to turn both.'};
+  document.addEventListener('hb:mode',e=>{
+    const changed=e.detail.mode!==mode;mode=e.detail.mode;
+    if(changed)view.classList.remove('ready');
+    view.setAttribute('aria-label',LABELS[mode]);
+    layout();render();
+    if(changed){void view.offsetWidth;view.classList.add('ready');}
+  });
+  // The notes: the markup's words, and a still's words under reduced motion (written only when they change)
+  const NOTES={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')},MOVING={};
+  const STILL={inside:'Shown still from higher up: each card is turned an equal share of the circle and pushed out the same distance (the spokes). Drag it or press Show me.',
+    compare:'Shown still: Flat row lines the same cards up; 3D ring stands them in a circle, so the ones beside the front lean away and the ones behind show their backs.'};
+  for(const m in NOTES)MOVING[m]=NOTES[m].textContent;
+  function words(){for(const m in NOTES){const t=reduce.matches?STILL[m]:MOVING[m];if(NOTES[m].textContent!==t)NOTES[m].textContent=t;}}
+  reduce.addEventListener('change',words);
 
   // The cards: card i is turned by i steps and pushed out by the radius, so the ring's angle -i*step brings it to the front.
   function build(){
-    step=360/N;names=[];ring.textContent='';
+    step=360/N;names=[];slides=[];ring.textContent='';lane.textContent='';
+    ring.innerHTML='<div class="floor"></div><div class="hub"></div>'; // See inside: the floor at the cards' feet and its middle
     for(let i=0;i<N;i++){
       const k=Math.round(i*12/N)%12,card=document.createElement('div');
       card.className='card';card.dataset.i=i;card.style.setProperty('--h',k*30);
       card.style.transform=`rotateY(${i*step}deg) translateZ(var(--r))`;
-      card.innerHTML=`<div class="face front"><span>${NAMES[k]}</span></div><div class="face back"></div>`;
+      card.innerHTML=`<div class="face front"><span>${NAMES[k]}</span></div><div class="face back"></div><i class="num">${i+1}</i>`;
       ring.appendChild(card);names.push(NAMES[k]);
+      const spoke=document.createElement('div');spoke.className='spoke';spoke.style.transform=`rotateY(${i*step-90}deg) rotateX(90deg)`;ring.appendChild(spoke);
+      const flat=document.createElement('div');flat.className='scard';flat.style.setProperty('--h',k*30); // Compare's flat row: the same fronts
+      flat.innerHTML=`<div class="face front"><span>${NAMES[k]}</span></div>`;lane.appendChild(flat);slides.push(flat);
     }
+    view.style.setProperty('--step',step+'deg');
+    caps[0].innerHTML=`Each card turned<br>${{6:'a sixth',8:'an eighth',12:'a twelfth'}[N]} of a circle`;
     angle=0;target=null;front=-1;layout();render();
   }
   // A 3:4 card as wide as half the box's height (two thirds of it tall), made narrower until the ring's outer corners, seen at
   // their depth, fit 94% of the box's width. The radius puts N cards with a gap of 12% of a card around a polygon.
   function layout(){
-    const W=view.clientWidth,H=view.clientHeight,t=Math.tan(Math.PI/N);
+    const cmp=mode==='compare';
+    // Stacked Compare (phones): the flat row is as tall as its cards and its name, the ring has the rest
+    if(cmp&&matchMedia('(max-width:600px)').matches)stage.style.setProperty('--strip-h',(NP+8+.4*(stage.clientHeight-nav.offsetHeight-2*NP-8)).toFixed(1)+'px');
+    const W=view.clientWidth,H=view.clientHeight-(cmp?NP+8:0),t=Math.tan(Math.PI/N);
     let cw=Math.min(H*.5,220);
     for(;cw>44;cw-=2){const r=cw*1.12/(2*t);if(2*Math.hypot(r,cw/2)*P/(P+.8*r)<=W*.94)break;}
-    R=cw*1.12/(2*t);
+    R=cw*1.12/(2*t);CW=cw;
     view.style.setProperty('--cw',cw.toFixed(1)+'px');view.style.setProperty('--r',R.toFixed(1)+'px');
+    strip.style.setProperty('--cw',cw.toFixed(1)+'px');strip.style.setProperty('--lane',((N-1)*1.12*cw).toFixed(1)+'px');
+    if(mode==='inside')fitInside();
+    else if(cmp){view.style.setProperty('--iy',middle(outline(0,0),0).toFixed(1)+'px');slide();} // the ring sits in the middle of its half
+  }
+  // Where the ring's outline falls in the box (offsets from its middle) when the page's own moves act on it: Seen from above, the
+  // extra tilt (26 degrees in See inside), the push back by D and the camera. A point is [x, y, scale] for a ring with no shift; a
+  // shift of dy moves it by dy times its scale. The points run round every card's edge, at both resting angles of the ring.
+  const DEG=Math.PI/180,EXTRA=26,SPOT=[[1,1],[0,1],[1,0],[0,0]]; // each caption's corner: right?, bottom?
+  const EDGE=[];for(let i=0;i<10;i++)EDGE.push([-.5+i/10,-1],[.5,-1+i/5],[.5-i/10,1],[-.5,1-i/5]); // u across a card, v down it
+  function outline(D,extra){
+    const a=tiltOn?14*DEG:0,b=extra*DEG,c1=Math.cos(a),s1=Math.sin(a),c2=Math.cos(b),s2=Math.sin(b),lift=tiltOn?-.11*R:0,out=[];
+    for(const off of[0,step/2])for(let j=0;j<N;j++){const f=(j*step+off)*DEG,sn=Math.sin(f),cs=Math.cos(f);
+      for(const [u,v] of EDGE){
+        const x=R*sn+u*CW*cs,y0=v*CW*2/3,z0=R*cs-u*CW*sn,y1=y0*c1+z0*s1+lift,z1=-y0*s1+z0*c1,k=P/(P-(-y1*s2+z1*c2-R-D));
+        out.push([x*k,(y1*c2+z1*s2)*k,k]);
+      }
+    }
+    return out;
+  }
+  // The shift (in the ring's own px) that puts an outline in the middle of the box, up and down
+  const middle=(o,D)=>{const ys=o.map(q=>q[1]);return-(Math.min(...ys)+Math.max(...ys))/2*(P+R+D)/P;};
+  // Push the ring back until its outline is inside the box and clear of the four captions in the corners, then centre it
+  function fitInside(){
+    const W=view.clientWidth,H=view.clientHeight,pad=6;
+    const boxes=caps.map((c,i)=>{const w=c.offsetWidth,h=c.offsetHeight,x=SPOT[i][0]?W-pad-w:pad,y=SPOT[i][1]?H-pad-h:pad;
+      c.style.left=x+'px';c.style.top=y+'px';return[x-6,y-6,x+w+6,y+h+6];});
+    const place=D=>{const o=outline(D,EXTRA),dy=middle(o,D);
+      return{o,dy,fits:o.every(([x,y,k])=>{y+=dy*k;return Math.abs(x)<=W/2-pad&&Math.abs(y)<=H/2-pad
+        &&boxes.every(([a,b,c,d])=>!(x+W/2>a&&x+W/2<c&&y+H/2>b&&y+H/2<d));})};};
+    let lo=0,hi=place(0).fits?0:2400;
+    for(let i=0;hi&&i<22;i++){const m=(lo+hi)/2;if(place(m).fits)hi=m;else lo=m;}
+    const {o,dy}=place(hi),n=EDGE.length,k=Math.min(...[0,1,N-1].flatMap(j=>o.slice(j*n,j*n+n).map(q=>q[2])));
+    view.style.setProperty('--iy',dy.toFixed(1)+'px');view.style.setProperty('--iz',(-hi).toFixed(1)+'px');
+    view.style.setProperty('--bs',(13/k).toFixed(1)+'px'); // the numbers are drawn 13px or more on the front cards
+  }
+  // Compare's flat row: card i sits (i + angle/step) card widths (and gaps) from the middle, taken within half a turn either way
+  function slide(){
+    slides.forEach((c,i)=>{const d=((i+angle/step+N/2)%N+N)%N-N/2;c.style.transform=`translateX(${(d*1.12*CW).toFixed(1)}px)`;});
   }
   const wrap=a=>((a%360)+360)%360;
   const snap=a=>Math.round(a/step)*step;
   const nearest=a=>a+360*Math.round((angle-a)/360); // the same place as a, the shortest way round from where the ring is
   function render(){
     ring.style.transform=`rotateY(${angle.toFixed(2)}deg)`;
+    if(mode==='compare')slide();
     const i=((Math.round(-angle/step)%N)+N)%N;
     if(i!==front){front=i;countEl.textContent=`${i+1} of ${N}`;}
   }
@@ -263,9 +386,10 @@
   // Only a press by the visitor is announced at the end (the shared script presses it once on arrival).
   function stopHold(){clearTimeout(holdTimer);holdTimer=0;}
   document.getElementById('btn-demo').addEventListener('click',e=>{
-    const say=e.isTrusted;stopHold();drag=null;target=null;spinV=0;idle=0;
-    if(reduce.matches){const a=snap(angle);jump(a-step,say);holdTimer=setTimeout(()=>{holdTimer=0;jump(a,say);},1200);return;}
-    run={a0:angle,a1:snap(angle)-360,t0:null,say};wake();
+    const say=e.isTrusted;if(!run&&!holdTimer)homeA=snap(angle); // pressed again during a run, it still ends on the card it began on
+    stopHold();drag=null;target=null;spinV=0;idle=0;
+    if(reduce.matches){const a=homeA;jump(a-step,say);holdTimer=setTimeout(()=>{holdTimer=0;jump(a,say);},1200);return;}
+    run={a0:angle,a1:homeA-360*Math.ceil((homeA-angle+180)/360),t0:null,say};wake();
   });
   document.getElementById('btn-reset').addEventListener('click',()=>{
     stopHold();run=null;drag=null;spinV=0;idle=0;
@@ -286,13 +410,18 @@
   }
   choices('count-seg',d=>{stopHold();run=null;N=+d.n;build();rested();if(spinOn)wake();});
   document.getElementById('tilt-tog').addEventListener('change',e=>{
-    view.style.setProperty('--tilt',e.target.checked?'-14deg':'0deg');view.style.setProperty('--lift',e.target.checked?'-.11':'0');
+    tiltOn=e.target.checked;
+    view.style.setProperty('--tilt',tiltOn?'-14deg':'0deg');view.style.setProperty('--lift',tiltOn?'-.11':'0');
+    if(mode!=='normal')layout();
   });
   document.getElementById('spin-tog').addEventListener('change',e=>{ // on: starts at once; off: settles on the next card it was turning to
     spinOn=e.target.checked;if(spinOn){idle=1200;spinV=0;}else if(!run&&!drag&&target===null&&spinV){target=Math.floor(angle/step)*step;spinV=0;}
     wake();});
   addEventListener('resize',layout);
+  document.fonts.ready.then(layout); // the captions are placed from their measured size, so again once the font is in
+  stage.style.setProperty('--np',NP+'px');
   build();
+  words();
   void view.offsetWidth;view.classList.add('ready'); // the first size is in place before the tilt starts easing
 </script>
 </body>
