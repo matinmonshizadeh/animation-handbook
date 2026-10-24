@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Text Morphing", "name": "Text Morphing", "description": "One word changes into the next, letter by letter. Best for short labels.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/05-text-typography/text-morphing/", "inLanguage": "en", "articleSection": "Text & Typography", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Text & Typography, Text Morphing"}</script>
   <style>
-    :root{--ui-accent:#ff6f8b;--morph-dur:400ms}
+    :root{--ui-accent:#ff6f8b;--morph-dur:400ms;--morph-move:cubic-bezier(.4,0,.2,1);--morph-fade:cubic-bezier(.25,.1,.25,1)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;background:#08080a;padding:32px;overflow:hidden}
     .morph-word{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:0;font-size:clamp(56px,9vw,100px)}
@@ -32,7 +32,7 @@
       display:inline-block;
       white-space:pre;
       will-change:transform,opacity;
-      transition:transform var(--morph-dur) cubic-bezier(.4,0,.2,1),opacity var(--morph-dur) ease
+      transition:transform var(--morph-dur) var(--morph-move),opacity var(--morph-dur) var(--morph-fade)
     }
     .morph-char.out-up{transform:translateY(-100%);opacity:0}
     .morph-char.out-down{transform:translateY(100%);opacity:0}
@@ -43,6 +43,35 @@
     .morph-char.enter-from-left{transform:translateX(-80%);opacity:0}
     .morph-char.enter-from-right{transform:translateX(80%);opacity:0}
     @media(prefers-reduced-motion:reduce){.morph-char{transition:none!important;transform:none!important;opacity:1!important}}
+    /* The views are hidden unless a mode shows them; their labels are dark pills so they read over the letters */
+    .ins,.side,.morph-copy,.morph-ghost{display:none}
+    .morph-copy .morph-char,.morph-ghost .morph-char{transition:none;will-change:auto}
+    .morph-ghost .morph-char{color:transparent;-webkit-text-stroke:1.5px rgba(244,244,242,.4)}
+    .cap{position:absolute;left:0;top:0;padding:3px 8px;border-radius:6px;border-left:3px solid transparent;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:pre}
+    @media(max-width:600px),(max-height:500px){.cap{font-size:12px}}
+    /* See inside: every letter in its own thin box, amber while it leaves and green while it arrives; the marks are drawn by the script */
+    .stage[data-hb-mode="inside"] .morph-word{top:var(--wy)}
+    .stage[data-hb-mode="inside"] .morph-char{outline:1.5px solid rgba(244,244,242,.55);outline-offset:-1px}
+    @media(prefers-reduced-motion:no-preference){
+      .stage[data-hb-mode="inside"] .morph-char[class*="out-"]{outline-color:#ffb454}
+      .stage[data-hb-mode="inside"] .entering .morph-char{outline-color:#5ee08a}
+    }
+    .stage[data-hb-mode="inside"] .ins{display:block;position:absolute;inset:0;pointer-events:none}
+    .tk{position:absolute;width:4px;border-radius:2px;background:#f4f4f2;opacity:.8}
+    .ia{position:absolute;height:12px;transform-origin:0 50%}
+    .ia::before{content:"";position:absolute;left:0;right:8px;top:4.5px;height:3px;border-radius:2px;background:var(--c)}
+    .ia::after{content:"";position:absolute;right:0;top:0;border:6px solid transparent;border-right:0;border-left:9px solid var(--c)}
+    /* Compare: two bands. On top the word swapped at once (an inert copy); below it the real word, clipped at the middle line */
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:0;right:0;top:50%;height:2px;margin-top:-1px;background:rgba(255,255,255,.16);pointer-events:none}
+    .stage[data-hb-mode="compare"] .morph-word{top:calc(75% + 14px + var(--off,0px));clip-path:inset(calc(-1*var(--cup,0px)) -999px -999px -999px)}
+    .stage[data-hb-mode="compare"] .morph-copy{display:flex;top:calc(25% + 14px + var(--off,0px));clip-path:none}
+    .stage[data-hb-mode="compare"].posed .morph-ghost{display:flex;top:calc(75% + 14px + var(--off,0px))}
+    .side{left:12px;top:8px}
+    .side.s2,.side.pose-note{top:calc(50% + 8px)}
+    .side.pose-note{left:auto;right:12px}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .stage[data-hb-mode="compare"] .side.pose-note{display:none}
+    .stage[data-hb-mode="compare"].posed .side.pose-note{display:block}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -65,12 +94,21 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage">
       <div class="morph-word" id="current-word"></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each letter is its own piece: the old ones slide out one way, the new ones in from the other. A delay between letters makes them start one by one, like a wave.</p>
+      <p data-hb-for="compare" hidden>Swaps at once changes the whole word in one jump. Morphs slides the old letters out and the new ones in, so each change is easy to follow.</p>
     </div>
   </section>
 
@@ -183,6 +221,7 @@ SOUND</textarea>
   // Captured once at the start of each morph (startMorph), then reused by every phase of that same morph, so a
   // setting change mid-morph never mismatches the exit and entry sides or the waits' durations.
   let curDir='up',stepDur=morphDur,stepStag=stag,nextIdx=0,nextWordVal='';
+  let mode='normal',leaving=false,shown=''; // the mode on show, whether the letters are on their way out, and the word on the stage
 
   function getWords(){
     const words=wordsIn.value.split('\n').map(w=>w.trim().toUpperCase()).filter(Boolean);
@@ -198,6 +237,7 @@ SOUND</textarea>
     const pad=getComputedStyle(stage);
     const room=stage.clientWidth-parseFloat(pad.paddingLeft)-parseFloat(pad.paddingRight);
     if(wordEl.offsetWidth>room)wordEl.style.fontSize=Math.max(16,parseFloat(getComputedStyle(wordEl).fontSize)*room/wordEl.offsetWidth)+'px';
+    if(mode!=='normal')layout();
   }
 
   function showWord(word){
@@ -208,6 +248,8 @@ SOUND</textarea>
       span.textContent=c;
       wordEl.appendChild(span);
     });
+    shown=word;
+    syncCopy();
     fit();
   }
 
@@ -228,7 +270,7 @@ SOUND</textarea>
     held=[];
     if(next)wait(next,left);
   }
-  document.addEventListener('hb:pause',e=>e.detail.paused?freeze():thaw());
+  document.addEventListener('hb:pause',e=>{e.detail.paused?freeze():thaw();pose();describe()});
 
   // One morph, in four waited phases: the hold on the current word, the letters leaving, the next word's
   // letters arriving, then a 100ms gap before the next hold. Slow motion stretches --morph-dur and the letter
@@ -248,6 +290,7 @@ SOUND</textarea>
       c.style.transitionDelay=(stepStag*i)+'ms';
       c.classList.add('out-'+curDir);
     });
+    leaving=true;
     wait(afterExit,stepDur+stepStag*(fromChars.length-1)+60);
   }
   function afterExit(){
@@ -263,23 +306,146 @@ SOUND</textarea>
       toChars.push(span);
     });
     wordIdx=nextIdx;
+    leaving=false;
+    wordEl.classList.add('entering');
+    shown=nextWordVal;
+    syncCopy();
     fit();
     void wordEl.offsetWidth;
     toChars.forEach(c=>c.classList.remove(enterDir));
     wait(afterEnter,stepDur+stepStag*(toChars.length-1)+50);
   }
   function afterEnter(){
+    wordEl.classList.remove('entering');
     wait(afterGap,100);
   }
   function afterGap(){
     wait(startMorph,hold);
   }
 
+  // ── See inside and Compare ──
+  // Under reduced motion the loop starts paused, and the notes say "shown still" while it is paused; once Play has started the loop,
+  // Compare's note says the words change in one jump. A note is written only when it changes.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
+  const still=['Shown still: each letter is its own piece. The arrows show the way the old letters would leave and the new ones arrive, and the ticks show when each letter would start.',
+    'Shown still, a moment into a change: Swaps at once still shows the old word whole, while Morphs has its letters on their way out.',
+    'With reduced motion on, Swaps at once and Morphs both change the word in one jump. Press Pause to see Morphs a moment into a change.'];
+  function describe(){
+    const r=reduceMQ.matches,words=[r?still[0]:moving[0],r?still[paused?1:2]:moving[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
+  }
+  // The letters' own two curves (read from the styles): a curve gives its height at a share of its time, or the share of time at a height
+  function curve(s){
+    const [a,b,c,d]=s.match(/-?\d*\.?\d+/g).map(Number);
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    const find=(f,v)=>{let lo=0,hi=1;for(let i=0;i<24;i++){const m=(lo+hi)/2;if(f(m)<v)lo=m;else hi=m}return(lo+hi)/2};
+    return{y:x=>at(b,d,find(t=>at(a,c,t),x)),x:y=>at(a,c,find(t=>at(b,d,t),y))};
+  }
+  const rootCss=getComputedStyle(document.documentElement);
+  const MOVE=curve(rootCss.getPropertyValue('--morph-move')),FADE=curve(rootCss.getPropertyValue('--morph-fade'));
+  const mark=(cls,text)=>{
+    const el=document.createElement('div');el.className=cls;el.setAttribute('aria-hidden','true');
+    if(text){el.textContent=text;el.setAttribute('data-hb-caption','')}
+    return el;
+  };
+  const copy=mark('morph-word morph-copy'),ghost=mark('morph-word morph-ghost'),ins=mark('ins'); // made once; neither is part of the loop
+  copy.inert=ghost.inert=true;
+  wordEl.before(ghost);
+  stage.append(copy,ins,...[['cap side s1','Swaps at once'],['cap side s2','Morphs'],['cap side pose-note','A moment into a change']].map(([c,t])=>mark(c,t)));
+  // Compare's top band shows the word on the stage now, changed whole at the moment the real word is rebuilt; the outline where the
+  // posed word started follows it
+  function syncCopy(){
+    if(mode!=='compare'||copy.dataset.w===shown)return;
+    [copy,ghost].forEach(el=>{
+      el.dataset.w=shown;el.textContent='';
+      shown.split('').forEach(c=>{const s=mark('morph-char');s.textContent=c;el.appendChild(s)});
+    });
+  }
+  // Compare, while paused: the real letters stand a moment into a change, the first a third of the way out, each later one as far
+  // as it would be by then (its own delay less); the copy shows the word whole. Inline, so it beats the reduced-motion rule
+  function pose(){
+    const on=mode==='compare'&&paused,chars=[...wordEl.children];
+    stage.classList.toggle('posed',on);
+    if(on){
+      held.forEach((a,i)=>{ // a slide the pause stopped goes on as a paused copy, which Play resumes
+        if(!(a instanceof CSSTransition)||a.playState!=='paused')return;
+        const m=a.effect.target.animate(a.effect.getKeyframes(),a.effect.getTiming());
+        m.currentTime=a.currentTime;m.pause();held[i]=m;a.cancel();
+      });
+      const d=leaving?curDir:dir,vert=d==='up'||d==='down',sign=d==='up'||d==='left'?-1:1;
+      const third=MOVE.x(1/3),per=leaving?stepStag/stepDur:curStag()/curDur(); // by progress, so Slow motion changes nothing
+      chars.forEach((c,i)=>{
+        const x=Math.max(0,third-per*i);
+        c.style.setProperty('transition-property','none','important');
+        c.style.setProperty('transform',`translate${vert?'Y':'X'}(${sign*MOVE.y(x)*(vert?100:80)}%)`,'important');
+        c.style.setProperty('opacity',1-FADE.y(x),'important');
+      });
+    }else{
+      const lifted=chars.filter(c=>c.style.transform);
+      lifted.forEach(c=>{c.style.setProperty('transition-property','none','important');c.style.removeProperty('transform');c.style.removeProperty('opacity')});
+      if(lifted.length){void wordEl.offsetWidth;lifted.forEach(c=>c.style.removeProperty('transition-property'))}
+    }
+  }
+  const WORDS={up:['Old letters slide up and fade','New ones rise in from below'],down:['Old letters slide down and fade','New ones drop in from above'],
+    left:['Old letters slide left and fade','New ones slide in from the right'],right:['Old letters slide right and fade','New ones slide in from the left']};
+  const HOLDS={900:'just under a second',1500:'one and a half seconds',2400:'two and a half seconds'};
+  const moveWords=ms=>ms<300?'a quarter of a second':ms<500?'under half a second':ms<700?'about two thirds of a second':ms<900?'three quarters of a second':ms<1500?'just over a second':'about two seconds';
+  // Draws the mode for the word as it stands, from the word's measured letters: the word is made smaller when the marks need the room
+  function layout(){
+    const W=stage.clientWidth,H=stage.clientHeight,base=parseFloat(getComputedStyle(wordEl).fontSize),w0=wordEl.offsetWidth,n=wordEl.children.length;
+    const vert=dir==='up'||dir==='down';
+    if(mode==='compare'){
+      const f=Math.min(base,(H/2-40)*.75),off=vert?(dir==='up'?f/6:-f/6):0; // a word that rises sits lower, so its pose stays in the band
+      wordEl.style.fontSize=copy.style.fontSize=ghost.style.fontSize=f+'px';
+      stage.style.setProperty('--off',off+'px');
+      wordEl.style.setProperty('--cup',H/4+14+off-f/2+'px');
+      return;
+    }
+    const step=stag&&n>1?Math.min(stag/10,22/(n-1)):0,th=6+(n-1)*step,two=W<520,c3=two?40:24;
+    const top=f=>vert?28+Math.max(f,th+10+c3):42+c3+th,tall=f=>top(f)+f+(vert?f+72:76);
+    let f=base;
+    while(f>24&&(tall(f)>H-12||w0*f/base*(vert?1:1+1.6/n)+(vert?46:40)>W))f-=2;
+    const y0=Math.max(6,(H-tall(f))/2),wt=y0+top(f),e=wt+f,mid=wt+f/2;
+    wordEl.style.fontSize=f+'px';
+    wordEl.style.setProperty('--wy',mid+'px');
+    const ww=wordEl.offsetWidth,x0=(W-ww)/2,x1=x0+ww,L=.8*ww/n,AMBER='#ffb454',GREEN='#5ee08a';
+    ins.textContent='';
+    const cap=(text,y,at,side,color)=>{ // a dark pill kept inside the box; returns its left edge
+      const el=mark('cap',text);if(color)el.style.borderLeftColor=color;ins.appendChild(el);
+      const w=el.offsetWidth,x=Math.round(Math.min(Math.max(8,side==='r'?at-w:side==='c'?at-w/2:at),W-8-w));
+      el.style.transform=`translate(${x}px,${Math.round(y)}px)`;
+      return x;
+    };
+    // the staircase caption first: the arrow beside it keeps clear of it when a short word leaves it little room
+    const cx=cap(stag?'Each letter starts a moment later:'+(two?'\n':' ')+'a wave':'All letters move together',wt-th-10-c3,x0,'l'),ax=Math.min(x0,cx)-10;
+    [...wordEl.children].forEach((c,i)=>{ // one start tick per letter, each raised one step more than the one before
+      const t=mark('tk');t.style.cssText=`left:${x0+c.offsetLeft+c.offsetWidth/2-2}px;top:${wt-10-i*step}px;height:${6+i*step}px`;ins.appendChild(t);
+    });
+    const arrows={ // [leaving, arriving]: tail x, tail y, angle, length
+      up:[[ax,wt,-90,f],[x1+10,e+f,-90,f]],down:[[x1+10,e,90,f],[ax,wt-f,90,f]],
+      left:[[x0-4,mid,180,L],[x1+4+L,mid,180,L]],right:[[x1+4,mid,0,L],[x0-4-L,mid,0,L]]}[dir];
+    arrows.forEach(([x,y,deg,len],i)=>{
+      const a=mark('ia');a.style.cssText=`left:${x}px;top:${y-6}px;width:${len}px;transform:rotate(${deg}deg);--c:${i?GREEN:AMBER}`;ins.appendChild(a);
+    });
+    const first=dir==='up'||dir==='left'; // the top-left slot belongs to the leaving letters, or to the arriving ones
+    cap(WORDS[dir][first?0:1],y0,vert?ax-6:x0-L-10,'l',first?AMBER:GREEN);
+    cap(WORDS[dir][first?1:0],vert?e+f+4:e+8,vert?x1+16:x1+L+10,'r',first?GREEN:AMBER);
+    cap(`Each move: ${moveWords(curDur())}\nEach word stays ${HOLDS[hold]}`,vert?e+f+32:e+36,W/2,'c');
+  }
+  function refresh(){if(mode!=='normal')fit();syncCopy();pose();describe()}
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;if(mode==='normal')fit();refresh()});
+  slowTog.addEventListener('change',refresh);
+  reduceMQ.addEventListener('change',refresh);
+
   function start(){
     clearTimeout(timer);next=null;
     wordIdx=0;
+    leaving=false;
+    wordEl.classList.remove('entering');
     showWord(getWords()[0]);
     wait(startMorph,hold); // while paused, wait() only records this; Play resumes from a fresh hold
+    pose();
   }
 
   wordsIn.addEventListener('input',start);
@@ -291,6 +457,7 @@ SOUND</textarea>
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('dir-seg',d=>{dir=d.dir});
@@ -301,6 +468,7 @@ SOUND</textarea>
   wordEl.setAttribute('aria-live','polite');
   vars.setProperty('--morph-dur',morphDur+'ms');
   start();
+  describe();
 </script>
 </body>
 </html>
