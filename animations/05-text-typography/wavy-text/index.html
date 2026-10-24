@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff6f8b;--amp:16px;--dur:1.6s;--stagger:60ms}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#101018,#04060c);padding:24px;overflow:hidden}
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;background:radial-gradient(circle at 50% 45%,#101018,#04060c);padding:24px;overflow:hidden}
     .wave-text{font-weight:800;font-size:clamp(40px,11vw,110px);
       line-height:1;letter-spacing:.01em;color:#fff;white-space:pre;-webkit-user-select:none;user-select:none}
     /* each character is its own span, offset in the wave by --i * stagger */
@@ -34,6 +34,36 @@
       0%,100%{transform:translateY(calc(var(--amp) * .6))}
       50%{transform:translateY(calc(var(--amp) * -1))}
     }
+    /* See inside and Compare. Nothing here shows in Normal: the copies, the marks and the labels start out hidden. */
+    .cmp,.marks,.cap{display:none}
+    .cmp-a span{animation-delay:0s}
+    .cmp{position:absolute;z-index:1;top:50%;left:25%;transform:translate(-50%,-50%)}
+    .cmp-b{left:75%}
+    .cap{position:absolute;z-index:2;left:0;top:0;width:max-content;max-width:calc(100% - 20px);padding:4px 8px;border-radius:6px;
+      background:rgba(8,8,10,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-align:center}
+    .cap[hidden]{display:none!important}
+    .cap-name{top:10px;left:25%;transform:translateX(-50%);white-space:nowrap}
+    .cap-name.second{left:75%}
+    .marks{position:absolute;inset:0;pointer-events:none}
+    .wline{position:absolute;left:0;top:0;width:100%;height:100%;overflow:visible}
+    .wline polyline{fill:none;stroke:var(--ui-accent);stroke-width:2;stroke-linejoin:round;opacity:.9}
+    .wline line{stroke:var(--ui-accent);stroke-width:3;stroke-linecap:round}
+    @media(max-width:600px){.wline polyline{stroke-width:1.5}.wline line{stroke-width:2}}
+    .rest{position:absolute;border:1.5px dashed rgba(244,244,242,.55);border-radius:4px}
+    /* See inside: every letter outlined where it is now; its dashed box where it rests; a line through their tops */
+    .stage[data-hb-mode="inside"] .marks,.stage[data-hb-mode="inside"] .cap-in{display:block}
+    .stage[data-hb-mode="inside"] #wave span{outline:1.5px solid rgba(244,244,242,.85);border-radius:4px}
+    /* Compare: the word twice, each half drawn from a copy in its own half, while the real word stays where it is under a cover
+       the color of the stage (hiding it, even with opacity, leaves Normal drawn a pixel off when it comes back). A dot under each
+       letter rides with it, and a dashed level line marks where the dots rest. */
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;inset:0;background:inherit}
+    .stage[data-hb-mode="compare"]::before{content:"";position:absolute;z-index:1;left:50%;top:0;bottom:0;border-left:1px dashed rgba(244,244,242,.2)}
+    .stage[data-hb-mode="compare"] .cmp,.stage[data-hb-mode="compare"] .cap-name{display:block}
+    .stage[data-hb-mode="compare"] .cmp{--dot:max(.1em,6px)}
+    .stage[data-hb-mode="compare"] .cmp span{position:relative}
+    .stage[data-hb-mode="compare"] .cmp span::after{content:"";position:absolute;left:50%;top:calc(100% + .14em);width:var(--dot);height:var(--dot);
+      margin:calc(var(--dot) / -2) 0 0 calc(var(--dot) / -2);border-radius:50%;background:var(--ui-accent)}
+    .stage[data-hb-mode="compare"] .cmp::after{content:"";position:absolute;left:-.2em;right:-.2em;top:calc(100% + .14em);border-top:1.5px dashed rgba(244,244,242,.45)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -56,12 +86,29 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="wave-text" id="wave" role="img" aria-label="Wavy">Wavy</div>
+      <div class="wave-text cmp cmp-a" aria-hidden="true" inert></div>
+      <div class="wave-text cmp cmp-b" aria-hidden="true" inert></div>
+      <div class="marks" id="marks" aria-hidden="true" inert><svg class="wline"><polyline points=""/></svg></div>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption>Each letter bobs from where it rests (dashed)</p>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption>Each starts a moment after the one before</p>
+      <p class="cap cap-in" aria-hidden="true" data-hb-caption>Rises a fair way, sinks a bit less, once every second and a half</p>
+      <p class="cap cap-name" aria-hidden="true" data-hb-caption>All together</p>
+      <p class="cap cap-name second" aria-hidden="true" data-hb-caption>Rolling wave</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each letter is its own piece and bobs up and down from its resting place (dashed). Each starts a moment after the one before, so the high point rolls along.</p>
+      <p data-hb-for="compare" hidden>All together lifts every letter at the same moment, so the word just bobs. Rolling wave starts each letter a moment later, so a wave travels along the word.</p>
     </div>
   </section>
 
@@ -151,45 +198,189 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const wave=document.getElementById('wave');
+  const twins=[...document.querySelectorAll('.cmp')];
+  const marks=document.getElementById('marks');
+  const poly=marks.querySelector('polyline');
   const stage=document.getElementById('stage');
   const root=document.documentElement;
   const txtIn=document.getElementById('text-inp');
+  const slowSw=document.getElementById('slow-tog');
+  const caps=[...stage.querySelectorAll('.cap-in')];
+  const noteEls=[...document.querySelectorAll('[data-hb-for]')];
+  const rests=[],ticks=[]; // the dashed boxes and the bars that show how far each letter is from its box, one per letter
+  const orig=new WeakMap(); // the times the letters' animations had before a mode posed them
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  let text='Wavy',paused=false,played=false,posed=false,still=false,raf=0;
+  const mode=()=>stage.dataset.hbMode||'normal';
 
-  // Split the string into spans, preserving spaces, and index each with --i.
+  // Split the string into spans, preserving spaces, and index each with --i. The copy for Compare and the marks for See inside
+  // are made here too, once per text.
   function build(str){
-    wave.setAttribute('aria-label',str);
+    text=str;
     wave.textContent='';
+    twins.forEach(t=>{t.textContent=''});
+    rests.splice(0).forEach(r=>r.remove());
+    ticks.splice(0).forEach(t=>t.remove());
+    poly.points.clear();
     [...str].forEach((ch,i)=>{
       const s=document.createElement('span');
       s.textContent=ch;
       s.style.setProperty('--i',i);
       s.setAttribute('aria-hidden','true');
       wave.appendChild(s);
+      twins.forEach(t=>t.appendChild(s.cloneNode(true)));
+      rests.push(marks.appendChild(Object.assign(document.createElement('div'),{className:'rest'})));
+      poly.points.appendItem(poly.ownerSVGElement.createSVGPoint());
+      ticks.push(poly.ownerSVGElement.appendChild(document.createElementNS('http://www.w3.org/2000/svg','line')));
     });
+    posed=false;
+    label();
     fit();
+    refresh();
   }
-  // Shrink the type when a long string would spill past the stage edges.
+  // The picture's name says what the box shows.
+  function label(){
+    const m=mode(),line=wave.children.length>1?', with the line of the wave':'';
+    wave.setAttribute('aria-label',text+(m==='inside'?', each letter outlined'+line:m==='compare'?', twice: all letters together, then as a rolling wave':''));
+  }
+  // Shrink the type when a long string would spill past the stage edges (past its half in Compare).
   function fit(){
     wave.style.fontSize='';
     const room=stage.clientWidth-48;
     if(room>0&&wave.offsetWidth>room) wave.style.fontSize=parseFloat(getComputedStyle(wave).fontSize)*room/wave.offsetWidth+'px';
+    if(mode()==='compare'){ // each copy fits its own half
+      twins.forEach(t=>{t.style.fontSize=''});
+      const half=stage.clientWidth/2-12,w=twins[0].offsetWidth,size=parseFloat(getComputedStyle(twins[0]).fontSize);
+      if(half>0&&w>half) twins.forEach(t=>{t.style.fontSize=size*half/w+'px'});
+    }
+    layout();
   }
-  build('Wavy');
   addEventListener('resize',fit);
   if(document.fonts)document.fonts.ready.then(fit); // the site font can still be loading when fit() first runs
 
   txtIn.addEventListener('input',e=>build(e.target.value.trim()?e.target.value:'Wavy'));
+
+  // The page's own numbers, as the settings set them (a time in milliseconds)
+  function nums(){
+    const cs=getComputedStyle(root),ms=n=>{const v=cs.getPropertyValue(n).trim();return parseFloat(v)*(v.endsWith('ms')?1:1000)};
+    return {amp:parseFloat(cs.getPropertyValue('--amp')),dur:ms('--dur'),stag:ms('--stagger')};
+  }
+  const NUM=['','','two','three','four','five','six','seven','eight','nine'];
+  const secs=ms=>{const h=Math.round(ms/500),w=h>>1;return !w?'half a second':h%2?(w===1?'second and a half':NUM[w]+' and a half seconds'):(w===1?'second':NUM[w]+' seconds')};
+
+  // See inside: the words of the labels follow the settings (slow motion makes every time three times as long)
+  function words(){
+    const {amp,dur,stag}=nums(),f=slowSw.checked?3:1;
+    const t=['Each letter bobs from where it rests (dashed)',
+      'Each starts '+(stag*f<45?'a short moment':stag*f<90?'a moment':'a longer moment')+' after the one before',
+      'Rises '+(amp<12?'a short way':amp<22?'a fair way':'a long way')+', sinks a bit less, once every '+secs(dur*f)];
+    caps.forEach((c,i)=>{if(c.textContent!==t[i])c.textContent=t[i]});
+  }
+  // Dashed boxes where the letters rest (their layout boxes, which ignore the movement), the line's x places and the labels.
+  function layout(){
+    if(mode()!=='inside')return;
+    [...wave.children].forEach((s,i)=>{
+      rests[i].style.cssText=`left:${s.offsetLeft}px;top:${s.offsetTop}px;width:${s.offsetWidth}px;height:${s.offsetHeight}px`;
+      const x=s.offsetLeft+s.offsetWidth/2;
+      poly.points.getItem(i).x=x;
+      ticks[i].x1.baseVal.value=ticks[i].x2.baseVal.value=x;
+      ticks[i].y1.baseVal.value=s.offsetTop;
+    });
+    words();
+    place();
+    drawLine();
+  }
+  // Labels go in rows above and below the word and its bobbing; one that finds no room is left out.
+  function place(){
+    const W=stage.clientWidth,H=stage.clientHeight,reach=nums().amp+6;
+    const above=wave.offsetTop-reach,below=H-(wave.offsetTop+wave.offsetHeight+reach);
+    caps.forEach((c,i)=>{c.hidden=i===1&&wave.children.length<2;c.style.left=c.style.top='0px'});
+    for(const shown=caps.filter(c=>!c.hidden);shown.length;shown.pop().hidden=true){
+      const rows=[];
+      shown.forEach(c=>{const r=rows[rows.length-1],w=c.offsetWidth;
+        if(r&&r.w+6+w<=W-20){r.c.push(c);r.w+=6+w;r.h=Math.max(r.h,c.offsetHeight)}else rows.push({c:[c],w,h:c.offsetHeight})});
+      const h=(a,b)=>rows.slice(a,b).reduce((t,r)=>t+r.h+6,2);
+      const k=[...rows.keys(),rows.length].sort((a,b)=>Math.abs(a-rows.length/2)-Math.abs(b-rows.length/2)||b-a).find(k=>h(0,k)<=above&&h(k)<=below);
+      if(k===undefined)continue;
+      let y=8;
+      rows.forEach((r,i)=>{
+        if(i===k)y=H-h(k);
+        let x=(W-r.w)/2;
+        r.c.forEach(c=>{c.style.left=x+'px';c.style.top=y+'px';x+=c.offsetWidth+6});
+        y+=r.h+6;
+      });
+      return;
+    }
+  }
+
+  // The line through the letters' tops: read from where they are drawn now, in a frame loop only while See inside shows and the
+  // loop plays, and once when it stands still.
+  function drawLine(){
+    if(mode()!=='inside')return;
+    const y0=stage.getBoundingClientRect().top+stage.clientTop;
+    [...wave.children].forEach((s,i)=>{ticks[i].y2.baseVal.value=poly.points.getItem(i).y=s.getBoundingClientRect().top-y0});
+  }
+  const live=()=>mode()==='inside'&&!paused&&!document.hidden;
+  function tick(){raf=0;drawLine();if(live())raf=requestAnimationFrame(tick)}
+  function kick(){drawLine();if(live()&&!raf)raf=requestAnimationFrame(tick)}
+  document.addEventListener('visibilitychange',kick);
+
+  // A loop that stands at its very start (reduced motion until Play is pressed, or a text just rebuilt while paused) shows every
+  // letter waiting or all but, so the word is flat and See inside would show nothing: it poses the word at the moment the middle letter is half way up its rise, and puts the
+  // animations' own times back when the mode is left or the loop plays. The letters are so close in time that a pause anywhere
+  // leaves Compare's halves looking alike, so its copies (never the real word) stand at that moment whenever the loop is paused.
+  const firstAnim=()=>wave.children[0]&&wave.children[0].getAnimations()[0];
+  const poseTime=()=>{const {dur,stag}=nums();return ((wave.children.length-1)>>1)*stag+dur/4};
+  function pose(){
+    const t=poseTime();
+    [...wave.children].forEach(s=>{const a=s.getAnimations()[0];if(!a)return;if(!orig.has(a))orig.set(a,a.currentTime||0);a.currentTime=t});
+    posed=true;
+  }
+  function unpose(){
+    [...wave.children].forEach(s=>{const a=s.getAnimations()[0];if(a&&orig.has(a)){a.currentTime=orig.get(a);orig.delete(a)}});
+    posed=false;
+  }
+  // Both copies run the real word's own time (all together has no delay, the rolling wave the page's delays), or the posed moment
+  function syncTwins(t){
+    twins.forEach(w=>[...w.children].forEach(s=>{const a=s.getAnimations()[0];if(a)a.currentTime=t}));
+  }
+  // The notes say "Shown still" only while the posed still shows; one letter has no neighbor to start after
+  const base=noteEls.map(n=>n.textContent);
+  const other=[
+    ['Shown still, part way into a rise: each letter is its own piece, and its dashed box is where it rests. The line through the tops shows the wave’s shape.',
+     'Inside, the letter is its own piece, and its dashed box is where it rests. Add more letters in Your text to see the wave roll along them.'],
+    ['Shown still, part way into a rise: the dots under All together sit level, while under Rolling wave they step, one letter behind the next.',
+     'One letter has no neighbor to start after, so All together and Rolling wave match. Add more letters in Your text to see the wave roll.']];
+  function describe(){
+    const k=wave.children.length<2?1:still?0:-1;
+    noteEls.forEach((n,i)=>{const w=k<0?base[i]:other[i][k];if(n.textContent!==w)n.textContent=w});
+  }
+  // Draws the current state of the mode: safe to run again at any time
+  function refresh(){
+    const m=mode(),a=firstAnim(),t=a?(orig.has(a)?orig.get(a):a.currentTime||0):0;
+    const want=m==='inside'&&paused&&(t<nums().dur/50||reduceMQ.matches&&!played);
+    if(want)pose();else if(posed)unpose();
+    still=want||m==='compare'&&paused;
+    if(m==='compare')syncTwins(still?poseTime():t);
+    describe();
+    kick();
+  }
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused)played=true;refresh()});
+  document.addEventListener('hb:mode',()=>{label();fit();refresh()});
+  slowSw.addEventListener('change',layout);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();layout();
     }));
   }
   choices('amp-seg',d=>{root.style.setProperty('--amp',d.amp+'px')});
   choices('speed-seg',d=>{root.style.setProperty('--dur',d.dur)});
   choices('stag-seg',d=>{root.style.setProperty('--stagger',d.stag+'ms')});
+  build('Wavy');
 </script>
 </body>
 </html>
