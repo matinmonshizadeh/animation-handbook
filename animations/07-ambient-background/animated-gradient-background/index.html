@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Animated Gradient Background", "name": "Animated Gradient Background", "description": "Colors slowly drift across a soft gradient background. Best for hero sections.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/07-ambient-background/animated-gradient-background/", "inLanguage": "en", "articleSection": "Ambient & Background", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Ambient & Background, Animated Gradient Background"}</script>
   <style>
-    :root{--ui-accent:#ffce5a;--dur:20s}
+    :root{--ui-accent:#ffce5a;--dur:20s;--fast:4s}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{position:relative;overflow:hidden}
     /* ── Gradient variants ── */
@@ -54,6 +54,66 @@
       .fg-title{margin-bottom:0}
       .fg-body{display:none}
     }
+    /* ── See inside and Compare: nothing of this shows in Normal ── */
+    .vin,.cmp-fast,.cmp-card,.cmp-name{display:none}
+    .lbl{padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 13px/1.2 var(--hb-font)}
+    /* See inside: the whole gradient as a small map with the box as a window sliding over it, or the color wheel. The live gradient
+       keeps filling the stage behind it. */
+    .stage[data-hb-mode="inside"] .fg-card{display:none}
+    .stage[data-hb-mode="inside"] .vin{display:flex}
+    .vin{position:absolute;inset:0;z-index:5;flex-direction:column;align-items:center;gap:6px;padding:8px 10px;pointer-events:none}
+    .vroom{flex:1;min-height:0;width:100%;padding:7px;container-type:size;display:grid;place-items:center}
+    .vfig{--f:4;--k:1;--ar:var(--sar,2);--ov:72px;display:grid;grid-template-columns:minmax(0,1fr);justify-items:center;row-gap:4px;width:max(0px,min(100cqw,calc((100cqh - var(--ov))*var(--ar))))}
+    .vfig.wheel{--ar:1;--ov:54px}
+    .vcap{max-width:100%;text-align:center;text-wrap:balance}
+    .vfig .lbl{width:max-content;max-width:100cqw}
+    .vbox,.vwheel{position:relative;width:100%;aspect-ratio:var(--ar)}
+    .vwheel,.vfig.wheel .vbox,.vfig.wheel .varrow{display:none}
+    .vfig.wheel .vwheel{display:block}
+    /* a dark mat and a light frame round the map, wide enough to hold the dashed outline of where the window began */
+    .vbox{margin-bottom:7px;border-radius:6px;box-shadow:0 0 0 5px rgba(8,8,10,.6),0 0 0 7px rgba(244,244,242,.85)}
+    /* the map shows the gradient whole, in the page's own colors; it beats the palette rules that paint it oversized */
+    .vbox .vmap.grad-bg{border-radius:6px;background-size:100% 100%;animation:none}
+    .vstart,.vwin{position:absolute;left:0;top:calc(50% - 50%/var(--f));width:calc(100%/var(--f));height:calc(100%/var(--f));border-radius:3px}
+    .vstart{outline:2px dashed rgba(244,244,242,.85);outline-offset:2px}
+    .vwin{border:3px solid var(--ui-accent);box-shadow:0 0 0 1.5px rgba(8,8,10,.8);animation:vslide calc(var(--dur)*var(--k)) ease infinite}
+    @keyframes vslide{0%,100%{transform:translateX(0)}50%{transform:translateX(calc((var(--f) - 1)*100%))}}
+    .varrow{position:relative;width:100%;height:16px;border-radius:5px;background:rgba(8,8,10,.92)}
+    .varrow i{position:absolute;left:calc(50%/var(--f));right:calc(50%/var(--f));top:6px;height:4px;border-radius:2px;background:var(--ui-accent)}
+    .varrow i::before,.varrow i::after{content:"";position:absolute;top:-4px;border:6px solid transparent}
+    .varrow i::before{left:0;border-left:0;border-right:10px solid var(--ui-accent)}
+    .varrow i::after{right:0;border-right:0;border-left:10px solid var(--ui-accent)}
+    /* the wheel: hue goes around, saturation outward; the dots turn with the colors, faint dashed dots mark where each began */
+    .vwheel::before{content:"";position:absolute;inset:0;border-radius:50%;background:rgba(8,8,10,.6)}
+    .vdisc,.vdots,.vstarts{position:absolute;inset:13%;border-radius:50%}
+    .vdisc{background:radial-gradient(circle closest-side,#fff,rgba(255,255,255,0)),conic-gradient(#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00);box-shadow:0 0 0 2px rgba(244,244,242,.85)}
+    .vdots{animation:vturn var(--dur) linear infinite,grad-hue var(--dur) linear infinite}
+    @keyframes vturn{to{transform:rotate(360deg)}}
+    .vdot,.vdot0{position:absolute;width:clamp(12px,11%,22px);aspect-ratio:1;border-radius:50%;transform:translate(-50%,-50%)}
+    .vdot{border:2px solid #fff;box-shadow:0 0 0 1.5px rgba(8,8,10,.8)}
+    .vdot0{outline:2px dashed rgba(244,244,242,.9);outline-offset:3px}
+    .vturn{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .vturn .ring{fill:none;stroke:var(--ui-accent);stroke-width:2.4;stroke-linecap:round}
+    .vturn .head{fill:var(--ui-accent)}
+    /* Compare: on the left a copy of the gradient on a cycle that is too fast, on the right the real one as set; each half is named
+       above its picture with its cycle in words and a bar as long as how fast its colors change */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:auto minmax(0,1fr);gap:6px;padding:6px;background:#08080a}
+    .stage[data-hb-mode="compare"] #grad-bg,.stage[data-hb-mode="compare"] .cmp-fast{position:relative;inset:auto;grid-row:2;border-radius:8px}
+    .stage[data-hb-mode="compare"] #grad-bg{grid-column:2}
+    .stage[data-hb-mode="compare"] .cmp-fast{display:block;grid-column:1;animation-duration:var(--fast)}
+    .stage[data-hb-mode="compare"] .cmp-fast.var-multi{animation-duration:calc(var(--fast)*1.5)}
+    .stage[data-hb-mode="compare"] .cmp-name{display:block;grid-row:1;position:relative;z-index:6;min-width:0}
+    .stage[data-hb-mode="compare"] .cmp-a{grid-column:1}
+    .stage[data-hb-mode="compare"] .cmp-b{grid-column:2}
+    .cmp-name b{display:block;font-weight:700}
+    .cmp-name span{font-size:12px;font-weight:500;color:#d6d6d2;white-space:nowrap}
+    .cmp-bar{display:block;height:5px;margin-top:4px;border-radius:3px;background:var(--ui-accent);width:max(4px,calc(var(--rate)*18%))}
+    .stage[data-hb-mode="compare"] .fg-card,.stage[data-hb-mode="compare"] .cmp-card{bottom:24px;width:min(320px,calc(50% - 48px));background:rgba(6,10,16,.9);-webkit-backdrop-filter:none;backdrop-filter:none}
+    .stage[data-hb-mode="compare"] .fg-card{left:75%}
+    .stage[data-hb-mode="compare"] .cmp-card{display:block;left:25%}
+    .stage[data-hb-mode="compare"] .fg-body{display:none}
+    @media(max-width:600px){.cmp-name span{display:block}}
+    @media(max-width:600px),(max-height:500px){.stage[data-hb-mode="compare"] .fg-card,.stage[data-hb-mode="compare"] .cmp-card{display:none}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -76,6 +136,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage" id="stage">
       <div class="grad-bg var-pos" id="grad-bg" aria-hidden="true"></div>
       <div class="fg-card">
@@ -83,10 +148,24 @@
         <div class="fg-title">Color that moves without demanding it</div>
         <div class="fg-body">A slow cycle keeps it calm: the color shifts, and the eye barely notices.</div>
       </div>
+      <div class="vin" aria-hidden="true" inert>
+        <p class="lbl vcap" data-hb-caption>Painted four times as wide and tall as the box</p>
+        <div class="vroom"><div class="vfig">
+          <div class="vbox"><i class="vmap grad-bg var-pos"></i><i class="vstart"></i><i class="vwin"></i></div>
+          <div class="vwheel"><i class="vdisc grad-bg"></i><div class="vstarts"></div><div class="vdots grad-bg"></div><svg class="vturn" viewBox="0 0 100 100"><path class="ring" d="M50 6A44 44 0 1 1 31.4 10.1"/><path class="head" d="M46 2 55 6 46 10z" transform="rotate(335 50 50)"/></svg></div>
+          <p class="lbl vcap" data-hb-caption>The box shows only the outlined part</p>
+          <div class="varrow"><i></i></div>
+          <p class="lbl vcap" data-hb-caption>Slides across and back every 20 seconds</p>
+        </div></div>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the gradient is painted four times as wide and tall as the box, and the box shows only the outlined part as it slides across and back.</p>
+      <p data-hb-for="compare" hidden>Too fast runs a whole cycle in a few seconds, which pulls the eye from the content. Calm, as you set it, shifts so slowly that you barely notice.</p>
     </div>
   </section>
 
@@ -196,7 +275,8 @@
   // Scaling each animation's time by the same factor as its length keeps the picture where it is, moving or paused.
   choices('speed-seg',d=>{
     const next=+d.secs;
-    stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/secs});
+    // (Compare's too-fast copy has a cycle of its own, so it stays out of this)
+    stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null&&!a.effect.target.closest('.cmp-fast'))a.currentTime=a.currentTime*next/secs});
     secs=next;
     vars.setProperty('--dur',next+'s');
   });
@@ -205,6 +285,139 @@
     if(d.pal)stage.classList.add(d.pal);
   });
   mutedTog.addEventListener('change',()=>{bg.classList.toggle('subtle',mutedTog.checked)});
+
+  // ── See inside and Compare ──
+  // Every view animation is a CSS animation inside the stage, so Pause and Slow motion reach it. An animation starts at zero when
+  // its element appears, so each is set to the real gradient's time when its view is drawn.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),slowTog=document.getElementById('slow-tog');
+  const part=s=>stage.querySelector(s);
+  const vin=part('.vin'),vfig=part('.vfig'),vmap=part('.vmap'),vdisc=part('.vdisc'),vdots=part('.vdots'),vstarts=part('.vstarts');
+  const caps=[...vin.querySelectorAll('.vcap')],card=part('.fg-card');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent);
+  const STYLES=['var-pos','var-hue','var-multi'],FAST=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--fast'));
+  const REF=secs,POSE=1000; // the bars measure against Normal's speed; Compare's still is one second into the cycle
+  let mode='normal',posed=false,saved=0,lastSecs=secs;
+  const kind=()=>bg.classList.contains('var-hue')?'hue':bg.classList.contains('var-multi')?'bands':'slide';
+  const paused=()=>stage.classList.contains('hb-paused');
+  const lead=()=>bg.getAnimations()[0];
+  const mark=el=>{el.setAttribute('aria-hidden','true');el.inert=true;return el};
+
+  // Compare's parts, made once: the faster copy of the gradient, a copy of the card and the two names
+  const fast=mark(Object.assign(document.createElement('div'),{className:'grad-bg cmp-fast var-pos'}));
+  const cardCopy=mark(card.cloneNode(true));cardCopy.classList.add('cmp-card');
+  const names=['Too fast','Calm'].map((t,i)=>{
+    const el=mark(document.createElement('div'));el.className='lbl cmp-name cmp-'+'ab'[i];el.setAttribute('data-hb-caption','');
+    el.innerHTML='<b>'+t+'</b><span>a full cycle </span><span class="n2"></span><i class="cmp-bar"></i>';return el;
+  });
+  stage.append(fast,cardCopy,...names);
+
+  // A note is written only when its words change, since its box is read out loud; the still words show while the loop is paused
+  // under reduced motion, and Compare's only while its pose shows
+  const STILL_IN={slide:'Inside, shown still: the gradient is four times as wide and tall as the box, which shows only the outlined part; the arrow shows how far that part slides.',
+    hue:'Inside, shown still: the gradient stays put while all its colors turn around the color wheel together; the arrow shows they go all the way around.'};
+  const HUE_IN='Inside, the gradient itself stays put: every one of its colors turns around the color wheel together, so the whole picture changes color.';
+  const STILL_CMP='Both are shown still, one second in: Too fast has already changed color a lot, while Calm has barely changed.';
+  function describe(){
+    const k=kind(),still=reduceMQ.matches&&paused(),three=s=>k==='bands'?s.replace('four','three'):s;
+    const words=[k==='hue'?(still?STILL_IN.hue:HUE_IN):three(still?STILL_IN.slide:moving[0]),still&&posed?STILL_CMP:moving[1]];
+    notes.forEach((n,i)=>{if(n.textContent!==words[i])n.textContent=words[i]});
+  }
+  describe();
+  reduceMQ.addEventListener('change',describe);
+
+  // The words on the views come from the page's own numbers: the cycle is Speed's (one and a half times as long for bright bands,
+  // three times as long in slow motion) and Too fast's is --fast
+  function texts(){
+    const k=kind(),f=(k==='bands'?1.5:1)*(slowTog.checked?3:1),real=secs*f;
+    const c=k==='hue'?["Each dot is one of the gradient's colors",'All turn around the color wheel together','Once around every '+real+' seconds']
+      :['Painted '+(k==='bands'?'three':'four')+' times as wide and tall as the box','The box shows only the outlined part','Slides across and back every '+real+' seconds'];
+    caps.forEach((el,i)=>{if(el.textContent!==c[i])el.textContent=c[i]});
+    [FAST*f,real].forEach((s,i)=>{names[i].querySelector('.n2').textContent='every '+s+' seconds';names[i].style.setProperty('--rate',REF/s)});
+    fit();
+  }
+  // The map has the box's own proportions, so the window covers what the box shows; it takes the room left under the first
+  // caption once the other captions (which can wrap on a narrow box) are measured
+  function fit(){
+    if(mode!=='inside')return;
+    const st=vfig.style,pic=vfig.querySelector(kind()==='hue'?'.vwheel':'.vbox');
+    st.setProperty('--sar',stage.clientWidth/stage.clientHeight);
+    st.setProperty('--ov',vfig.offsetHeight-pic.offsetHeight+'px');
+  }
+
+  function follow(b){const a=lead();if(a&&a.currentTime!=null&&b.playState!=='idle'){b.currentTime=a.currentTime;b.playbackRate=a.playbackRate}}
+  function syncTime(el){el.getAnimations({subtree:true}).forEach(b=>{follow(b);b.ready.then(()=>follow(b),()=>{})})}
+
+  // The wheel: one dot for each color of the gradient, at its hue around the wheel and its saturation out from the middle
+  function placeDots(){
+    vdots.textContent=vstarts.textContent='';
+    new Set(getComputedStyle(bg).backgroundImage.match(/rgba?\([^)]+\)/g)).forEach(c=>{
+      const [r,g,b]=c.match(/[\d.]+/g).map(Number),top=Math.max(r,g,b),d=top-Math.min(r,g,b);
+      let h=0;if(d)h=((top===r?((g-b)/d)%6:top===g?(b-r)/d+2:(r-g)/d+4)*60+360)%360;
+      const rad=Math.min(.88,Math.max(.2,d/top||0))*50,at=h*Math.PI/180;
+      [['vdot',vdots],['vdot0',vstarts]].forEach(([cls,to])=>{
+        const dot=document.createElement('i');dot.className=cls;
+        dot.style.cssText='left:'+(50+rad*Math.sin(at))+'%;top:'+(50-rad*Math.cos(at))+'%'+(cls==='vdot'?';background:'+c:'');
+        to.appendChild(dot);
+      });
+    });
+  }
+  function drawInside(){
+    const k=kind(),muted=bg.classList.contains('subtle'),st=vfig.style;
+    vfig.classList.toggle('wheel',k==='hue');
+    st.setProperty('--f',k==='bands'?3:4);
+    st.setProperty('--k',k==='bands'?1.5:1);
+    vmap.className='vmap grad-bg '+(k==='bands'?'var-multi':'var-pos')+(muted?' subtle':'');
+    [vdisc,vdots].forEach(el=>el.classList.toggle('subtle',muted));
+    if(k==='hue')placeDots();
+    texts();syncTime(vin);
+  }
+  // Compare: the copy follows the real gradient's style and muting; both then run from the same moment. Where the loop is paused near
+  // its start (or at a mode press under reduced motion) the halves could look alike, so both are posed one second in, and the real
+  // time is kept to put back.
+  function drawCompare(entering){
+    fast.className='grad-bg cmp-fast '+STYLES.find(c=>bg.classList.contains(c))+(bg.classList.contains('subtle')?' subtle':'');
+    const a=lead(),c=fast.getAnimations()[0];
+    if(a&&c&&a.currentTime!=null){
+      if(paused()&&(posed||a.currentTime<POSE||entering&&reduceMQ.matches)){
+        if(!posed){saved=a.currentTime;posed=true}
+        a.currentTime=c.currentTime=POSE;
+      }else if(entering)syncTime(fast);
+    }
+    texts();
+  }
+  function leaveCompare(){const a=lead();if(posed&&a)a.currentTime=saved;posed=false}
+
+  document.addEventListener('hb:mode',e=>{
+    if(mode==='compare'&&e.detail.mode!=='compare')leaveCompare();
+    mode=e.detail.mode;
+    if(mode==='inside')drawInside();
+    if(mode==='compare')drawCompare(true);
+    describe();
+  });
+  // Play lifts the pose and the gradient carries on from where it is; a Pause near the start poses again
+  document.addEventListener('hb:pause',e=>{
+    if(!e.detail.paused)posed=false;
+    else if(mode==='compare')drawCompare(false);
+    describe();
+  });
+  const on=(id,type,fn)=>document.getElementById(id).addEventListener(type,fn);
+  // A new gradient starts its own animation at zero, as in Normal, so a pose is dealt again and the real time to put back is zero
+  on('grad-seg','click',()=>{
+    if(mode==='compare'){if(posed)saved=0;drawCompare(true)}
+    if(mode==='inside')drawInside();
+    describe();
+  });
+  on('pal-seg','click',()=>{if(mode==='inside')drawInside()});
+  on('muted-tog','change',()=>{if(mode==='inside')drawInside();if(mode==='compare')drawCompare(false)});
+  // Speed rescales the real time (and every view animation); the posed time to put back is rescaled with it
+  on('speed-seg','click',()=>{
+    const f=secs/lastSecs;lastSecs=secs;
+    if(mode==='compare'&&posed){saved*=f;drawCompare(false)}
+    if(mode!=='normal')texts();
+  });
+  on('slow-tog','change',()=>{if(mode!=='normal')texts()});
+  new ResizeObserver(fit).observe(stage);
+  if(document.fonts)document.fonts.ready.then(fit);
 </script>
 </body>
 </html>
