@@ -302,11 +302,13 @@
   // The number goes up by one, then jumps to a number whose every digit is different, then rolls back to where it started. Each
   // step waits for the roll before it (one or two digits, then all four); the holds grow when the rolls are short, so the run lasts
   // two to four seconds at any Roll speed. It says nothing aloud.
-  // A Show me pressed while one is still running starts from the number that run started from, so it too ends where they began.
+  // A Show me pressed while one is still running starts from the number that run started from, so it too ends where they began
+  // (screen readers keep that number, so the stopped run's number is not given to them).
   $('btn-demo').addEventListener('click',()=>{
     const v=running()?base:value;base=v;
-    stopRun(true);lift();
-    const d=digitsOf(v),far=d.map((x,i)=>(x+3+2*i)%10);
+    stopRun(false);lift();
+    // In Compare the middle stop trades 1s for wide digits (and back), the change where the left half's digits jump most.
+    const d=digitsOf(v),far=d.map((x,i)=>mode==='compare'?(x===1?8:1):(x+3+2*i)%10);
     if(!far[0])far[0]=1;
     const stagger=oneByOne?STAGGER:0,roll=dur+3*stagger,pad=Math.max(0,2100-(dur+stagger+2*roll+700));
     if(reduceMq.matches){later(()=>show(v+1,true),0,0);later(()=>show(+far.join(''),true),0,900);later(()=>{runDone=true;show(v,true)},0,1800);return}
@@ -379,7 +381,7 @@
   // hair off where a column's rest is not a whole pixel, so at rest in Normal the number is built again, within one frame
   function renew(){
     if(!dirty||mode!=='normal'||raf||running())return;
-    dirty=false;numEl.style.display='none';void numEl.offsetWidth;numEl.style.display='';
+    dirty=false;numEl.querySelectorAll('.fade').forEach(el=>el.classList.remove('fade'));numEl.style.display='none';void numEl.offsetWidth;numEl.style.display='';
   }
   // Nothing rolling and no run under way: after a moment that shows the number the last change reached, Compare rests posed (when
   // andPose: after a mode press and the end of a Show me run, not after the visitor's own press, which it would undo on screen)
@@ -408,7 +410,7 @@
   const idle=()=>mode==='compare'&&!raf&&!running();
   function changed(){refresh();if(idle())pose()}
   document.addEventListener('hb:mode',e=>{
-    const was=mode;mode=e.detail.mode;
+    const was=mode;mode=e.detail.mode;cws.forEach(el=>el.classList.remove('fade'));
     if(was==='compare'&&mode!=='compare')lift();
     refresh();settle(0,true);
   });
