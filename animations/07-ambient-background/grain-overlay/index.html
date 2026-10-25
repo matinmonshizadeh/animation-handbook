@@ -298,7 +298,9 @@
   // loop() keeps exactly one frame requested in raf; Pause cancels it and Play starts one loop again.
   function loop(ts){
     raf=requestAnimationFrame(loop);
-    if(lastFrame===null||ts-lastFrame>=interval()-SLACK){lastFrame=ts;newGrain()}
+    // each new frame is due one interval after the last was due, so the rate holds on any screen; a long gap starts afresh
+    const iv=interval();
+    if(lastFrame===null||ts-lastFrame>=iv-SLACK){lastFrame=lastFrame===null||ts-lastFrame>=iv*2?ts:lastFrame+iv;newGrain()}
   }
   function start(){if(raf)return;lastFrame=null;raf=requestAnimationFrame(loop)}
 
