@@ -373,7 +373,13 @@
       if(clear())return;
     }
   }
-  document.addEventListener('hb:mode',()=>{pose();words()});
+  // Back from Compare while it moves, the real bell and inbox that rested there start their next pulse from rest, not mid-pulse
+  let lastMode='normal';
+  document.addEventListener('hb:mode',()=>{
+    const m=stage.dataset.hbMode;
+    if(lastMode==='compare'&&m!=='compare'&&!paused&&!fadeTog.checked)icons.slice(0,2).forEach(ic=>ic.getAnimations({subtree:true}).forEach(a=>{const d=a.effect.getComputedTiming().duration;if(a.currentTime>=3*d)a.currentTime=Math.ceil(a.currentTime/d)*d}));
+    lastMode=m;if(!paused)inStep();pose();words();
+  });
   slowTog.addEventListener('change',words);
   let resizeTimer;
   addEventListener('resize',()=>{clearTimeout(resizeTimer);resizeTimer=setTimeout(fit,100)});
@@ -390,13 +396,14 @@
   }
 
   // Clicking an icon, or pressing Enter or Space on it, clears its badge and its label stops announcing it; Reset brings both back at once.
-  // Compare's left copy of the icon clears its badge too.
+  // Compare's left copy of the icon clears its badge too, and so does See inside's zoomed bell (its outlines stay, marking the place).
   icons.forEach((ic,i)=>{
     const dismiss=()=>{
       const b=ic.querySelector('.badge,.dot-badge');
       if(!b)return;
       b.style.display='none';
       if(lefts[i])lefts[i].querySelector('.badge,.dot-badge').style.display='none';
+      if(i===0)zt.querySelector('.badge').style.display='none';
       ic.setAttribute('aria-label',fullLabel.get(ic).split(',')[0]);
     };
     ic.addEventListener('click',dismiss);
