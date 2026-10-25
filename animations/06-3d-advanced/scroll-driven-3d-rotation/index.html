@@ -25,11 +25,14 @@
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     /* The stage is the scroller: its content is four stage heights tall, and the frame that holds the cube stays pinned */
     .stage{background:#04060c;overflow-y:auto;overflow-x:hidden;color-scheme:dark}
-    .scroll-content{height:400%;position:relative;--cube:120px}
+    .scroll-content{height:400%;position:relative;--cube:120px;--g:30px}
     /* The cube is 120px; on a stage under about 285px tall it shrinks with the stage, so its tilted, enlarged pose stays inside */
     @supports (height:1cqh){
       .stage{container-type:size}
-      .scroll-content{--cube:min(120px,42cqh)}
+      .scroll-content{--cube:min(120px,42cqh);--g:clamp(24px,9cqh,34px)}
+      /* Sizes worked out from how far the turning, enlarged cube reaches, so it stays clear of the captions and, in Compare, inside its half */
+      .stage[data-hb-mode="inside"] .scroll-content{--cube:min(120px,28cqh)}
+      .stage[data-hb-mode="compare"] .scroll-content{--cube:min(120px,30cqh,22cqw)}
     }
     .sticky-wrap{position:sticky;top:0;height:25%;display:flex;align-items:stretch}
     /* 3D display */
@@ -46,6 +49,45 @@
     .face.right{background:rgba(88,166,255,.04);transform:rotateY(90deg) translateZ(calc(var(--cube)/2))}
     .face.top{background:rgba(88,166,255,.03);transform:rotateX(90deg) translateZ(calc(var(--cube)/2))}
     .face.bottom{background:rgba(88,166,255,.03);transform:rotateX(-90deg) translateZ(calc(var(--cube)/2))}
+    /* See inside and Compare: everything sits inside the pinned frame, so no mode changes the scroll length */
+    .strip,.tgt,.key,.q,.half,.twin{display:none}
+    .cap{position:absolute;z-index:3;padding:4px 9px;border-radius:999px;background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);white-space:nowrap}
+    .key,.half{left:10px;top:10px}
+    .q{left:10px;bottom:10px}
+    .key .sh{display:none}
+    .half svg{width:13px;height:13px;margin-left:5px;vertical-align:-2px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+    /* The strip: a track for the whole scroll, cut in four, with the cube's five poses beside it and a dot where the box is */
+    .strip{position:absolute;z-index:2;top:26px;bottom:26px;right:14px;width:calc(var(--g)*1.6 + 23px)}
+    .rail,.fill{position:absolute;right:10px;top:0;bottom:0;width:2px;margin-right:-1px;border-radius:1px}
+    .rail{background:rgba(244,244,242,.28)}
+    .fill{background:var(--ui-accent);transform-origin:top;transform:scaleY(0)}
+    .dot{position:absolute;right:10px;top:-7px;width:14px;height:14px;margin-right:-7px;border-radius:50%;background:var(--ui-accent);border:2px solid #04060c}
+    .gh{position:absolute;left:0;top:calc(var(--i)*25%);width:calc(var(--g) + 8px);height:calc(var(--g) + 8px);margin-top:calc(var(--g)/-2 - 4px);display:flex;align-items:center;justify-content:center;perspective:calc(var(--g)*8);--cube:var(--g)}
+    .gh::after{content:"";position:absolute;left:calc(var(--g)*1.6 + 7px);top:50%;width:12px;height:2px;margin-top:-1px;background:rgba(244,244,242,.55)}
+    .gc .face{border:1px solid rgba(88,166,255,.38);background:none}
+    .gc.lit .face{border-color:rgba(140,196,255,.95);background:rgba(88,166,255,.1)}
+    /* The ghosts are seen from a fixed angle off to one side, and their front face is brighter, so every pose looks different */
+    .gc .face.front{background:rgba(88,166,255,.3)}
+    .gc.lit .face.front{background:rgba(120,184,255,.55)}
+    .nm{right:calc(100% + 6px);top:50%;transform:translateY(-50%)}
+    /* The pose this spot in the scroll asks for, as a dashed outline cube over the live one */
+    .tgt{position:absolute;transform-style:preserve-3d;pointer-events:none}
+    .tgt .face{background:none;border:1.5px dashed rgba(244,244,242,.9)}
+    .stage[data-hb-mode="inside"] .strip,.stage[data-hb-mode="inside"] .key,.stage[data-hb-mode="inside"] .tgt{display:block}
+    .stage[data-hb-mode="inside"] .obj-panel{padding-right:calc(var(--g)*1.6 + 150px)}
+    /* Compare: the cube on a timer beside the real one, each named at its top */
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .half{display:block}
+    .stage[data-hb-mode="compare"] .obj-panel{position:relative;min-width:0}
+    .stage[data-hb-mode="compare"] .twin+.obj-panel{box-shadow:inset 1px 0 0 rgba(255,255,255,.2)}
+    @media(max-width:600px),(max-height:500px){
+      @supports (height:1cqh){.stage[data-hb-mode="inside"] .scroll-content{--cube:min(78px,28cqh)}}
+      .stage[data-hb-mode="inside"] .nm{display:none}
+      .stage[data-hb-mode="inside"] .q{display:block}
+      .stage[data-hb-mode="inside"] .obj-panel{padding:0 calc(var(--g)*1.6 + 40px) 12px 0}
+      .key .lg{display:none}
+      .key .sh{display:inline}
+    }
     @media(prefers-reduced-motion:reduce){.obj-wrap{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -69,10 +111,16 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Scroll it</h2><p>Scroll inside the box, or press Play and it scrolls for you.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage" tabindex="0" role="region" aria-label="A cube that turns as you scroll this box">
       <div class="scroll-content">
         <div class="sticky-wrap">
           <div class="obj-panel">
+            <p class="cap half" data-hb-caption aria-hidden="true">With the scroll</p>
             <div class="obj-wrap" id="obj-wrap" role="img" aria-label="A cube with its six faces labeled front, back, left, right, top and bottom">
               <div class="cube">
                 <div class="face front"><span>FRONT</span></div>
@@ -84,12 +132,18 @@
               </div>
             </div>
           </div>
+          <p class="cap key" data-hb-caption aria-hidden="true"><span class="lg">Dashed outline: the pose for this spot in the scroll</span><span class="sh">Dashed: pose for this spot</span></p>
+          <p class="cap q" data-hb-caption aria-hidden="true">Each quarter of the scroll:<br>the next pose</p>
         </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-scroll" data-hb-autoscroll><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>Play</button>
       <button class="hb-play" type="button" id="btn-top" data-hb-top><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg>Back to top</button>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the strip is the scroll: each quarter turns the cube to its next pose, and the dot marks where you are. The cube glides after the dashed pose for that spot.</p>
+      <p data-hb-for="compare" hidden>On a timer spins one way whenever the box scrolls; With the scroll takes its pose from where you are and turns back as you scroll up. Scroll the box or press Play to watch.</p>
     </div>
   </section>
 
@@ -157,7 +211,7 @@
 const stageEl=document.getElementById('stage');
 const objWrap=document.getElementById('obj-wrap');
 const smoothTog=document.getElementById('smooth-tog');
-let currRx=0,currRy=0,currSc=1,tgtRx=0,tgtRy=0,tgtSc=1,raf=null,mult=10;
+let currRx=0,currRy=0,currSc=1,tgtRx=0,tgtRy=0,tgtSc=1,raf=null,mult=10,mode='normal',curP=0;
 const reduceMotion=matchMedia('(prefers-reduced-motion: reduce)');
 
 // Each pose is the state the cube reaches by the end of that quarter of the scroll
@@ -194,10 +248,11 @@ function applyRotation(p){
   const cp=Math.min(Math.floor(p*4),3);const t=p*4-cp;
   const c0=cp>0?POSES[cp-1]:START;const c1=POSES[cp];
   const k=mult/10;
-  tgtRx=lerp(c0.rx,c1.rx,t)*k;tgtRy=lerp(c0.ry,c1.ry,t)*k;tgtSc=lerp(c0.sc,c1.sc,t);
+  tgtRx=lerp(c0.rx,c1.rx,t)*k;tgtRy=lerp(c0.ry,c1.ry,t)*k;tgtSc=lerp(c0.sc,c1.sc,t);curP=p;
   const smooth=smoothTog.checked&&!reduceMotion.matches;
   if(smooth){if(!raf){lastT=null;raf=requestAnimationFrame(tick);}}
   else{if(raf){cancelAnimationFrame(raf);raf=null;}currRx=tgtRx;currRy=tgtRy;currSc=tgtSc;render();}
+  drawView();
 }
 
 function onScroll(){
@@ -209,7 +264,7 @@ function onScroll(){
 stageEl.addEventListener('scroll',onScroll,{passive:true});
 // Resizing changes scrollHeight/clientHeight without firing a scroll event,
 // so progress would stay frozen at its old value until the next scroll.
-new ResizeObserver(()=>{if(stageEl.scrollTop>0)onScroll();}).observe(stageEl);
+new ResizeObserver(()=>{if(stageEl.scrollTop>0)onScroll();if(mode!=='normal')refresh();}).observe(stageEl);
 
 function choices(id,pick){
   const buttons=document.querySelectorAll('#'+id+' button');
@@ -219,7 +274,85 @@ function choices(id,pick){
   }));
 }
 choices('turn-seg',d=>{mult=+d.mult;onScroll();});
-smoothTog.addEventListener('change',onScroll);
+smoothTog.addEventListener('change',()=>{describe();onScroll();});
+reduceMotion.addEventListener('change',()=>{describe();onScroll();});
+
+// ── See inside and Compare. All of it sits inside the pinned frame, so no mode touches the scroll or its length. ──
+document.addEventListener('hb:mode',e=>{
+  const was=mode;mode=e.detail.mode;
+  stageEl.setAttribute('aria-label',NAMES[mode][0]);objWrap.setAttribute('aria-label',NAMES[mode][1]);
+  if(mode==='compare'&&was!=='compare')spin=0;
+  refresh();
+});
+const NAMES={
+  normal:['A cube that turns as you scroll this box','A cube with its six faces labeled front, back, left, right, top and bottom'],
+  inside:['A cube that turns as you scroll this box, beside a strip of its five poses, one for each quarter of the scroll','A cube with its six faces labeled, turning as you scroll, with a dashed outline of the pose for this spot'],
+  compare:['Two cubes in this box: one spins on a timer while the box scrolls, one takes its pose from the scroll','The cube that takes its pose from the scroll, with its six faces labeled'],
+};
+const frame=stageEl.querySelector('.sticky-wrap'),panel=stageEl.querySelector('.obj-panel');
+const faces=()=>['front','back','left','right','top','bottom'].map(f=>`<div class="face ${f}"></div>`).join('');
+const make=(cls,html)=>{const el=document.createElement('div');el.className=cls;el.setAttribute('aria-hidden','true');el.innerHTML=html;return el;};
+
+// Compare's first half: a copy of the cube panel with no ids, name or role, inert and hidden from screen readers
+const twin=panel.cloneNode(true);
+twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+twin.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+twin.querySelectorAll('[role],[aria-label]').forEach(el=>{el.removeAttribute('role');el.removeAttribute('aria-label');});
+twin.querySelector('.half').innerHTML='On a timer<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/></svg>';
+const twinWrap=twin.querySelector('.obj-wrap');
+panel.before(twin);
+
+// See inside: the dashed pose, and the strip with a ghost cube for the start and one at the end of each quarter
+const tgt=make('tgt',`<div class="cube">${faces()}</div>`);
+panel.append(tgt);
+const strip=make('strip','<i class="rail"></i><i class="fill"></i>'+['Start','Turned','Tilted','Bigger','Turned round']
+  .map((n,i)=>`<span class="gh" style="--i:${i}"><span class="gc cube">${faces()}</span><b class="cap nm" data-hb-caption>${n}</b></span>`).join('')+'<i class="dot"></i>');
+frame.append(strip);
+const rail=strip.querySelector('.rail'),fill=strip.querySelector('.fill'),dot=strip.querySelector('.dot'),ghosts=[...strip.querySelectorAll('.gc')];
+let railH=0,shownK=0;
+
+function drawInside(){
+  const cp=Math.min(Math.floor(curP*4),3),k=mult/10;
+  dot.style.transform=`translateY(${(curP*railH).toFixed(1)}px)`;
+  fill.style.transform=`scaleY(${curP.toFixed(4)})`;
+  tgt.style.transform=`rotateX(${tgtRx.toFixed(1)}deg) rotateY(${tgtRy.toFixed(1)}deg) scale(${(tgtSc*1.1).toFixed(3)})`;
+  ghosts.forEach((g,i)=>{
+    if(shownK!==k){const o=i?POSES[i-1]:START;g.style.transform=`rotateX(-14deg) rotateY(-24deg) rotateX(${o.rx*k}deg) rotateY(${o.ry*k}deg) scale(${o.sc})`;}
+    g.classList.toggle('lit',i===cp||i===cp+1);
+  });
+  shownK=k;
+}
+
+// Compare's "On a timer": it spins by the clock, a quarter turn a second at Turn amount Normal, only while the box is scrolling and for
+// a moment after, in either direction. It starts turned about 150 degrees and tipped back, so it never rests on a pose of the scroll cube.
+const TILT=22,BASE=150,DEG_PER_MS=.09;
+let spin=0,lastScroll=-1e3,spinRaf=null,spinT=null;
+function paintTimer(){twinWrap.style.transform=`rotateX(${TILT}deg) rotateY(${(BASE*mult/10+spin).toFixed(1)}deg)`;}
+function tickSpin(ts){
+  spinRaf=null;
+  const dt=spinT===null?0:Math.min(ts-spinT,50);spinT=ts;
+  if(mode!=='compare'||reduceMotion.matches||ts-lastScroll>170){spinT=null;return;}
+  spin+=dt*DEG_PER_MS*mult/10;paintTimer();spinRaf=requestAnimationFrame(tickSpin);
+}
+stageEl.addEventListener('scroll',()=>{
+  lastScroll=performance.now();
+  if(mode==='compare'&&!reduceMotion.matches&&!spinRaf){spinT=null;spinRaf=requestAnimationFrame(tickSpin);}
+},{passive:true});
+
+function drawView(){if(mode==='inside')drawInside();else if(mode==='compare')paintTimer();}
+function refresh(){railH=rail.clientHeight;drawView();}
+
+// The notes: the markup holds the default words; they change with Smooth follow and with reduced motion
+const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+const WORDS_IN=noteIn.textContent.replace(/ The cube glides.*/,'');
+const NOTE_IN={glide:noteIn.textContent,off:WORDS_IN+' Smooth follow is off, so the cube sits in the dashed pose.',still:WORDS_IN+' Motion is reduced, so the cube sits in the dashed pose.'};
+const NOTE_CMP={move:noteCmp.textContent,still:'Shown still: On a timer would spin whenever the box scrolls, wherever it is. With the scroll shows the pose for this spot in the box.'};
+function describe(){
+  const still=reduceMotion.matches,a=NOTE_IN[still?'still':smoothTog.checked?'glide':'off'],b=NOTE_CMP[still?'still':'move'];
+  if(noteIn.textContent!==a)noteIn.textContent=a;
+  if(noteCmp.textContent!==b)noteCmp.textContent=b;
+}
+describe();
 onScroll();
 </script>
 </body>
