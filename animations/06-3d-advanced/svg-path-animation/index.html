@@ -34,6 +34,53 @@
     }
     .draw-path.fill-done{fill:var(--stroke-color);transition:fill var(--fill-dur) ease}
     @media(prefers-reduced-motion:reduce){.draw-path{stroke-dashoffset:0!important;transition:none!important}}
+    /* See inside and Compare: all of it stays hidden in Normal. Labels are plain words on a dark backing, above every moving part. */
+    .copy,.io,.io-routes,.cap{display:none}
+    .cap{position:absolute;z-index:3;padding:3px 8px;border-radius:6px;background:rgba(4,6,12,.92);border:1px solid rgba(244,244,242,.2);
+      color:#f4f4f2;font:600 13px/1.3 var(--hb-font)}
+    .cap-a,.cap-b,.cap-c{text-wrap:balance}
+    .cap-fill,.cap-h1,.cap-h2,.cap-pose{white-space:nowrap}
+    .cap-a{left:8px;top:8px;max-width:calc(54% - 12px)}
+    .cap-b{right:8px;top:8px;max-width:calc(46% - 12px)}
+    .cap-c{left:8px;bottom:8px;max-width:calc(100% - 16px)}
+    .cap-fill{padding:0 6px;font-size:12px;line-height:14px}
+    .caps{display:contents}
+    .ph{display:none}
+    .io{position:absolute;inset:0;z-index:2;pointer-events:none}
+    .stage .io-over{position:absolute;inset:0;width:100%;height:100%;max-width:none;max-height:none}
+    .io-routes path{fill:none;stroke:var(--stroke-color);stroke-opacity:.6;stroke-width:var(--stroke-w);stroke-dasharray:6 6}
+    .io-over text{font:700 12px/1 var(--hb-font);fill:#f4f4f2;text-anchor:middle;dominant-baseline:central}
+    .io-over .bar{fill:var(--stroke-color)}
+    .io-over .fillbar{fill-opacity:.3;stroke:var(--stroke-color);stroke-width:1.5}
+    .io-over .axis{fill:none;stroke:rgba(244,244,242,.5)}
+    .io-over .mk{fill:#f4f4f2}
+    .io-over .lead{fill:none;stroke:#f4f4f2;stroke-width:1}
+    .io-over .dot{fill:#04060c;stroke:#f4f4f2;stroke-width:1.5}
+    .io-over .tip{fill:#f4f4f2;stroke:var(--ui-accent);stroke-width:2.5}
+    /* See inside: the drawing shrinks to make room for the words above it and the time line under it (the script sets the room). */
+    .stage[data-hb-mode="inside"]{padding:var(--io-t,50px) 24px var(--io-b,110px)}
+    .stage[data-hb-mode="inside"] .io,.stage[data-hb-mode="inside"] .cap-in{display:block}
+    .stage[data-hb-mode="inside"] .io-routes{display:inline}
+    /* Compare: the finished drawing on the left, the real one on the right, side by side at every width. A copy at rest rests part
+       way through its draw (the script poses it), with the rest of each line faint and its own words under it. */
+    .stage[data-hb-mode="compare"]{padding:48px 12px 44px;gap:12px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .copy{display:contents}
+    .stage[data-hb-mode="compare"] .copy svg{order:-1}
+    .stage[data-hb-mode="compare"] svg{flex:1 1 0;width:auto;min-width:0}
+    .stage[data-hb-mode="compare"] .cap-cmp{display:block;transform:translateX(-50%)}
+    .cap-h1{left:calc(12px + (100% - 36px)/4);top:10px}
+    .cap-h2{left:calc(24px + (100% - 36px)*.75);top:10px}
+    .cap-pose{left:calc(24px + (100% - 36px)*.75);bottom:10px;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .cap-pose{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .io-routes{display:inline}
+    /* A posed line: its dash is set from a variable, which also beats the reduced-motion rule above */
+    .stage[data-hb-mode="inside"] .draw-path.pose,.stage[data-hb-mode="compare"] .draw-path.pose{stroke-dashoffset:var(--po)!important;transition:none!important}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"] .cap-b{display:none}
+      .stage[data-hb-mode="inside"] .ph{display:inline}
+      .cap-a{max-width:calc(100% - 16px)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -56,15 +103,36 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <svg id="svg-stage" viewBox="0 0 400 260" role="img" aria-label="House and star icon">
+        <g class="io-routes"></g>
         <g id="drawing-group"></g>
       </svg>
+      <div class="copy" inert aria-hidden="true"><svg viewBox="0 0 400 260"><g></g></svg></div>
+      <div class="io" aria-hidden="true"><svg class="io-over"></svg></div>
+      <div class="caps" aria-hidden="true">
+        <span class="cap cap-in cap-a" data-hb-caption>Faint: each whole line, hidden by its dash<span class="ph"> · 1, 2, 3: the order they draw in</span></span>
+        <span class="cap cap-in cap-b" data-hb-caption>1, 2, 3: the order they draw in</span>
+        <span class="cap cap-in cap-c" data-hb-caption></span>
+        <span class="cap cap-in cap-fill" data-hb-caption>Fill</span>
+        <span class="cap cap-cmp cap-h1" data-hb-caption>Already there</span>
+        <span class="cap cap-cmp cap-h2" data-hb-caption>Draws itself</span>
+        <span class="cap cap-cmp cap-pose" data-hb-caption>One second in</span>
+      </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each line is all there from the start, hidden by a dash as long as the line; sliding the dash away uncovers it from the dot, in the numbered order.</p>
+      <p data-hb-for="compare" hidden>Already there shows the finished drawing at once. Draws itself uncovers each line from one end, as if drawn by hand.</p>
     </div>
   </section>
 
@@ -199,6 +267,20 @@
   const revTog=document.getElementById('rev-tog'),fillTog=document.getElementById('fill-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let current=0,dur=1500,ease='ease-out',timers=[];
+  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own); sizes in pixels: the numbered
+  // dots (their largest radius; a small drawing gets smaller ones), the pen tip, a bar and the pitch of the bars, the gaps, and how far a dot
+  // may stray past the drawing's box.
+  const stage=document.querySelector('.stage'),NS='http://www.w3.org/2000/svg';
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const DOT_R=10,TIP_R=5,ROW=7,PITCH=14,PAD=8,GAP=10,SLACK=4;
+  const MORE={inside:", each line's whole route faint, with its start dot, its order number and a bar for its drawing time",compare:', drawing itself'};
+  const over=stage.querySelector('.io-over'),routes=svg.querySelector('.io-routes'),copyG=stage.querySelector('.copy g');
+  const capA=stage.querySelector('.cap-a'),capB=stage.querySelector('.cap-b'),capC=stage.querySelector('.cap-c');
+  const capFill=stage.querySelector('.cap-fill'),capPose=stage.querySelector('.cap-pose'),capPh=capA.querySelector('.ph');
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  // built: the lines of the last play; running: a play or its hold is under way; posed: the lines rest part way through a play
+  let mode='normal',built=[],builtFor=0,viewsFor=null,lens=[],styles=[],samples=[],G=null,tipEls=[],marker=null;
+  let running=false,playing=false,posed=false,filled=false,run=null,raf=0;
 
   function speed(){return slowTog.checked?dur*3:dur}
   // Drops a timer's id once it fires, so `timers` only ever holds ones still pending (not every id ever
@@ -214,15 +296,18 @@
   // Rebuilds the paths of the chosen drawing, and names it for screen readers.
   function buildPaths(){
     const drawing=DRAWINGS[current];
-    svg.setAttribute('aria-label',drawing.label);
+    svg.setAttribute('aria-label',drawing.label+(MORE[mode]||''));
     group.replaceChildren();
-    return drawing.paths.map(d=>{
+    builtFor=current;
+    built=drawing.paths.map(d=>{
       const path=document.createElementNS('http://www.w3.org/2000/svg','path');
       path.setAttribute('d',d);
       path.setAttribute('class','draw-path');
       group.appendChild(path);
       return path;
     });
+    if(mode!=='normal')rebuildViews();
+    return built;
   }
   // One play rebuilds the paths hidden and draws them one after another, each starting a little after the
   // one before. While Loop is on, the finished drawing (filled, if Fills is on) holds 1200ms; whether it then vanishes and draws
@@ -239,6 +324,7 @@
       path.style.strokeDashoffset=rev?-len:len;
       path.style.transition='none';
     });
+    startRun();
     paths.forEach((path,i)=>later(()=>{
       path.getBoundingClientRect(); // apply the hidden state first, so the slide has a start value
       path.style.transition=`stroke-dashoffset ${ms}ms ${ease}`;
@@ -246,8 +332,10 @@
     },20+i*gap));
     later(()=>{
       if(fillTog.checked)paths.forEach(path=>{path.style.transition='';path.classList.add('fill-done')});
-      if(!loopTog.checked||!motionOk)return;
-      later(()=>{if(loopTog.checked)cycle()},1200+(fillTog.checked?fillMs:0));
+      endRun(fillTog.checked);
+      if(!motionOk)return settle();
+      // a play that is not looping rests posed (in a mode) once the finished drawing has been held as long as a loop holds it
+      later(()=>{if(loopTog.checked)cycle();else settle()},1200+(fillTog.checked?fillMs:0));
     },motionOk?20+(paths.length-1)*gap+ms+50:0);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
@@ -259,8 +347,188 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
+  function el(tag,attrs,parent){
+    const e=document.createElementNS(NS,tag);
+    for(const k in attrs)e.setAttribute(k,attrs[k]);
+    parent.appendChild(e);return e;
+  }
+  function put(node,text){if(node.textContent!==text)node.textContent=text}
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // The moment a resting view shows: one second into a play, or half-way through a play that is shorter than two seconds, so that no
+  // line is finished (Fast, or one line). It goes by the play's own steps and Feel, not by Slow motion.
+  function poseMs(){return Math.min(1000,Math.round((20+(built.length-1)*dur*.3+dur)/200)*100)}
+  function pose(){
+    const T=poseMs(),gap=dur*.3,curve=CURVES[ease],rev=revTog.checked;
+    built.forEach((path,i)=>{
+      const o=lens[i]*(1-curveAt(curve,Math.min(Math.max((T-20-i*gap)/dur,0),1)));
+      path.style.setProperty('--po',(rev?-o:o)+'px');
+      path.classList.add('pose');path.classList.remove('fill-done');
+    });
+    posed=true;stage.classList.add('posed');
+  }
+  // Back to Normal: the lines go to where the play left them (finished, filled if it filled), at once
+  function unpose(){
+    built.forEach(path=>{
+      if(!path.classList.contains('pose'))return;
+      path.style.transition='none';path.classList.remove('pose');
+      path.classList.toggle('fill-done',filled);
+    });
+    posed=false;stage.classList.remove('posed');
+  }
+  // The faint routes (in the drawing), Compare's finished copy and the points that dots are placed from; made again after each play's rebuild
+  function rebuildViews(){
+    viewsFor=built;
+    lens=built.map(path=>path.getTotalLength());
+    styles=built.map(path=>getComputedStyle(path));
+    routes.replaceChildren();copyG.replaceChildren();
+    samples=built.map((path,i)=>{
+      const pts=[],k=Math.ceil(lens[i]/6);
+      for(let j=0;j<=k;j++){const q=path.getPointAtLength(lens[i]*j/k);pts.push(q.x,q.y)}
+      return pts;
+    });
+    built.forEach((path,i)=>{
+      const d=path.getAttribute('d');
+      el('path',{d},routes);
+      const copy=el('path',{d,class:'draw-path'},copyG);
+      copy.style.strokeDasharray=lens[i];copy.style.strokeDashoffset=0;
+    });
+    syncCopy();
+  }
+  function syncCopy(){for(const c of copyG.children)c.classList.toggle('fill-done',fillTog.checked)}
+  // A line's number dot: close to its start, behind it or beside it (never ahead, where the pen tip passes). A spot counts as free when it
+  // touches no line and no other dot and stays inside the drawing's box; of the free ones the nearest to the start wins. Where none is
+  // free (a small logo on a phone) the least bad one is used, and the drawing gives it a thin leader to the start.
+  function dotAt(i,taken){
+    const s=G.s,R=G.r,rev=revTog.checked,len=lens[i],half=s*(+vars.getPropertyValue('--stroke-w')||2)/2;
+    const P=built[i].getPointAtLength(rev?len:0),Q=built[i].getPointAtLength(rev?len-4:4);
+    const m=Math.hypot(P.x-Q.x,P.y-Q.y)||1,bx=(P.x-Q.x)/m,by=(P.y-Q.y)/m,sx=G.ox+s*P.x,sy=G.oy+s*P.y;
+    let best=null;
+    for(const d of [R+6,R+14,R+24])for(const deg of [0,45,-45,90,-90,135,-135,180]){
+      const a=deg*Math.PI/180,cx=sx+(bx*Math.cos(a)-by*Math.sin(a))*d,cy=sy+(bx*Math.sin(a)+by*Math.cos(a))*d;
+      let clear=1e9,near=1e9;
+      for(const pts of samples)for(let j=0;j<pts.length;j+=2)clear=Math.min(clear,Math.hypot(G.ox+s*pts[j]-cx,G.oy+s*pts[j+1]-cy));
+      for(const t of taken)near=Math.min(near,Math.hypot(t.cx-cx,t.cy-cy));
+      const out=Math.max(0,G.zl-(cx-R),G.zt-(cy-R),cx+R-G.zr,cy+R-G.zb);
+      const miss=Math.max(0,R+4-(clear-half))+Math.max(0,2*R+5-near)+Math.max(0,out-SLACK);
+      const score=miss*50+d+Math.abs(deg)*.05+out;
+      if(!best||score<best.score)best={score,cx,cy,sx,sy,d};
+    }
+    taken.push(best);return best;
+  }
+  // See inside, drawn in the box's own pixels: the time line (a bar for each line, from the play's own steps and speed, and the fill),
+  // the dots, the pen tips, and the room the drawing is left (the words above and the time line below take theirs from their sizes)
+  function drawInside(){
+    const W=stage.clientWidth,H=stage.clientHeight,n=built.length;
+    if(!W||!n)return;
+    const fill=fillTog.checked,ms=speed(),gap=ms*.3,fms=slowTog.checked?1200:400,fillAt=(n-1)*gap+ms+30,total=fillAt+(fill?fms:0);
+    const secs=Math.round(total/500)/2;
+    put(capB,n>1?'1, 2, 3: the order they draw in':'1: where the line starts');
+    put(capPh,' · '+capB.textContent);
+    put(capC,(n>1?'Each starts a little after the one before: ':'The line draws from its dot: ')+'about '+
+      (secs<1?'half a second':secs===1?'a second':(secs%1?Math.floor(secs)+'½':secs)+' seconds')+' in all');
+    const rows=n+(fill?1:0),axisY=H-PAD-capC.offsetHeight-13,top=axisY-4-(rows*PITCH-(PITCH-ROW));
+    stage.style.setProperty('--io-t',PAD+Math.max(capA.offsetHeight,capB.offsetHeight)+GAP+'px');
+    stage.style.setProperty('--io-b',H-top+GAP+'px');
+    const r=svg.getBoundingClientRect(),b=stage.getBoundingClientRect(),s=Math.min(r.width/400,r.height/260);
+    const zl=r.left-b.left-stage.clientLeft,zt=r.top-b.top-stage.clientTop;
+    G={s,r:Math.round(Math.max(8,Math.min(DOT_R,s*17))),ox:zl+(r.width-400*s)/2,oy:zt+(r.height-260*s)/2,zl,zt,zr:zl+r.width,zb:zt+r.height,total,x0:PAD+18,x1:W-PAD};
+    const X=t=>G.x0+(G.x1-G.x0)*t/total;
+    over.replaceChildren();
+    for(let i=0;i<rows;i++){
+      const last=fill&&i===n,t0=last?fillAt:i*gap,t1=t0+(last?fms:ms),y=top+i*PITCH;
+      el('rect',{class:last?'bar fillbar':'bar',x:X(t0),y,width:X(t1)-X(t0),height:ROW,rx:ROW/2},over);
+      if(!last)el('text',{x:PAD+6,y:y+ROW/2},over).textContent=i+1;
+    }
+    let ticks=`M${G.x0} ${axisY}H${G.x1}`;
+    for(let k=1;k*1000<=total;k++)ticks+=`M${X(k*1000)} ${axisY}v5`;
+    el('path',{class:'axis',d:ticks},over);
+    marker=el('rect',{class:'mk',x:-1,y:top-2,width:2,height:axisY+7-top},over);
+    capFill.style.display=fill?'':'none';
+    if(fill){
+      capFill.style.left=Math.max(G.x0,X(fillAt)-capFill.offsetWidth-6)+'px';
+      capFill.style.top=top+n*PITCH+ROW/2-capFill.offsetHeight/2+'px';
+    }
+    const taken=[];
+    built.forEach((path,i)=>{
+      const c=dotAt(i,taken);
+      if(c.d>G.r+10)el('path',{class:'lead',d:`M${c.sx} ${c.sy}L${c.cx} ${c.cy}`},over);
+      const g=el('g',{},over);
+      g.style.transform=`translate(${c.cx}px,${c.cy}px)`;
+      el('circle',{class:'dot',r:G.r},g);el('text',{},g).textContent=i+1;
+    });
+    tipEls=built.map(()=>el('circle',{class:'tip',r:TIP_R},over));
+    drawLive();
+  }
+  // What moves: the marker along the time line (from the first line's own transition, so it keeps step; at rest, where the pose is) and each
+  // pen tip at the edge of its line's drawn part, read from the line's dash as it is now
+  function drawLive(){
+    if(mode!=='inside'||!G||!marker)return;
+    let t=G.total;
+    if(posed)t=(poseMs()-20)*speed()/dur;
+    else if(playing){
+      const a=run.start===null&&built[0].getAnimations()[0];
+      if(a&&a.startTime!==null)run.start=a.startTime;
+      t=document.timeline.currentTime-(run.start===null?run.t0:run.start);
+    }
+    marker.style.transform=`translateX(${G.x0+(G.x1-G.x0)*Math.min(Math.max(t,0),G.total)/G.total}px)`;
+    tipEls.forEach((tip,i)=>{
+      const o=parseFloat(styles[i].strokeDashoffset),len=lens[i],on=Math.abs(o)>.5&&Math.abs(o)<len-.5;
+      tip.style.opacity=on?1:0;
+      const pt=built[i].getPointAtLength(o>0?len-o:-o);
+      tip.style.transform=`translate(${G.ox+G.s*pt.x}px,${G.oy+G.s*pt.y}px)`;
+    });
+  }
+  function frame(){raf=0;drawLive();kick()}
+  function kick(){if(!raf&&mode==='inside'&&playing&&motionOk)raf=requestAnimationFrame(frame)}
+  // A play begins: the pose is lifted (the lines were just rebuilt, hidden), and See inside's pen tips and marker follow it
+  function startRun(){
+    running=playing=true;filled=false;posed=false;stage.classList.remove('posed');
+    run={start:null,t0:performance.now()+20};
+    if(mode==='inside')drawInside();
+    kick();
+  }
+  function endRun(fillOn){filled=fillOn;playing=false;drawLive()}
+  // Nothing is pending: in a mode the lines rest posed
+  function settle(){running=false;refresh()}
+  // Redraws the mode for what is set now (a mode press, a setting, a resize, a font arriving, the end of a play)
+  function refresh(){
+    if(mode==='normal'||!built.length)return;
+    if(!running){
+      if(builtFor!==current){
+        buildPaths().forEach(path=>{path.style.strokeDasharray=path.getTotalLength();path.style.strokeDashoffset=0});
+        filled=false;
+      }
+      pose();
+    }
+    put(capPose,poseMs()<1000?'Under a second in':'One second in');
+    syncCopy();
+    if(!motionOk){
+      const when=poseMs()<1000?'under a second':'one second';
+      put(notes.inside,`Shown still, ${when} in: each line is all there, hidden by a dash as long as the line; the drawn part starts at the dot, in the numbered order.`);
+      put(notes.compare,`Shown still, ${when} in: Already there is finished at once; Draws itself is only part way, with the rest of each line still hidden.`);
+    }
+    if(mode==='inside')drawInside();
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    svg.setAttribute('aria-label',DRAWINGS[builtFor].label+(MORE[mode]||''));
+    if(mode==='normal')return unpose();
+    if(viewsFor!==built)rebuildViews();
+    refresh();kick();
+  });
+  new ResizeObserver(refresh).observe(stage);
+  document.fonts.ready.then(refresh);
+  [revTog,fillTog,slowTog].forEach(t=>t.addEventListener('change',refresh));
   choices('drawing-seg',d=>{current=+d.drawing});
   choices('speed-seg',d=>{dur=+d.ms});
   choices('width-seg',d=>{vars.setProperty('--stroke-w',d.w)});
