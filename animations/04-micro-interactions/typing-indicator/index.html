@@ -290,9 +290,10 @@
   }
   // Compare's rest pose: while paused, the halves are drawn a third of a round in (the copy's dots all at their peak; the real dots at
   // their peak, rising and waiting), by moving each dot's delay, never its time, so Play carries on from where the loop stopped.
+  // See inside takes the same pose while paused under reduced motion, where its playhead stays a third of a round in.
   let paused=false;
   function pose(){
-    const on=paused&&stage.dataset.hbMode==='compare',ms=roundMs();
+    const mode=stage.dataset.hbMode,on=paused&&(mode==='compare'||mode==='inside'&&matchMedia('(prefers-reduced-motion: reduce)').matches),ms=roundMs();
     [...bubble.querySelectorAll('.dot'),...copy.querySelectorAll('.dot')].forEach((d,i)=>{
       const a=d.getAnimations()[0];
       d.style.animationDelay=on&&a&&a.currentTime!=null?a.currentTime-(i<3?.3-SHIFT[i]/100:.3)*ms+'ms':'';
@@ -300,6 +301,8 @@
     });
   }
   document.addEventListener('hb:pause',e=>{paused=e.detail.paused;pose()});
+  // When the device stops asking for reduced motion, the playhead's sweep starts again from the beginning: put it back in step with the dots
+  matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change',follow);
   drawRows();words();
 
   const NAME={normal:'Maya is typing',inside:"Maya is typing, shown with a graph of each dot's round",compare:'Maya is typing, beside dots that move all at once'};
