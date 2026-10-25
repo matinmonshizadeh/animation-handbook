@@ -351,7 +351,7 @@
       if(!t0)t0=now;
       const p=Math.min(1,(now-t0)/3000);
       const r=.4*Math.sin(Math.PI*p),a=3*Math.PI*p;
-      tilt(x0*(1-p)+r*Math.cos(a),y0*(1-p)+r*Math.sin(a));
+      tilt(edge(x0*(1-p)+r*Math.cos(a)),edge(y0*(1-p)+r*Math.sin(a))); // held to the card, as a real pointer is
       if(p<1)raf=requestAnimationFrame(step);
       else{raf=0;onLeave()}
     }
@@ -385,7 +385,7 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
-      redraw();
+      relayout(); // Compare's card size follows the lean and depth
     }));
   }
   choices('tilt-seg',d=>{maxTilt=+d.tilt});
@@ -393,7 +393,7 @@
   choices('return-seg',d=>{vars.setProperty('--reset-dur',d.ms+'ms')});
   document.getElementById('shine-tog').addEventListener('change',e=>{shineOn=e.target.checked;if(!shineOn)shine.style.opacity='0';sync();redraw()});
   document.getElementById('invert-tog').addEventListener('change',e=>{invert=e.target.checked;sync();redraw()});
-  document.getElementById('scale-tog').addEventListener('change',e=>{scaleOn=e.target.checked;redraw()});
+  document.getElementById('scale-tog').addEventListener('change',e=>{scaleOn=e.target.checked;relayout()});
 
   // The modes show the pose (the pointer parked up and to the right) whenever nothing else moves the card, and redraw whatever
   // does. Normal flattens the card as before.
@@ -406,8 +406,19 @@
   }
   function drawEye(){eyeY=36+persp*.026;eye.setAttribute('transform',`translate(60 ${eyeY})`);drawBar(0)}
   drawEye();
-  // Sizes for the mode on show, measured: See inside's dashed box and caption room; Compare's card scale and its shift down
-  // below the half names. A phone's card shrinks with the separate scale property, so its inline transform stays as it was.
+  // How far past its flat half-size the card reaches, across and down, at the most it can lean (a pointer in any corner) with
+  // the current Tilt amount, 3D depth and Grows a little: each corner is turned as tilt()'s transform turns it, then projected.
+  function reach(a,b){
+    const k=scaleOn?1.04:1,t=.5*maxTilt*Math.PI/180,c=Math.cos(t),n=Math.sin(t);
+    let gx=1,gy=1;
+    for(const ry of[-n,n])for(const rx of[-n,n])for(const px of[-a,a])for(const py of[-b,b]){
+      const x=k*px,y=k*py,f=persp/(persp-(y*rx-x*ry*c));
+      gx=Math.max(gx,Math.abs(x*c)*f/a);gy=Math.max(gy,Math.abs(y*c+x*ry*rx)*f/b);
+    }
+    return[gx,gy];
+  }
+  // Sizes for the mode on show, measured: See inside's dashed box and caption room; Compare's card scale (room kept for its lean
+  // and growth) and its shift down below the half names. A phone's card shrinks with the separate scale property.
   function layout(){
     if(mode==='normal')return;
     const W=stage.clientWidth,H=stage.clientHeight,cw=card.offsetWidth,ch=card.offsetHeight;
@@ -421,7 +432,8 @@
       views.style.setProperty('--cap-y',(t-capCross.offsetHeight)/2+'px');
     }else{
       const band=nm2.offsetTop+nm2.offsetHeight+8;
-      s=Math.min(1,(W/2-12)/cw,(H-band-6)/ch);dy=band/2;
+      const[gx,gy]=reach(cw/2,ch/2);
+      s=Math.min(1,(W/2-12)/(cw*gx),(H-band-6)/(ch*gy));dy=band/2;
     }
     stage.style.setProperty('--fit',s);stage.style.setProperty('--dy',dy+'px');
     G={W,H,w:cw,h:ch,s,dy};
