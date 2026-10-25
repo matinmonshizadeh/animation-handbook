@@ -24,7 +24,7 @@
     :root{--ui-accent:#ff9d5c;--dur:4s;--bw:2px;--c1:#ff6f8b;--c2:#ffce5a;--c3:#5fd88a;--c4:#6ea8ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     /* --band is the color stops of the turning layer: a band that fades in behind its bright front, or colors all around */
-    .stage{display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;
+    .stage{position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:#0b0b0d;
       --band:transparent 0 40%,var(--c1) 58%,var(--c2) 72%,var(--c3) 85%,var(--c4) 96%,transparent}
     .stage.b-short{--band:transparent 0 68%,var(--c1) 78%,var(--c2) 85%,var(--c3) 91%,var(--c4) 97%,transparent}
     .stage.b-full{--band:var(--c1),var(--c2),var(--c3),var(--c4),var(--c1)}
@@ -61,6 +61,52 @@
     }
     /* Blur costs the most on phones, and their stage is smaller, so less blur looks as soft */
     @media(max-width:600px),(max-height:500px){.gb-glow{filter:blur(10px)}}
+    /* See inside and Compare. Their parts are made once, at load, and kept drawn but unseen, so the faint square and its dashed
+       outline turn in step with the colors from the start (same turn, same delay) and Pause and Slow motion reach them. */
+    .gb-sq,.gb-sqline{position:absolute;left:50%;top:50%;width:200%;aspect-ratio:1;z-index:-2;opacity:0;pointer-events:none;
+      transform:translate(-50%,-50%);animation:gb-turn var(--dur) linear infinite;animation-delay:calc(var(--dur)*-.4);will-change:transform}
+    .gb-sq{background:conic-gradient(var(--band))}
+    .gb-sqline{border:2px dashed #f4f4f2}
+    .sq-lbls,.sc-plain,.sc-name{display:none}
+    .cap{width:fit-content;max-width:100%;padding:4px 9px;border-radius:6px;background:rgba(8,8,10,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* See inside: the card steps aside (hidden, never removed, so its turn goes on); the button and its square are drawn smaller
+       together by one factor (--k), so the square stays whole as it turns */
+    .stage[data-hb-mode="inside"] .gb-card{position:absolute;visibility:hidden}
+    .stage[data-hb-mode="inside"] .gb-btn{transform:scale(var(--k,1))}
+    .stage[data-hb-mode="inside"] .gb-btn::after{content:"";position:absolute;left:0;right:0;top:50%;height:max(100%,calc(44px/var(--k,1)));transform:translateY(-50%)}
+    .stage[data-hb-mode="inside"] .gb-sq{opacity:.28}
+    .stage[data-hb-mode="inside"] .gb-sqline{opacity:.85}
+    .stage[data-hb-mode="inside"] .gb-btn .gb-in{background:rgba(18,18,22,.78);outline:2px dashed #f4f4f2;outline-offset:-2px}
+    .stage[data-hb-mode="inside"] .sq-lbls{display:grid;position:absolute;inset:0;padding:12px;pointer-events:none;grid-template-columns:var(--sqw) 1fr var(--sqw)}
+    .stage[data-hb-mode="inside"].no-glow .sq-glow{display:none}
+    .sq-lead{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+    .sq-lead line{stroke:rgba(244,244,242,.55);stroke-width:1.25}
+    .sq-lead circle{fill:#f4f4f2}
+    .sq-col{display:flex;flex-direction:column;justify-content:center;gap:10px;grid-row:1}
+    .sq-l{grid-column:1;align-items:flex-end}
+    .sq-r{grid-column:3;align-items:flex-start}
+    .stage[data-hb-mode="inside"] .sq-lbls.corners{grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto;column-gap:8px;padding:8px}
+    .sq-lbls.corners .sq-col{display:contents}
+    .corners .cap{font-size:12px}
+    .corners .sq-glow{display:none}
+    .corners .sq-1{grid-area:1/1}
+    .corners .sq-2{grid-area:1/2;justify-self:end}
+    .corners .sq-3{grid-area:3/1;align-self:end}
+    .corners .sq-4{grid-area:3/2;justify-self:end;align-self:end}
+    /* Compare: the scene twice, the plain one first; each half has its name on top and the card above the button when there is room */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+    .stage[data-hb-mode="compare"] .scene{position:relative;flex-direction:column;gap:22px;padding-top:calc(clamp(16px,3vw,32px) + 30px)}
+    .stage[data-hb-mode="compare"] .sc-plain{display:flex;border-right:1px solid rgba(244,244,242,.14)}
+    .stage[data-hb-mode="compare"] .gb-card{flex:none;width:min(260px,100%)}
+    .stage[data-hb-mode="compare"].c-solo .gb-card{position:absolute;visibility:hidden}
+    .stage[data-hb-mode="compare"] .sc-name{display:block;position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:3;white-space:nowrap}
+    .sc-plain .gb-btn{cursor:default}
+    .sc-plain .btn-in{white-space:nowrap}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"] .sq-glow{display:none}
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .sc-plain{border-right:0;border-bottom:1px solid rgba(244,244,242,.14)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -82,6 +128,11 @@
     <div class="hb-step-head">
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
+    </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
     </div>
     <div class="stage hb-dots">
       <div class="scene">
@@ -105,6 +156,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the colors are a big square turning behind the button: the button's shape cuts it out, and a dark box covers all but the edge.</p>
+      <p data-hb-for="compare" hidden>Plain border: the edge is a still, faint line. Running colors: a band of colors keeps traveling around the same edge.</p>
     </div>
   </section>
 
@@ -231,6 +286,79 @@
   document.getElementById('glow-tog').addEventListener('change',e=>{stage.classList.toggle('no-glow',!e.target.checked)});
   choices('band-seg',d=>{stage.classList.toggle('b-short',d.band==='short');stage.classList.toggle('b-full',d.band==='full')});
   choices('width-seg',d=>{vars.setProperty('--bw',d.px+'px')});
+
+  // See inside and Compare
+  const scene=stage.querySelector('.scene'),btn=scene.querySelector('.gb-btn'),card=scene.querySelector('.gb-card');
+  const mk=(tag,cls,text)=>{const e=document.createElement(tag);e.className=cls;if(text!=null)e.textContent=text;return e};
+  const cap=(cls,text)=>{const e=mk('span','cap '+cls,text);e.setAttribute('data-hb-caption','');return e};
+  // Compare's first half: the same card and button with no turning layers and no glow, so only the faint line is left
+  const plain=scene.cloneNode(true);
+  plain.classList.add('sc-plain');plain.inert=true;plain.setAttribute('aria-hidden','true');
+  plain.querySelectorAll('.gb-glow,.gb-ring i').forEach(n=>n.remove());
+  const pb=plain.querySelector('.gb-btn'),ps=mk('span',pb.className);ps.append(...pb.childNodes);pb.replaceWith(ps);
+  plain.append(cap('sc-name','Plain border'));scene.append(cap('sc-name','Running colors'));
+  stage.prepend(plain);
+  // See inside: the button's hidden square, drawn whole and faint with a dashed outline, turning in step with the colors
+  btn.append(mk('span','gb-sq'),mk('span','gb-sqline'));
+  const lbls=mk('div','sq-lbls'),colL=mk('div','sq-col sq-l'),colR=mk('div','sq-col sq-r');
+  lbls.inert=true;lbls.setAttribute('aria-hidden','true');
+  const caps=['A square of colors, twice as wide, turns behind it',"The button's shape cuts it out",'A dark box covers all but the edge','',
+    'A blurred copy glows behind'].map((t,i)=>cap('sq-'+(i+1)+(i===4?' sq-glow':''),t));
+  caps.forEach((c,i)=>(i===0||i===4?colL:colR).append(c));
+  const lead=document.createElementNS('http://www.w3.org/2000/svg','svg');lead.setAttribute('class','sq-lead');
+  lead.innerHTML='<line/><circle r="3"/>'.repeat(4);
+  lbls.append(lead,colL,colR);stage.append(lbls);
+
+  // One turn takes as long as Speed says, three times as long with Slow motion on
+  const NUM={2:'two',4:'four',6:'six',7:'seven',12:'twelve',21:'twenty-one'},slow=document.getElementById('slow-tog');
+  function words(){caps[3].textContent='One turn every '+NUM[secs*(slow.checked?3:1)]+' seconds';layout()}
+  slow.addEventListener('change',words);
+  document.querySelectorAll('#speed-seg button').forEach(b=>b.addEventListener('click',words));
+
+  // The button and its square are drawn smaller together, by one factor, until the circle the square's corners sweep fits the box;
+  // labels go in two columns beside the circle, or in the corners when there is no room, each with a line to the part it names
+  function inside(){
+    const w=stage.clientWidth,h=stage.clientHeight,R=btn.offsetWidth*Math.SQRT2;
+    const kw=(w-360)/(2*R),corners=kw<.6,k=Math.min(1,(Math.min(w,h)-16)/(2*R),corners?1:kw),side=(w-2*R*k)/2-30;
+    btn.style.setProperty('--k',k);
+    lbls.classList.toggle('corners',corners);
+    lbls.style.setProperty('--sqw',Math.min(side,230)+'px');
+    const s=stage.getBoundingClientRect(),b=btn.getBoundingClientRect(),u=b.width,v=b.height;
+    const cx=b.left+u/2-s.left,cy=b.top+v/2-s.top;
+    [0,1,2,4].forEach((n,j)=>{
+      const r=caps[n].getBoundingClientRect(),g=lead.children[2*j],dot=lead.children[2*j+1];
+      g.style.display=dot.style.display=r.width?'':'none';
+      if(!r.width)return;
+      const ax=((r.left+r.right)/2-s.left<cx?r.right:r.left)-s.left,ay=corners?((r.top+r.bottom)/2-s.top<cy?r.bottom:r.top)-s.top:(r.top+r.bottom)/2-s.top;
+      const dx=ax-cx,dy=ay-cy,d=Math.hypot(dx,dy)||1,sg=Math.sign(dx)||1,up=ay<cy;
+      const [px,py]=[[cx+.75*u*dx/d,cy+.75*u*dy/d],up?[cx+.22*u*sg,cy-v/2]:[cx+sg*u/2,cy],[cx+sg*.43*u,cy],
+        [cx+.22*u*sg,cy+(up?-1:1)*v/2]][j];
+      g.setAttribute('x1',ax);g.setAttribute('y1',ay);g.setAttribute('x2',px);g.setAttribute('y2',py);
+      dot.setAttribute('cx',px);dot.setAttribute('cy',py);
+    });
+  }
+  // Compare keeps the card above the button in each half while the box has room for the name, the card and the button
+  function compare(){
+    const pad=Math.min(32,Math.max(16,innerWidth*.03));
+    const solo=matchMedia('(max-width:600px)').matches||stage.clientHeight<30+2*pad+card.offsetHeight+22+btn.offsetHeight;
+    stage.classList.toggle('c-solo',solo);
+  }
+  function layout(){const m=stage.dataset.hbMode;if(m==='inside')inside();else if(m==='compare')compare()}
+  document.addEventListener('hb:mode',layout);
+  new ResizeObserver(layout).observe(stage);
+  if(document.fonts)document.fonts.ready.then(layout);
+  words();
+
+  // Under reduced motion the loop starts paused, so both views are still pictures and their notes say so, until Play moves them
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)'),notes=[...document.querySelectorAll('[data-hb-for]')];
+  const moving=notes.map(n=>n.textContent),still=[
+    "Inside, shown still: the colors come from a big square behind the button; the button's shape cuts it out, and a dark box covers all but the edge.",
+    'Shown still: Plain border has only a faint line for an edge. Running colors has a band of colors on the same edge.'];
+  let paused=reduceMQ.matches;
+  function describe(){notes.forEach((n,i)=>{const t=reduceMQ.matches&&paused?still[i]:moving[i];if(n.textContent!==t)n.textContent=t})}
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  reduceMQ.addEventListener('change',describe);
+  describe();
 </script>
 </body>
 </html>
