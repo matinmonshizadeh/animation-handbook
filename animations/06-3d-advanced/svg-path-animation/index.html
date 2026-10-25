@@ -54,6 +54,7 @@
     .io-over .fillbar{fill-opacity:.3;stroke:var(--stroke-color);stroke-width:1.5}
     .io-over .axis{fill:none;stroke:rgba(244,244,242,.5)}
     .io-over .mk{fill:#f4f4f2}
+    .io-over .lead{fill:none;stroke:#f4f4f2;stroke-width:1}
     .io-over .dot{fill:#04060c;stroke:#f4f4f2;stroke-width:1.5}
     .io-over .tip{fill:#f4f4f2;stroke:var(--ui-accent);stroke-width:2.5}
     /* See inside: the drawing shrinks to make room for the words above it and the time line under it (the script sets the room). */
@@ -131,7 +132,7 @@
     </div>
     <div class="hb-mode-notes" aria-live="polite">
       <p data-hb-for="inside" hidden>Inside, each line is all there from the start, hidden by a dash as long as the line; sliding the dash away uncovers it from the dot, in the numbered order.</p>
-      <p data-hb-for="compare" hidden>Already there shows the finished drawing at once. Draws itself uncovers each line from one end, a little after the one before, as if drawn by hand.</p>
+      <p data-hb-for="compare" hidden>Already there shows the finished drawing at once. Draws itself uncovers each line from one end, as if drawn by hand.</p>
     </div>
   </section>
 
@@ -267,15 +268,15 @@
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let current=0,dur=1500,ease='ease-out',timers=[];
   // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own); sizes in pixels: the numbered
-  // dots (radius, and how far they sit from their line's start), the pen tip, a bar and the pitch of the bars, the gaps, and how far a dot
+  // dots (their largest radius; a small drawing gets smaller ones), the pen tip, a bar and the pitch of the bars, the gaps, and how far a dot
   // may stray past the drawing's box.
   const stage=document.querySelector('.stage'),NS='http://www.w3.org/2000/svg';
   const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
-  const DOT_R=10,OFF=19,TIP_R=5,ROW=7,PITCH=14,PAD=8,GAP=10,SLACK=4;
+  const DOT_R=10,TIP_R=5,ROW=7,PITCH=14,PAD=8,GAP=10,SLACK=4;
   const MORE={inside:", each line's whole route faint, with its start dot, its order number and a bar for its drawing time",compare:', drawing itself'};
   const over=stage.querySelector('.io-over'),routes=svg.querySelector('.io-routes'),copyG=stage.querySelector('.copy g');
   const capA=stage.querySelector('.cap-a'),capB=stage.querySelector('.cap-b'),capC=stage.querySelector('.cap-c');
-  const capFill=stage.querySelector('.cap-fill'),capPose=stage.querySelector('.cap-pose');
+  const capFill=stage.querySelector('.cap-fill'),capPose=stage.querySelector('.cap-pose'),capPh=capA.querySelector('.ph');
   const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
   // built: the lines of the last play; running: a play or its hold is under way; posed: the lines rest part way through a play
   let mode='normal',built=[],builtFor=0,viewsFor=null,lens=[],styles=[],samples=[],G=null,tipEls=[],marker=null;
@@ -403,22 +404,24 @@
     syncCopy();
   }
   function syncCopy(){for(const c of copyG.children)c.classList.toggle('fill-done',fillTog.checked)}
-  // A line's number dot: just outside its start, behind it or beside it (never ahead, where the pen tip passes), on the side with the
-  // most room: clear of every line, inside the drawing's box, away from the dots already placed
+  // A line's number dot: close to its start, behind it or beside it (never ahead, where the pen tip passes). A spot counts as free when it
+  // touches no line and no other dot and stays inside the drawing's box; of the free ones the nearest to the start wins. Where none is
+  // free (a small logo on a phone) the least bad one is used, and the drawing gives it a thin leader to the start.
   function dotAt(i,taken){
-    const s=G.s,rev=revTog.checked,len=lens[i],half=s*(+vars.getPropertyValue('--stroke-w')||2)/2;
+    const s=G.s,R=G.r,rev=revTog.checked,len=lens[i],half=s*(+vars.getPropertyValue('--stroke-w')||2)/2;
     const P=built[i].getPointAtLength(rev?len:0),Q=built[i].getPointAtLength(rev?len-4:4);
-    const m=Math.hypot(P.x-Q.x,P.y-Q.y)||1,bx=(P.x-Q.x)/m,by=(P.y-Q.y)/m;
+    const m=Math.hypot(P.x-Q.x,P.y-Q.y)||1,bx=(P.x-Q.x)/m,by=(P.y-Q.y)/m,sx=G.ox+s*P.x,sy=G.oy+s*P.y;
     let best=null;
-    [0,90,-90,45,-45].forEach((deg,k)=>{
-      const a=deg*Math.PI/180,cx=G.ox+s*P.x+(bx*Math.cos(a)-by*Math.sin(a))*OFF,cy=G.oy+s*P.y+(bx*Math.sin(a)+by*Math.cos(a))*OFF;
+    for(const d of [R+6,R+14,R+24])for(const deg of [0,45,-45,90,-90,135,-135,180]){
+      const a=deg*Math.PI/180,cx=sx+(bx*Math.cos(a)-by*Math.sin(a))*d,cy=sy+(bx*Math.sin(a)+by*Math.cos(a))*d;
       let clear=1e9,near=1e9;
       for(const pts of samples)for(let j=0;j<pts.length;j+=2)clear=Math.min(clear,Math.hypot(G.ox+s*pts[j]-cx,G.oy+s*pts[j+1]-cy));
       for(const t of taken)near=Math.min(near,Math.hypot(t.cx-cx,t.cy-cy));
-      const out=Math.max(0,G.zl-(cx-DOT_R),G.zt-(cy-DOT_R),cx+DOT_R-G.zr,cy+DOT_R-G.zb);
-      const score=Math.max(0,DOT_R+3-(clear-half))*20+(out>SLACK?out*20:out*3)+Math.max(0,2*DOT_R+4-near)*20+k*.5;
-      if(!best||score<best.score)best={score,cx,cy};
-    });
+      const out=Math.max(0,G.zl-(cx-R),G.zt-(cy-R),cx+R-G.zr,cy+R-G.zb);
+      const miss=Math.max(0,R+4-(clear-half))+Math.max(0,2*R+5-near)+Math.max(0,out-SLACK);
+      const score=miss*50+d+Math.abs(deg)*.05+out;
+      if(!best||score<best.score)best={score,cx,cy,sx,sy,d};
+    }
     taken.push(best);return best;
   }
   // See inside, drawn in the box's own pixels: the time line (a bar for each line, from the play's own steps and speed, and the fill),
@@ -428,6 +431,8 @@
     if(!W||!n)return;
     const fill=fillTog.checked,ms=speed(),gap=ms*.3,fms=slowTog.checked?1200:400,fillAt=(n-1)*gap+ms+30,total=fillAt+(fill?fms:0);
     const secs=Math.round(total/500)/2;
+    put(capB,n>1?'1, 2, 3: the order they draw in':'1: where the line starts');
+    put(capPh,' · '+capB.textContent);
     put(capC,(n>1?'Each starts a little after the one before: ':'The line draws from its dot: ')+'about '+
       (secs<1?'half a second':secs===1?'a second':(secs%1?Math.floor(secs)+'½':secs)+' seconds')+' in all');
     const rows=n+(fill?1:0),axisY=H-PAD-capC.offsetHeight-13,top=axisY-4-(rows*PITCH-(PITCH-ROW));
@@ -435,7 +440,7 @@
     stage.style.setProperty('--io-b',H-top+GAP+'px');
     const r=svg.getBoundingClientRect(),b=stage.getBoundingClientRect(),s=Math.min(r.width/400,r.height/260);
     const zl=r.left-b.left-stage.clientLeft,zt=r.top-b.top-stage.clientTop;
-    G={s,ox:zl+(r.width-400*s)/2,oy:zt+(r.height-260*s)/2,zl,zt,zr:zl+r.width,zb:zt+r.height,total,x0:PAD+18,x1:W-PAD};
+    G={s,r:Math.round(Math.max(8,Math.min(DOT_R,s*17))),ox:zl+(r.width-400*s)/2,oy:zt+(r.height-260*s)/2,zl,zt,zr:zl+r.width,zb:zt+r.height,total,x0:PAD+18,x1:W-PAD};
     const X=t=>G.x0+(G.x1-G.x0)*t/total;
     over.replaceChildren();
     for(let i=0;i<rows;i++){
@@ -454,9 +459,11 @@
     }
     const taken=[];
     built.forEach((path,i)=>{
-      const c=dotAt(i,taken),g=el('g',{},over);
+      const c=dotAt(i,taken);
+      if(c.d>G.r+10)el('path',{class:'lead',d:`M${c.sx} ${c.sy}L${c.cx} ${c.cy}`},over);
+      const g=el('g',{},over);
       g.style.transform=`translate(${c.cx}px,${c.cy}px)`;
-      el('circle',{class:'dot',r:DOT_R},g);el('text',{},g).textContent=i+1;
+      el('circle',{class:'dot',r:G.r},g);el('text',{},g).textContent=i+1;
     });
     tipEls=built.map(()=>el('circle',{class:'tip',r:TIP_R},over));
     drawLive();
@@ -466,7 +473,7 @@
   function drawLive(){
     if(mode!=='inside'||!G||!marker)return;
     let t=G.total;
-    if(posed)t=poseMs()-20;
+    if(posed)t=(poseMs()-20)*speed()/dur;
     else if(playing){
       const a=run.start===null&&built[0].getAnimations()[0];
       if(a&&a.startTime!==null)run.start=a.startTime;
@@ -507,7 +514,7 @@
     if(!motionOk){
       const when=poseMs()<1000?'under a second':'one second';
       put(notes.inside,`Shown still, ${when} in: each line is all there, hidden by a dash as long as the line; the drawn part starts at the dot, in the numbered order.`);
-      put(notes.compare,`Shown still, ${when} in: Already there is finished at once; Draws itself is only part way, with the rest of its lines still hidden.`);
+      put(notes.compare,`Shown still, ${when} in: Already there is finished at once; Draws itself is only part way, with the rest of each line still hidden.`);
     }
     if(mode==='inside')drawInside();
   }
