@@ -29,6 +29,36 @@
       transition:transform var(--dur) var(--ease),opacity var(--opacity-dur) var(--ease);will-change:transform,opacity}
     .icon.in{opacity:1;transform:rotate(0deg) scale(1)}
     .icon svg{width:100%;height:100%}
+    /* See inside and Compare. Their words are plain text on a dark backing; marks are drawn over the box from the badge's measured place. */
+    :root{--c-past:#8ec5ff;--c-badge:#f2b544}
+    .guide,.cap,.icon.wide{display:none}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative;overflow:hidden}
+    .cap{position:absolute;left:0;top:0;z-index:1;width:max-content;padding:3px 8px;border-radius:6px;border-left:3px solid var(--k,#f4f4f2);
+      background:rgba(11,11,13,.9);color:#f4f4f2;font:600 13px/1.3 var(--hb-font);white-space:nowrap}
+    .k-start{--k:var(--ui-accent)}.k-arrow{--k:#f4f4f2}.k-past{--k:var(--c-past)}.k-lands{--k:var(--c-badge)}
+    .stage[data-hb-mode="inside"] .cap.i,.stage[data-hb-mode="compare"] .cap.c{display:block}
+    /* See inside: the badge in the middle, an arrow round it as long as its spin, and small copies of the badge along the arrow. */
+    .stage[data-hb-mode="inside"] .guide{display:block;position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+    .stage[data-hb-mode="inside"] .icon{width:var(--bs);height:var(--bs)}
+    .guide path,.guide circle{fill:none;vector-effect:non-scaling-stroke;stroke-linejoin:round}
+    .guide .mini{stroke:rgba(244,244,242,.85);stroke-width:1.5}
+    .guide .mini circle{fill:rgba(11,11,13,.92)}
+    .guide .mini.k-start{stroke:var(--ui-accent)}.guide .mini.k-past{stroke:var(--c-past)}
+    .guide .arc{stroke:#f4f4f2;stroke-width:2.5;stroke-linecap:round}
+    .guide .head,.guide .from{fill:#f4f4f2}
+    /* Compare: two halves side by side, each scene below its name. On the left a made-up wide card, on the right the badge, both taking the
+       same entrance; between plays both rest just after the start, with those words under them (their row is kept while they are hidden). */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr) auto;
+      align-items:center;justify-items:center;gap:0 12px;padding:44px 8px 8px}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .icon{grid-column:2;grid-row:1;width:var(--cs);height:var(--cs)}
+    .stage[data-hb-mode="compare"] .icon.wide{display:flex;grid-column:1;width:var(--cw);height:calc(var(--cw)/2.15);font-size:calc(var(--cw)*.12);
+      border-radius:calc(var(--cw)*.09);background:var(--c-badge);color:#2b1d03;font-weight:700;white-space:nowrap;box-shadow:inset 0 0 0 3px rgba(255,255,255,.25)}
+    .cap.first{top:12px;left:12px}
+    .cap.second{top:12px;left:calc(50% + 12px)}
+    .cap.when{position:relative;grid-column:1/-1;grid-row:2;margin-top:8px;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .stage[data-hb-mode="compare"].posed .icon{transform:rotate(var(--pose-r)) scale(var(--pose-s))!important;opacity:var(--pose-o)!important;transition:none!important}
     @media(prefers-reduced-motion:reduce){.icon{transition:opacity 300ms linear!important;transform:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
@@ -52,6 +82,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="icon" id="icon" role="img" aria-label="A star badge spinning into place">
         <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
@@ -60,11 +95,23 @@
           <path d="M50 20.5 L58.23 42.17 L81.39 43.3 L63.32 57.83 L69.4 80.2 L50 67.5 L30.6 80.2 L36.68 57.83 L18.61 43.3 L41.77 42.17 Z" fill="#2b1d03" stroke="#2b1d03" stroke-width="3" stroke-linejoin="round"/>
         </svg>
       </div>
+      <svg class="guide" aria-hidden="true"></svg>
+      <p class="cap i k-start" data-hb-caption aria-hidden="true"></p>
+      <p class="cap i k-arrow" data-hb-caption aria-hidden="true"></p>
+      <p class="cap i k-past" data-hb-caption aria-hidden="true">Goes a little past, then settles</p>
+      <p class="cap i k-lands" data-hb-caption aria-hidden="true"></p>
+      <p class="cap c name first" data-hb-caption aria-hidden="true">Wide card</p>
+      <p class="cap c name second" data-hb-caption aria-hidden="true">Round badge</p>
+      <p class="cap c when" data-hb-caption aria-hidden="true">Just after it starts</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, small copies of the badge along the arrow show it earlier in its spin, growing and turning; the arrow shows which way and how far it turns before it lands upright.</p>
+      <p data-hb-for="compare" hidden>The spin makes Wide card's text look tipped over, while Round badge looks right at every angle. With Loop off, both rest just after the start.</p>
     </div>
   </section>
 
@@ -160,12 +207,35 @@
 <footer class="hb-foot"><span>Animation Handbook</span><a href="https://github.com/matinmonshizadeh/animation-handbook" target="_blank" rel="noopener">Source on GitHub</a><a href="#top">Back to top ↑</a></footer>
 <script>
   const icon=document.getElementById('icon');
+  const stage=icon.parentElement;
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const bounceTog=document.getElementById('bounce-tog'),scaleTog=document.getElementById('scale-tog'),fadeTog=document.getElementById('fade-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const SPRINGY='cubic-bezier(.34,1.56,.64,1)',SMOOTH='cubic-bezier(.2,.7,.3,1)';
-  let turn=180,ms=600,dir=-1,timers=[];
+  let turn=180,ms=600,dir=-1,timers=[],mode='normal';
+
+  // See inside and Compare: how far to upright (a share of the change) the copies along the arrow stand at, where Compare rests (a share of
+  // the play's time, so Speed and Slow motion leave it alone), and the pixels kept between marks, words and the box's edge.
+  const POSES=[.3,.55,.8],POSE_AT=1/6,GAP=6,PAD=6,MAXM=.36;
+  const NAMES={normal:icon.getAttribute('aria-label'),
+    inside:'A star badge spinning into place, with small copies of it along an arrow, earlier in the spin',
+    compare:'A star badge spinning into place, beside a wide card doing the same spin'};
+  // Compare's first scene: a made-up wide card with the badge's class, so it takes the same entrance; out of reach of keys and readers
+  const wide=document.createElement('div');
+  wide.className='icon wide';wide.textContent='Welcome back';wide.inert=true;wide.setAttribute('aria-hidden','true');
+  icon.before(wide);
+  const both=[icon,wide];
+  const NS='http://www.w3.org/2000/svg',guide=stage.querySelector('.guide');
+  function mk(tag,cls,parent=guide){const e=document.createElementNS(NS,tag);if(cls)e.setAttribute('class',cls);parent.append(e);return e}
+  // See inside: the arrow, and small copies of the badge's own rim and star (without fill) at three poses and where it goes past upright
+  const arc=mk('path','arc'),head=mk('polygon','head'),from=mk('circle','from');from.setAttribute('r',3.5);
+  const minis=[0,1,2,3].map(()=>{
+    const g=mk('g','mini');
+    [0,2].forEach(i=>{const c=icon.querySelectorAll('svg > *')[i].cloneNode();['fill','stroke','stroke-width','stroke-linejoin'].forEach(a=>c.removeAttribute(a));g.append(c)});
+    return g;
+  });
+  const ORDER=['start','past','arrow','lands'],cap={};ORDER.forEach(k=>cap[k]=stage.querySelector('.cap.k-'+k));
 
   function dur(){return slowTog.checked?ms*3:ms}
   function apply(){
@@ -176,39 +246,205 @@
     vars.setProperty('--opacity-dur',fadeTog.checked?'var(--dur)':'0s');
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){both.forEach(e=>e.classList.toggle('in',on))}
   function spinIn(){
     // snap back to the starting pose without a transition so every play starts from the beginning
-    icon.style.setProperty('transition','none','important');
-    icon.classList.remove('in');void icon.offsetWidth;
-    icon.style.removeProperty('transition');
-    icon.classList.add('in');
+    both.forEach(e=>e.style.setProperty('transition','none','important'));
+    setIn(false);void icon.offsetWidth;
+    both.forEach(e=>e.style.removeProperty('transition'));
+    setIn(true);
   }
+  // Compare's rest comes back once a play is over (the reduced fade is 300ms), if Compare is still on show
+  function holdLater(){later(()=>{if(mode==='compare')pose(true)},(motionOk?dur():300)+700)}
   // One play spins in. While Loop is on it then waits, spins out, waits and plays again;
   // switching Loop off lets the icon finish landed. Slow motion stretches the spins, not the waits.
   function cycle(){
-    apply();spinIn();
-    if(!loopTog.checked||!motionOk)return;
+    apply();pose(false);spinIn();
+    if(!loopTog.checked||!motionOk){holdLater();return}
     later(()=>{
       if(!loopTog.checked)return;
-      icon.classList.remove('in');
+      setIn(false);
       later(cycle,dur()+500);
     },dur()+900);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The speed curve as four numbers, and its value at a share x of the time (the browser's own curve, found by halving)
+  const bez=e=>e.match(/[\d.]+/g).map(Number);
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // The badge p of the way to upright, from the page's own start values (a springy curve takes p past 1: a little past upright and a little
+  // too big), and the same a share x of the way through a play
+  function look(p){
+    const from=scaleTog.checked?0:1;
+    return {p,angle:dir*turn*(1-p),size:from+(1-from)*p,opacity:fadeTog.checked?Math.min(1,p):1};
+  }
+  const curve=()=>bez(bounceTog.checked?SPRINGY:SMOOTH);
+  const stateAt=x=>look(curveAt(curve(),x));
+  function words(t){return t<=450?'about a third of a second':t<=750?'about half a second':t<=1250?'about a second':t<=2200?'about two seconds':'about three seconds'}
+  function note(which,text){const p=document.querySelector('[data-hb-for="'+which+'"]');if(p.textContent!==text)p.textContent=text}
+  function notes(){
+    const grows=scaleTog.checked?'growing and turning':'turned but full size';
+    note('inside',motionOk?'Inside, small copies of the badge along the arrow show it earlier in its spin, '+grows+'; the arrow shows which way and how far it turns before it lands upright.'
+      :'Shown still: the small copies of the badge along the arrow show it earlier in its spin, '+grows+', and the arrow shows which way and how far it turns.');
+    if(!motionOk)note('compare',"Shown still, just after the start: Wide card's text is tipped over, while Round badge still reads as a badge.");
+  }
+  // See inside: round the badge an arrow runs from where the spin starts to upright, and small copies of the badge stand along it at the
+  // angle they have turned to (their top points outward), growing toward the arrowhead; one more stands beyond it where the curve goes
+  // past upright. The badge is drawn as large as the box allows and each word put nearest what it names.
+  const rad=a=>a*Math.PI/180;
+  function marks(S,W,H,top){
+    const cx=W/2,cy=H/2,poses=POSES.map(look),over=top>1.003?look(top):null,big=Math.max(...poses.map(s=>s.size));
+    const Rm=S*.55+GAP+MAXM*S/2*big,sgn=dir<0?1:-1,head=-sgn*5/Rm*180/Math.PI,chord=(a,b)=>2*Rm*Math.abs(Math.sin(rad(a-b)/2));
+    // the copies shrink only as far as they need to keep clear of each other and of the arrowhead
+    let M=MAXM*S;
+    poses.forEach((a,i)=>{
+      M=Math.min(M,2*(chord(a.angle,head)-11)/a.size);
+      poses.forEach((b,j)=>{if(j>i)M=Math.min(M,2*(chord(a.angle,b.angle)-4)/(a.size+b.size))});
+    });
+    M=Math.max(M,14);
+    poses.forEach(s=>{s.r=Rm});
+    if(over){over.r=Rm+.6*M;poses.push(over)}
+    return {S,cx,cy,M,Rm,Rr:Math.max(...poses.map(s=>s.r+M/2*s.size))+4,poses,a0:dir*Math.min(turn,340)};
+  }
+  const ring=(g,a,r=g.Rm)=>[g.cx+r*Math.sin(rad(a)),g.cy-r*Math.cos(rad(a))];
+  function measureCaps(wrap,W){
+    const sizes={};
+    ORDER.filter(k=>cap[k].style.display!=='none').forEach(k=>{
+      Object.assign(cap[k].style,{left:'0px',top:'0px',whiteSpace:wrap?'normal':'nowrap',maxWidth:wrap?(W-2*PAD)+'px':'none'});
+      sizes[k]=[cap[k].offsetWidth,cap[k].offsetHeight];
+    });
+    return sizes;
+  }
+  // The marks as discs on a grid of 3px cells (the badge, the copies, the arrow, its head and its dot, each with room round it); the words
+  // are searched on cells that no mark and no word placed before it uses, so they may stand over the ring where nothing is drawn.
+  function arcEnd(g){const sgn=dir<0?1:-1;return {sgn,aEnd:-sgn*9/g.Rm*180/Math.PI}}
+  function spots(W,H,sizes,g){
+    const C=3,R=4,cw=Math.ceil(W/C),ch=Math.ceil(H/C),busy=new Uint8Array(cw*ch),sat=new Int32Array((cw+1)*(ch+1));
+    const cells=(x0,y0,x1,y1,fn)=>{
+      for(let j=Math.max(0,Math.floor(y0/C));j<=Math.min(ch-1,Math.floor(y1/C));j++)for(let i=Math.max(0,Math.floor(x0/C));i<=Math.min(cw-1,Math.floor(x1/C));i++)fn(i,j);
+    };
+    const disc=(x,y,r)=>cells(x-r,y-r,x+r,y+r,(i,j)=>{if(Math.hypot((i+.5)*C-x,(j+.5)*C-y)<=r+C*.7)busy[j*cw+i]=1});
+    const table=()=>{for(let j=0;j<ch;j++)for(let i=0;i<cw;i++)sat[(j+1)*(cw+1)+i+1]=busy[j*cw+i]+sat[j*(cw+1)+i+1]+sat[(j+1)*(cw+1)+i]-sat[j*(cw+1)+i]};
+    const clear=(l,t,w,h)=>{
+      const i0=Math.floor(l/C),i1=Math.min(cw,Math.ceil((l+w)/C)),j0=Math.floor(t/C),j1=Math.min(ch,Math.ceil((t+h)/C));
+      return sat[j1*(cw+1)+i1]-sat[j0*(cw+1)+i1]-sat[j1*(cw+1)+i0]+sat[j0*(cw+1)+i0]===0;
+    };
+    disc(g.cx,g.cy,g.S*.55+R);
+    g.poses.forEach(s=>{const [x,y]=ring(g,s.angle,s.r);disc(x,y,g.M/2*s.size+R)});
+    const {aEnd}=arcEnd(g),n=Math.ceil(Math.abs(aEnd-g.a0)*Math.PI/180*g.Rm/4);
+    for(let k=0;k<=n;k++){const [x,y]=ring(g,g.a0+(aEnd-g.a0)*k/n);disc(x,y,3+R)}
+    disc(g.cx,g.cy-g.Rm,10+R);
+    table();
+    const target={start:ring(g,g.poses[0].angle),past:g.poses[3]&&ring(g,g.poses[3].angle,g.poses[3].r),arrow:ring(g,g.a0/2),lands:ring(g,0)},out={};
+    for(const k of ORDER){
+      if(!sizes[k])continue;
+      const [w,h]=sizes[k],[tx,ty]=target[k];
+      let best=null,bd=1e9;
+      for(let t=PAD;t<=H-PAD-h;t+=2)for(let l=PAD;l<=W-PAD-w;l+=3){
+        const d=Math.hypot(Math.max(l-tx,0,tx-l-w),Math.max(t-ty,0,ty-t-h));
+        if(d<bd&&clear(l,t,w,h)){best=[l,t];bd=d}
+      }
+      if(!best)return null;
+      out[k]=best;
+      cells(best[0]-R,best[1]-R,best[0]+w+R,best[1]+h+R,(i,j)=>{busy[j*cw+i]=1});
+      table();
+    }
+    return out;
+  }
+  function drawInside(){
+    const W=stage.clientWidth,H=stage.clientHeight,top=Math.max(...Array.from({length:30},(_,i)=>curveAt(curve(),(i+1)/30)));
+    cap.start.textContent='Starts '+(scaleTog.checked?'tiny':'full size')+(fadeTog.checked?' and see-through':'')+', '+
+      (turn===90?'a quarter turn':turn===180?'half a turn':'a full turn')+' back';
+    cap.arrow.textContent='Spins '+(dir<0?'clockwise':'counter-clockwise');
+    cap.lands.textContent='Lands upright in '+words(dur());
+    cap.past.style.display=top>1.003?'':'none';
+    let g=null,at=null,wrapped=false;
+    search:for(wrapped of [false,true]){
+      const sizes=measureCaps(wrapped,W);
+      for(let S=150;S>=64;S-=4){
+        g=marks(S,W,H,top);
+        if(g.cy-g.Rr<PAD||g.cy+g.Rr>H-PAD||g.cx-g.Rr<PAD||g.cx+g.Rr>W-PAD)continue;
+        if(at=spots(W,H,sizes,g))break search;
+      }
+    }
+    if(!at){g=marks(64,W,H,top);at={};ORDER.forEach((k,i)=>at[k]=[PAD,PAD+i*28])}
+    stage.style.setProperty('--bs',g.S+'px');
+    guide.setAttribute('viewBox','0 0 '+W+' '+H);
+    minis.forEach((m,i)=>{
+      const s=g.poses[i];
+      m.style.display=s?'':'none';
+      if(!s)return;
+      const [x,y]=ring(g,s.angle,s.r);
+      m.setAttribute('transform','translate('+x+' '+y+') rotate('+s.angle+') scale('+g.M*s.size/100+') translate(-50 -50)');
+      m.setAttribute('class','mini'+(i===0?' k-start':i===3?' k-past':''));
+      m.setAttribute('opacity',.45+.55*s.opacity);
+    });
+    // the arrow ends in its head at upright and starts at a dot (a full turn leaves a small gap, and no dot)
+    const {sgn,aEnd}=arcEnd(g),[x0,y0]=ring(g,g.a0),[x1,y1]=ring(g,aEnd),[tx,ty]=ring(g,0);
+    arc.setAttribute('d','M'+x0+' '+y0+'A'+g.Rm+' '+g.Rm+' 0 '+(Math.abs(aEnd-g.a0)>180?1:0)+' '+(sgn>0?1:0)+' '+x1+' '+y1);
+    head.setAttribute('points',tx+' '+ty+' '+(tx-sgn*10)+' '+(ty-5.5)+' '+(tx-sgn*10)+' '+(ty+5.5));
+    from.setAttribute('cx',x0);from.setAttribute('cy',y0);from.style.display=turn>=360?'none':'';
+    ORDER.forEach(k=>{if(at[k]){cap[k].style.left=at[k][0]+'px';cap[k].style.top=at[k][1]+'px'}});
+  }
+  // Compare's two scenes get the room their halves leave under the names and the words below, so a full turn and the overshoot stay inside
+  function sizeCompare(){
+    const L=Math.min((stage.clientWidth-28)/2,stage.clientHeight-83)/2;
+    stage.style.setProperty('--cs',Math.round(Math.min(150,1.35*L))+'px');
+    stage.style.setProperty('--cw',Math.round(Math.min(220,1.6*L))+'px');
+  }
+  // Compare's rest: both scenes a sixth of the way through the play, as far turned, grown and solid as the page's curve has made them
+  function pose(on){
+    stage.classList.toggle('posed',on);
+    if(!on)return;
+    const s=stateAt(POSE_AT);
+    [['r',s.angle.toFixed(1)+'deg'],['s',s.size.toFixed(3)],['o',s.opacity.toFixed(3)]].forEach(([k,v])=>stage.style.setProperty('--pose-'+k,v));
+  }
+  function refresh(){
+    notes();
+    if(mode==='inside')drawInside();
+    else if(mode==='compare'){sizeCompare();if(stage.classList.contains('posed'))pose(true)}
+  }
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    // Leaving Compare's rest shows the badge as it now is, at once, with no transition (a play under way goes on)
+    if(was==='compare'&&mode!=='compare'&&stage.classList.contains('posed')){
+      both.forEach(x=>x.style.setProperty('transition','none','important'));
+      pose(false);void icon.offsetWidth;
+      both.forEach(x=>x.style.removeProperty('transition'));
+    }
+    pose(mode==='compare'&&!(loopTog.checked&&motionOk));
+    icon.setAttribute('aria-label',NAMES[mode]);
+    refresh();
+  });
+  // The box changes size with the window, and its words with the site font once it has loaded: the views are drawn again
+  new ResizeObserver(refresh).observe(stage);
+  if(document.fonts)document.fonts.ready.then(refresh);
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{
+    if(loopTog.checked)play();
+    else if(mode==='compare'&&icon.classList.contains('in'))holdLater();
+    refresh();
+  });
+  [slowTog,bounceTog,scaleTog,fadeTog].forEach(t=>t.addEventListener('change',refresh));
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('spin-seg',d=>{turn=+d.turn});
   choices('speed-seg',d=>{ms=+d.ms});
   choices('dir-seg',d=>{dir=+d.dir});
   apply();
+  notes();
 </script>
 </body>
 </html>
