@@ -23,7 +23,7 @@
   <style>
     :root{--ui-accent:#ff9d5c;--ui-border:rgba(255,255,255,.09);--ui-text:#f4f4f2;--ui-muted:#8a8a92;--tog-dur:200ms;--tog-ease:cubic-bezier(.4,0,.2,1);--on-color:#58a6ff}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;padding:32px;background:#0b0b0d}
+    .stage{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:36px;padding:32px;background:#0b0b0d}
     /* A window this short gives the stage 260px, less than the three switches need: the stage gives up some spacing, the switches keep their size */
     @media(min-width:601px) and (max-height:620px){.stage{gap:20px;padding:20px}}
     .tog-row{display:flex;align-items:center;gap:16px;width:100%;max-width:320px}
@@ -48,7 +48,92 @@
     .sw-lg input:checked~.sw-thumb{transform:translateX(32px)}
     .sw-lg input:checked~.sw-thumb::before{content:'☀️'}
     .sw-lg input:checked~.sw-track{background:#ffa657}
-    @media(prefers-reduced-motion:reduce){.sw-track,.sw-thumb{transition:background .1s!important}}
+    /* See inside and Compare. Their words are plain pills on a dark backing; everything they draw uses the page's own numbers and variables. */
+    .sw{--c-on:var(--on-color);--tr:22px}
+    .sw-lg{--c-on:#ffa657;--tr:32px}
+    .dia,.row-cap,.side,.when,.cp{display:none}
+    .dia,.row-cap,.side,.when{pointer-events:none}
+    .cap,.row-cap,.side,.when{margin:0;padding:4px 8px;border-radius:6px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    /* See inside: the real rows stay on the left and keep working. On the right the top switch is drawn about three times bigger and pulled
+       apart into its layers, back to front: the hidden checkbox, the track, the knob (with a dashed ring where it was and an arrow along its
+       slide). Sized in units (--u) from the room it has; its parts follow the top switch, with the page's own Speed, Feel and On color. */
+    .stage[data-hb-mode="inside"]{--rg:20px;display:grid;grid-template-columns:minmax(200px,min(320px,38%)) minmax(0,1fr);
+      grid-template-rows:minmax(0,1fr) auto auto auto auto minmax(0,1fr);gap:0 clamp(16px,3vw,40px);align-items:center;padding:clamp(12px,3vw,32px)}
+    .stage[data-hb-mode="inside"] .tog-row{grid-column:1;grid-row:calc(var(--r) + 2)}
+    .stage[data-hb-mode="inside"] .tog-row + .tog-row{margin-top:var(--rg)}
+    .stage[data-hb-mode="inside"] .dia{display:block;grid-area:1/2/-1/3;align-self:stretch;min-width:0;min-height:0;container-type:size}
+    .dia-in{--u:max(1.2px,min(3px,calc(100cqh / 104),calc((100cqw - 170px) / 76)));--sheet:#17171c;--line:rgba(244,244,242,.55);--ink:#f4f4f2;
+      height:100%;display:grid;grid-template-columns:calc(var(--u) * 76) minmax(0,1fr);gap:clamp(8px,2cqw,16px);align-items:center}
+    .fan{position:relative;height:calc(var(--u) * 104)}
+    .d{position:absolute;left:calc(var(--u) * var(--x));top:calc(var(--u) * var(--y));width:calc(var(--u) * var(--w));height:calc(var(--u) * var(--h))}
+    .sheet{background:var(--sheet);outline:2px solid var(--line);outline-offset:-2px}
+    .cbx{border:3px solid var(--ink);border-radius:calc(var(--u) * 3)}
+    .cbx::after{content:'';position:absolute;left:31%;top:2%;width:28%;height:58%;border:solid var(--ink);border-width:0 3px 3px 0;transform:rotate(45deg);opacity:0}
+    .dia.on .cbx::after{opacity:1}
+    .d-track{border-radius:calc(var(--u) * 15);background:rgba(255,255,255,.22);transition:background var(--tog-dur) var(--tog-ease)}
+    .dia.on .d-track{background:var(--on-color)}
+    .d-knob,.d-ghost{border-radius:50%}
+    .d-knob{background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4);transition:transform var(--tog-dur) var(--tog-ease)}
+    .dia.on .d-knob{transform:translateX(91.667%)}
+    .d-ghost{border:2px dashed rgba(244,244,242,.65);margin-left:calc(var(--u) * 22)}
+    .dia.on .d-ghost{margin-left:0}
+    .d-arrow{height:0;border-top:2px solid var(--ui-accent)}
+    .d-arrow::after{content:'';position:absolute;right:1px;top:-5px;width:8px;height:8px;border:solid var(--ui-accent);border-width:2px 2px 0 0;transform:rotate(45deg)}
+    .dia:not(.on) .d-arrow{transform:scaleX(-1)}
+    .caps{display:flex;flex-direction:column;justify-content:space-around;align-items:flex-start;gap:4px;height:calc(var(--u) * 104);min-width:0}
+    .cap{max-width:100%}
+    @media(min-width:761px){
+      .stage[data-hb-mode="inside"] .row-cap{display:block;grid-area:2/1;justify-self:start;margin-bottom:14px}
+      .stage[data-hb-mode="inside"] .tog-row:nth-child(1){outline:2px dashed rgba(244,244,242,.55);outline-offset:6px}
+    }
+    @media(max-width:600px),(min-width:601px) and (max-width:760px) and (min-height:621px){
+      .stage[data-hb-mode="inside"]{--rg:4px;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);padding:10px 12px}
+      .stage[data-hb-mode="inside"] .tog-row{grid-row:auto}
+      .stage[data-hb-mode="inside"] .tog-lg{display:none}
+      .stage[data-hb-mode="inside"] .dia{grid-area:3/1;margin-top:6px}
+    }
+    /* Compare: the rows twice (stacked on phones, two rows each): on the left a copy that flips at once, on the right the real switches. At rest
+       the right half is held a moment after a click: each knob and track part way to where its switch now stands (the page's own curves, worked
+       out below) with a dashed ring where the knob started. A look only: the checkboxes keep their state. It lifts when a switch is pressed or Show me runs. */
+    .stage[data-hb-mode="compare"]{--rg:16px;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-content:center;align-items:center;
+      justify-items:center;gap:var(--rg) clamp(12px,3vw,32px);padding:clamp(10px,2.5vw,24px)}
+    .stage[data-hb-mode="compare"]::after{content:'';position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.12)}
+    .stage[data-hb-mode="compare"] .tog-row{grid-column:2;grid-row:calc(var(--r) + 1)}
+    .stage[data-hb-mode="compare"] .cp{display:flex;grid-column:1;pointer-events:none}
+    .stage[data-hb-mode="compare"] .side{display:block;grid-row:1}
+    .stage[data-hb-mode="compare"] .side.first{grid-column:1}
+    .stage[data-hb-mode="compare"] .side.second{grid-column:2}
+    .stage[data-hb-mode="compare"] .when{display:block;grid-area:5/2;visibility:hidden}
+    .stage[data-hb-mode="compare"].posed .when{visibility:visible}
+    .cp .sw-track,.cp .sw-thumb{transition:none!important}
+    .cp .sw.on .sw-track{background:var(--c-on)}
+    .cp .sw.on .sw-thumb{transform:translateX(var(--tr))}
+    .cp .sw-lg.on .sw-thumb::before{content:'☀️'}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw-thumb{transform:translateX(calc(var(--tr) * (1 - var(--f))))!important;transition:none!important}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw input:checked~.sw-thumb{transform:translateX(calc(var(--tr) * var(--f)))!important}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw-track{background:color-mix(in srgb,var(--c-on) calc(100% - var(--ft) * 100%),var(--ui-border))!important;transition:none!important}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw input:checked~.sw-track{background:color-mix(in srgb,var(--c-on) calc(var(--ft) * 100%),var(--ui-border))!important}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw-track::before{content:'';position:absolute;top:3px;left:calc(3px + var(--tr));width:24px;height:24px;
+      border-radius:50%;border:2px dashed rgba(244,244,242,.65)}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw input:checked~.sw-track::before{left:3px}
+    .stage[data-hb-mode="compare"].posed .tog-row:not(.cp) .sw-lg .sw-track::before{width:30px;height:30px}
+    @media(max-width:600px){
+      .cap,.row-cap,.side,.when{padding:3px 7px;font-size:12px}
+      .stage[data-hb-mode="compare"]{--rg:2px;grid-template-columns:minmax(0,1fr);padding:10px}
+      .stage[data-hb-mode="compare"]::after{display:none}
+      .stage[data-hb-mode="compare"] .tog-row,.stage[data-hb-mode="compare"] .cp,.stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="compare"] .side.second,.stage[data-hb-mode="compare"] .when{grid-column:1;grid-row:auto}
+      .stage[data-hb-mode="compare"] .tog-lg{display:none}
+      .stage[data-hb-mode="compare"] .side.first{order:1}
+      .stage[data-hb-mode="compare"] .cp{order:2}
+      .stage[data-hb-mode="compare"] .side.second{order:3;margin-top:8px}
+      .stage[data-hb-mode="compare"] .tog-row:not(.cp){order:4}
+      .stage[data-hb-mode="compare"] .when{order:5}
+    }
+    @media(min-width:601px) and (max-height:620px){
+      .stage[data-hb-mode="inside"]{--rg:10px;padding:12px 20px}
+      .stage[data-hb-mode="compare"]{--rg:6px}
+    }
+    @media(prefers-reduced-motion:reduce){.sw-track,.sw-thumb,.d-track,.d-knob{transition:background .1s!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -71,8 +156,13 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click or tap a switch to turn it on or off, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
-      <div class="tog-row">
+      <div class="tog-row" style="--r:1">
         <label class="tog-label" for="sw0">Notifications</label>
         <label class="sw">
           <input type="checkbox" id="sw0" checked autocomplete="off">
@@ -80,7 +170,7 @@
           <span class="sw-thumb" aria-hidden="true"></span>
         </label>
       </div>
-      <div class="tog-row">
+      <div class="tog-row tog-lg" style="--r:2">
         <label class="tog-label" for="sw1">Appearance</label>
         <label class="sw sw-lg">
           <input type="checkbox" id="sw1" autocomplete="off">
@@ -88,7 +178,7 @@
           <span class="sw-thumb" aria-hidden="true"></span>
         </label>
       </div>
-      <div class="tog-row">
+      <div class="tog-row" style="--r:3">
         <label class="tog-label" for="sw2">Auto-save</label>
         <label class="sw elastic">
           <input type="checkbox" id="sw2" checked autocomplete="off">
@@ -96,10 +186,32 @@
           <span class="sw-thumb" aria-hidden="true"></span>
         </label>
       </div>
+      <div class="dia" aria-hidden="true"><div class="dia-in">
+        <div class="fan">
+          <span class="d sheet" style="--x:0;--y:0;--w:60;--h:36"><i class="d cbx" style="--x:22;--y:10;--w:16;--h:16"></i></span>
+          <span class="d sheet" style="--x:8;--y:34;--w:60;--h:36"><i class="d d-track" style="--x:4;--y:3;--w:52;--h:30"></i></span>
+          <span class="d sheet" style="--x:16;--y:68;--w:60;--h:36">
+            <i class="d d-ghost" style="--x:7;--y:6;--w:24;--h:24"></i><i class="d d-knob" style="--x:7;--y:6;--w:24;--h:24"></i><i class="d d-arrow" style="--x:19;--y:2.6;--w:22;--h:0"></i>
+          </span>
+        </div>
+        <div class="caps">
+          <p class="cap" data-hb-caption>Hidden checkbox: holds on or off</p>
+          <p class="cap" data-hb-caption>Track: fills with color when on</p>
+          <p class="cap" data-hb-caption>Knob: slides across in about a fifth of a second, easing in and out</p>
+        </div>
+      </div></div>
+      <p class="row-cap" aria-hidden="true" data-hb-caption>The whole row is the tap area</p>
+      <p class="side first" aria-hidden="true" data-hb-caption>Flips at once</p>
+      <p class="side second" aria-hidden="true" data-hb-caption>Slides across</p>
+      <p class="when" aria-hidden="true" data-hb-caption>Just after the click</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the top switch is pulled apart: a hidden checkbox holds on or off, the track changes color and the knob slides across. Click a switch, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Flips at once: the knob jumps and the color snaps; Slides across: the knob glides over, shown just after the click. Click a switch, or press Show me.</p>
     </div>
   </section>
 
@@ -195,7 +307,22 @@
   const slowTog=document.getElementById('slow-tog');
   const vars=document.documentElement.style;
   const rest=boxes.map(b=>b.defaultChecked); // the arrival state: Notifications on, Appearance off, Auto-save on
-  let dur=200,runTimers=[];
+  let dur=200,ease='cubic-bezier(.4,0,.2,1)',runTimers=[];
+  // mode: the view on show. wanted: Compare's held moment is due (the visitor has not pressed a switch since). saved: Normal's switches while a view shows.
+  let mode='normal',wanted=true,saved=null;
+  const sws=boxes.map(b=>b.closest('.sw'));
+  const dia=stage.querySelector('.dia'),dparts=[...dia.querySelectorAll('.d-track,.d-knob')];
+  // Compare's first half: copies of the rows with no inputs, out of reach of the keyboard and screen readers; they follow the real switches (sync)
+  const rows=[...stage.querySelectorAll('.tog-row')];
+  const copies=rows.map(row=>{
+    const c=row.cloneNode(true);
+    c.classList.add('cp');c.inert=true;c.setAttribute('aria-hidden','true');
+    c.querySelector('input').remove();
+    c.querySelectorAll('label').forEach(l=>{const t=document.createElement('span');t.className=l.className;t.innerHTML=l.innerHTML;l.replaceWith(t)});
+    return c;
+  });
+  rows[2].after(...copies);
+  const copySw=copies.map(c=>c.querySelector('.sw'));
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
@@ -205,39 +332,124 @@
   }
   function running(){return runTimers.length>0}
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
-  // A run starts from the arrival state, put there without animating: the transitions are turned off, the state is set,
-  // a reflow makes it stick, and the transitions come back.
-  function toRest(){
-    parts.forEach(p=>p.style.setProperty('transition','none','important'));
-    boxes.forEach((b,i)=>{b.checked=rest[i]});
+  // A state is put in place without sliding: transitions off, the change made, a reflow makes it stick, transitions back. A run starts this way.
+  function snap(change){
+    const all=[...parts,...dparts];
+    all.forEach(p=>p.style.setProperty('transition','none','important'));
+    change();
     void stage.offsetWidth;
-    parts.forEach(p=>p.style.removeProperty('transition'));
+    all.forEach(p=>p.style.removeProperty('transition'));
   }
+  function toRest(){snap(()=>{boxes.forEach((b,i)=>{b.checked=rest[i]});setPose(false);sync()})}
   // Switch i slides to the other side (dur), the next one starts 200ms after it, and all three rest 600ms before they slide back.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
+    wanted=true;
     boxes.forEach((b,i)=>{
-      later(()=>{b.checked=!rest[i]},i*dur,i*200);
-      later(()=>{b.checked=rest[i]},(3+i)*dur,1000+i*200);
+      later(()=>{b.checked=!rest[i];sync()},i*dur,i*200);
+      later(()=>{b.checked=rest[i];sync()},(3+i)*dur,1000+i*200);
     });
+    later(deal,6*dur,1400); // the last switch has finished sliding: Compare's held moment can come back
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the switches stay as they are.
-  document.addEventListener('hb:input',()=>{if(running())stopRun()});
+  document.addEventListener('hb:input',()=>{if(running()){stopRun();wanted=false;notes()}});
+
+  // The Feel choices as the numbers of their speed curves (the browser's own), the springy knob's curve, and how long after a click Compare holds (ms)
+  const CURVES={'ease-out':[0,0,.58,1],'cubic-bezier(.4,0,.2,1)':[.4,0,.2,1],linear:[0,0,1,1]};
+  const SPRING=[.34,1.56,.64,1],POSE_MS=70;
+  const FEEL={'ease-out':'slowing to a stop','cubic-bezier(.4,0,.2,1)':'easing in and out',linear:'at one steady pace'};
+  const motionMQ=window.matchMedia('(prefers-reduced-motion:reduce)');
+  const knobCap=dia.querySelectorAll('.cap')[2];
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  // Notes: the markup's words, the same views shown still, and Compare once the visitor has pressed a switch (its held moment is gone)
+  const NOTES={
+    inside:[noteIn.textContent,'Inside, the top switch is pulled apart, shown still: a hidden checkbox holds on or off, the track changes color and the knob moves across at once.'],
+    compare:[noteCmp.textContent,'Shown still, just after a click: Flips at once is already across; Slides across is still on its way. With reduced motion on, both jump.'],
+    live:['Flips at once: the knob jumps and the color snaps; Slides across: the knob glides over. Click a switch, or press Show me.',
+      'With reduced motion on, both halves jump across at once, so they look the same now. Press Show me to see them held just after a click.']
+  };
+  function put(el,text){if(el.textContent!==text)el.textContent=text}
+  function notes(){
+    const rm=motionMQ.matches?1:0;
+    put(noteIn,NOTES.inside[rm]);
+    put(noteCmp,(rm?stage.classList.contains('posed'):wanted)?NOTES.compare[rm]:NOTES.live[rm]);
+  }
+  function words(t){return t<=150?'about a tenth of a second':t<=260?'about a fifth of a second':t<=420?'about a third of a second':t<=700?'about half a second':'about a second'}
+  // The knob's caption follows Speed, Feel and Slow motion
+  function describe(){
+    put(knobCap,motionMQ.matches?'Knob: moves across at once; the color fades':'Knob: slides across in '+words(dur*(slowTog.checked?3:1))+', '+FEEL[ease]);
+    notes();
+  }
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // How far each switch has come POSE_MS after a click by the page's own Speed and Feel (the springy knob by its own curve), as a share of the
+  // way; a share of Speed's time, so Slow motion never changes it
+  function poseVars(){
+    const x=Math.min(1,POSE_MS/dur),ft=curveAt(CURVES[ease],x);
+    sws.forEach(sw=>{
+      sw.style.setProperty('--ft',ft.toFixed(3));
+      sw.style.setProperty('--f',(sw.classList.contains('elastic')?curveAt(SPRING,x):ft).toFixed(3));
+    });
+  }
+  function setPose(on){stage.classList.toggle('posed',on);notes()}
+  function deal(){setPose(mode==='compare'&&wanted&&!running())}
+  // The copies and the top switch's drawing show the switches as they now stand
+  function sync(){
+    boxes.forEach((b,i)=>copySw[i].classList.toggle('on',b.checked));
+    dia.classList.toggle('on',boxes[0].checked);
+  }
+  function changed(){poseVars();describe();wanted=true;deal()}
+
+  // A view is pressed: it is drawn at once, then the shared script presses Show me (not under reduced motion), which puts the switches at their
+  // start. Normal's switches are kept meanwhile and put back, without sliding, when Normal is pressed.
+  document.addEventListener('hb:mode',e=>{
+    const was=mode,leaving=e.detail.mode==='normal'&&was!=='normal';
+    mode=e.detail.mode;wanted=true;
+    if(was==='normal'&&mode!=='normal')saved=running()?rest.slice():boxes.map(b=>b.checked);
+    const draw=()=>{
+      if(leaving){
+        stopRun();
+        if(saved)boxes.forEach((b,i)=>{b.checked=saved[i]});
+        saved=null;
+      }
+      deal();sync();
+    };
+    // Only what the view changes is put in place without sliding: a slide already under way goes on
+    if(leaving||stage.classList.contains('posed')!==(mode==='compare'&&!running()))snap(draw);else draw();
+  });
+  // The visitor presses a switch in Compare: the held moment lifts as the press ends, before the switch flips, so the knob starts from where it
+  // really stands; a finger that only scrolls the page across a row ends in pointercancel and leaves it
+  function lift(){wanted=false;if(stage.classList.contains('posed'))snap(()=>setPose(false));else notes()}
+  stage.addEventListener('pointerup',e=>{if(e.isTrusted&&mode==='compare'&&e.target.closest('.tog-row:not(.cp)'))lift()},true);
+  stage.addEventListener('keydown',e=>{if(e.isTrusted&&mode==='compare'&&e.key===' '&&e.target.closest('.sw'))lift()},true);
+  boxes.forEach(b=>b.addEventListener('change',()=>{if(stage.classList.contains('posed'))lift();sync()}));
+  slowTog.addEventListener('change',describe);
+  motionMQ.addEventListener('change',describe);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      changed();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--tog-dur',dur+'ms')});
-  choices('feel-seg',d=>{vars.setProperty('--tog-ease',d.ease)});
+  choices('feel-seg',d=>{ease=d.ease;vars.setProperty('--tog-ease',ease)});
   choices('color-sw',d=>{vars.setProperty('--on-color',d.c)});
   document.getElementById('elastic-tog').addEventListener('change',e=>{
     document.getElementById('sw2').closest('.sw').classList.toggle('elastic',e.target.checked);
+    changed();
   });
+  poseVars();
+  describe();
+  sync();
 </script>
 </body>
 </html>
