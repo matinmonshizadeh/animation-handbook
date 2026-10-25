@@ -86,7 +86,7 @@
     @media(min-width:601px) and (max-height:639px){.stage[data-hb-mode="compare"] .form>.field:nth-child(even){display:none}}
     @media(max-width:600px){
       .stage[data-hb-mode="inside"]{justify-content:flex-start;padding:10px 16px}
-      .stage[data-hb-mode="inside"] .form{gap:18px;margin-left:28px;width:calc(100% - 28px)}
+      .stage[data-hb-mode="inside"] .form{gap:18px;margin-left:28px;width:calc(100% - 28px - max(0px, var(--ring-offset) + var(--ring-w) / 2 - 6px))}
       .stage[data-hb-mode="inside"] .form>.field:nth-child(even),.stage[data-hb-mode="compare"] .form>.field:nth-child(even){display:none}
       .stage[data-hb-mode="inside"] .caps{display:flex;flex-direction:column;align-items:flex-start;justify-content:flex-end;gap:4px;padding:10px}
       .stage[data-hb-mode="inside"] .in-l{position:static;max-width:100%}
@@ -361,24 +361,32 @@
     const n=r?"Inside, the dashed line is where the ring would start; with reduced motion on it appears at once around the item Tab reaches, and the arrows show Tab's order. Press Tab, or press Show me.":NOTE;
     if(noteIn.textContent!==n)noteIn.textContent=n;
   }
+  // A caption whose words wrap keeps the full width it was given; trim its box to its widest line, its key (phones only) and its edges
+  function snug(el){
+    const t=document.createRange(),k=el.firstElementChild,c=getComputedStyle(el),ks=getComputedStyle(k);
+    const sum=(st,...p)=>p.reduce((n,x)=>n+parseFloat(st[x]),0);
+    el.style.width='';t.selectNodeContents(el.lastChild);
+    const lines=[...t.getClientRects()].map(q=>q.width);
+    if(lines.length>1)el.style.width=Math.ceil(Math.max(...lines))+1+sum(c,'paddingLeft','paddingRight','borderLeftWidth','borderRightWidth')+(k.offsetWidth?k.offsetWidth+sum(ks,'marginLeft','marginRight'):0)+'px';
+  }
   // See inside moves the form left to make room for its captions: the left caption, the path, the form and the right captions
   // stand in a row, trimmed to the stage's width. Phones put the captions under the form instead (their own rules).
   function layout(){
     const W=stage.clientWidth,pad=parseFloat(getComputedStyle(stage).paddingLeft);
     if(mode!=='inside'||phone.matches){
       ['--fx','--fw'].forEach(v=>stage.style.removeProperty(v));
-      caps.forEach(el=>{el.style.maxWidth=el.style.left=el.style.top=''});
+      caps.forEach(el=>{el.style.maxWidth=el.style.left=el.style.top='';if(mode==='inside')snug(el);else el.style.width=''});
       return;
     }
     // the right captions stand in a column 280px wide (the left one as wide as its words, at most 130px), then the row is trimmed to
     // the stage: the right captions first (to 150px), then the form (to 195px), then the left caption (to 105px)
-    const nat=el=>{el.style.maxWidth='';return el.offsetWidth},right=[cap.from,cap.close,cap.look];
+    const nat=el=>{el.style.maxWidth=el.style.width='';return el.offsetWidth},right=[cap.from,cap.close,cap.look];
     const C0=280,L0=Math.min(130,nat(cap.path));
     let cut=Math.max(0,L0+42+340+SIDE+C0+24-W);
     const trim=(base,most)=>{const n=Math.min(cut,Math.max(0,most));cut-=n;return base-n};
     const C=trim(C0,C0-150),F=trim(340,145),L=trim(L0,L0-105),fl=(W-(L+42+F+SIDE+C))/2+L+42;
     stage.style.setProperty('--fx',fl-pad+'px');stage.style.setProperty('--fw',F+'px');
-    cap.path.style.maxWidth=L+'px';right.forEach(el=>{el.style.maxWidth=C+'px'});
+    cap.path.style.maxWidth=L+'px';right.forEach(el=>{el.style.maxWidth=C+'px'});caps.forEach(snug);
   }
   // With nothing running and the focus outside the form, See inside and Compare pose the ring on Full name (a class, not the real
   // focus). A run, or a visitor in the form, lifts it; it comes back when the run ends, the focus leaves, or a mode, a setting
@@ -410,6 +418,7 @@
     // The ring's start: a faint dashed outline 8px beyond the ring, short arrows at its corners, and a line from each caption
     let tick='',lead='',dots='';
     mark.start.style.display=r?'':'none';
+    [cap.from,cap.close,cap.look].forEach(el=>{el.style.visibility=r?'':'hidden'});
     if(r){
       const d=ringOff+FROM+ringW/2;
       Object.entries({x:r.l-d,y:r.t-d,width:r.w+2*d,height:r.h+2*d,rx:4+d}).forEach(([k,v])=>mark.start.setAttribute(k,v));
