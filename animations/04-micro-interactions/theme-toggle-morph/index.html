@@ -21,7 +21,7 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Theme Toggle Morph", "name": "Theme Toggle Morph", "description": "A sun turns into a moon as the colors switch to dark. Best for theme buttons.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/04-micro-interactions/theme-toggle-morph/", "inLanguage": "en", "articleSection": "Micro-Interactions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Micro-Interactions, Theme Toggle Morph"}</script>
   <style>
-    :root{--ui-accent:#ff9d5c;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--morph-dur:500ms;--morph-ease:cubic-bezier(.4,0,.2,1);--toggle-size:clamp(72px,12vw,104px)}
+    :root{--ui-accent:#ff9d5c;--ink:#f4f4f2;--moon:#cdd3ff;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--morph-dur:500ms;--morph-ease:cubic-bezier(.4,0,.2,1);--toggle-size:clamp(72px,12vw,104px)}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
     .stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:clamp(20px,4vh,40px);padding:32px;background:#0b0b0d}
     /* The toggle button */
@@ -31,7 +31,7 @@
     .icon .disc{fill:currentColor;transform-origin:12px 12px;transition:transform var(--morph-dur) var(--morph-ease)}
     .icon .cutout{transform:translate(20px,-20px);transition:transform var(--morph-dur) var(--morph-ease)}
     /* Dark / moon state */
-    .demo.dark .toggle{color:#cdd3ff}
+    .demo.dark .toggle{color:var(--moon)}
     .demo.dark .icon line{transform:scale(0);opacity:0}
     .demo.dark .icon .disc{transform:scale(1.28)}
     .demo.dark .icon .cutout{transform:translate(7px,-4px)}
@@ -52,7 +52,53 @@
     @media(hover:hover){.toggle:hover{background:#17171b}}
     /* A window this short gives the stage 260px, less than the button and the card need: the icon, the card and the gap shrink together */
     @media(min-width:601px) and (max-height:640px){.stage{--toggle-size:80px;gap:16px}.card{width:min(190px,80%)}}
-    @media(prefers-reduced-motion:reduce){.icon line,.icon .disc,.icon .cutout,.card-inner,.toggle{transition:none!important}}
+    @media(prefers-reduced-motion:reduce){.icon line,.icon .disc,.icon .cutout,.see-ghost,.card-inner,.toggle{transition:none!important}}
+    /* See inside and Compare: the extra parts are hidden in Normal, and every rule that shows them names the mode on the stage */
+    .cap,.twin,.see{display:none}
+    .cap{padding:2px 7px;border:1px solid rgba(255,255,255,.14);border-radius:5px;background:var(--ui-bg);color:var(--ink);font:600 12px/1.25 var(--hb-font);text-align:center}
+    .see-ring,.see-ghost,.see-path,.see-head{fill:none;stroke:var(--ink)}
+    .see-ring{stroke-width:.5;stroke-dasharray:1.1 .75}
+    .see-ghost{stroke-width:.5;stroke-dasharray:.05 .85;stroke-linecap:round;opacity:0;transition:opacity var(--morph-dur) var(--morph-ease)}
+    .demo.dark .see-ghost{opacity:.65}
+    .see-path{stroke-width:.35;stroke-dasharray:.8 .6;opacity:.75}
+    .see-head{stroke-width:.4;stroke-linecap:round;stroke-linejoin:round}
+    .twin,.twin *{transition:none!important}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{position:relative;display:grid;align-content:center}
+    /* See inside: the button and the card side by side, with room above the button for the circle parked up and to its right */
+    .stage[data-hb-mode="inside"]{grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:clamp(56px,9vw,96px);padding:16px}
+    .stage[data-hb-mode="inside"] .icon{overflow:visible}
+    .stage[data-hb-mode="inside"] .see{display:inline}
+    .stage[data-hb-mode="inside"] .card{width:clamp(150px,26vw,200px)}
+    .stage[data-hb-mode="inside"] .cap-i{display:block;position:absolute;left:0;top:0;z-index:2}
+    /* Compare: on the left the copy, which swaps at once; on the right the real button and card. A press on the real one drives both. */
+    .stage[data-hb-mode="compare"]{container-type:size;grid-template-columns:repeat(2,minmax(0,1fr));justify-items:center;row-gap:clamp(8px,2vh,14px);padding:10px 6px}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:10px;bottom:10px;width:1px;background:var(--ui-border)}
+    .stage[data-hb-mode="compare"] .twin{display:contents}
+    .stage[data-hb-mode="compare"] .cap-n{display:block}
+    .stage[data-hb-mode="compare"] .n1{grid-area:1/1}
+    .stage[data-hb-mode="compare"] .n2{grid-area:1/2}
+    /* Each half is the button over the card, sized from the box's height and width so a name, the button, the card and the circle waiting up and to the right always fit */
+    .stage[data-hb-mode="compare"] .toggle,.stage[data-hb-mode="compare"] .card{--toggle-size:clamp(56px,min(calc((100cqh - 64px) / 2.85),calc(24cqw - 6px)),104px)}
+    .stage[data-hb-mode="compare"] .toggle{grid-row:2;margin-top:calc(var(--toggle-size) * 13 / 24 - 14px)}
+    .stage[data-hb-mode="compare"] .card{grid-row:3;width:min(220px,100%,calc(var(--toggle-size) * 2.1))}
+    .stage[data-hb-mode="compare"] .face{padding:10px}
+    .stage[data-hb-mode="compare"] .twin>*{grid-column:1}
+    .stage[data-hb-mode="compare"]>.toggle,.stage[data-hb-mode="compare"]>.card{grid-column:2}
+    /* A moment after a press, the real half is part way (--p is how far, from the page's own time and curve): the dark rules above scaled by it */
+    .stage[data-hb-mode="compare"].posed>.toggle{color:color-mix(in srgb,var(--moon) calc(min(var(--p),1) * 100%),var(--ui-accent))}
+    .stage[data-hb-mode="compare"].posed>.toggle .icon line{transform:scale(max(0,1 - var(--p)));opacity:max(0,1 - var(--p))}
+    .stage[data-hb-mode="compare"].posed>.toggle .disc{transform:scale(calc(1 + .28 * var(--p)))}
+    .stage[data-hb-mode="compare"].posed>.toggle .cutout{transform:translate(calc(20px - 13px * var(--p)),calc(-20px + 16px * var(--p)))}
+    .stage[data-hb-mode="compare"].posed>.card .card-inner{transform:rotateY(calc(180deg * var(--p)))}
+    .stage[data-hb-mode="compare"].posed>.toggle .icon{overflow:visible}
+    .stage[data-hb-mode="compare"].posed>.toggle .see{display:inline}
+    .stage[data-hb-mode="compare"].posed>.toggle .see :is(.see-path,.see-head){display:none}
+    .stage[data-hb-mode="compare"].posed>.toggle .see-ghost{opacity:.65}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:auto minmax(0,1fr);justify-content:stretch;column-gap:36px;padding:12px}
+      .stage[data-hb-mode="inside"] .card{width:100%}
+      .stage[data-hb-mode="inside"] .face{padding:10px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -75,6 +121,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Press the sun to switch to dark and the moon to switch back, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage demo hb-dots" id="demo">
       <button class="toggle" id="toggle" type="button" aria-label="Switch to dark theme">
         <svg class="icon" viewBox="0 0 24 24" aria-hidden="true">
@@ -95,6 +146,11 @@
             <line x1="18.36" y1="4.22" x2="19.78" y2="5.64"/>
           </g>
           <circle class="disc" cx="12" cy="12" r="5" mask="url(#moon-mask)"/>
+          <g class="see">
+            <circle class="see-ghost" cx="12" cy="12" r="5"/>
+            <path class="see-path"/><path class="see-head"/>
+            <circle class="cutout see-ring" cx="12" cy="12" r="5"/>
+          </g>
         </svg>
       </button>
       <div class="card" aria-hidden="true">
@@ -109,10 +165,20 @@
           </div>
         </div>
       </div>
+      <span class="cap cap-i cap-ring" data-hb-caption aria-hidden="true">A hidden circle slides in and cuts the moon out of the sun</span>
+      <span class="cap cap-i cap-rays" data-hb-caption aria-hidden="true">The rays shrink into the center</span>
+      <span class="cap cap-i cap-card" data-hb-caption aria-hidden="true">The card flips at the same pace</span>
+      <span class="cap cap-i cap-time" data-hb-caption aria-hidden="true">Takes half a second, easing in and out</span>
+      <span class="cap cap-n n1" data-hb-caption aria-hidden="true">Swaps at once</span>
+      <span class="cap cap-n n2" data-hb-caption aria-hidden="true">Becomes a moon</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the dashed circle, hidden in Normal, slides over the sun and cuts a bite out of it, leaving a moon, while the rays shrink to the center. Press the button, or Show me.</p>
+      <p data-hb-for="compare" hidden>Swaps at once: the moon simply replaces the sun; Becomes a moon: the same sun is cut into a moon while the card flips. Press the button, or Show me.</p>
     </div>
   </section>
 
@@ -186,16 +252,52 @@
   const toggle=document.getElementById('toggle');
   const slowTog=document.getElementById('slow-tog');
   const vars=document.documentElement.style;
+  const card=stage.querySelector('.card'),ring=stage.querySelector('.see-ring');
   // Everything on the stage that moves or changes color, so a run can start from rest without animating
-  const moving=[...stage.querySelectorAll('.toggle,.icon line,.icon .disc,.icon .cutout,.card-inner')];
-  let dur=500,runTimers=[];
+  const moving=[...stage.querySelectorAll('.toggle,.icon line,.icon .disc,.icon .cutout,.see-ghost,.card-inner')];
+  let dur=500,ease='cubic-bezier(.4,0,.2,1)',runTimers=[],mode='normal',kept=null,posed=false;
+  const motionOk=!matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const isDark=()=>stage.classList.contains('dark');
+  const noTransition=off=>moving.forEach(el=>off?el.style.setProperty('transition','none','important'):el.style.removeProperty('transition'));
 
-  // The button and Show me both switch the theme through setDark().
+  // See inside's marks need the cutout's two resting places. They are read from the rules above (light, then dark, with the
+  // transitions off) and drawn once: the ghost where it waits, and an arrow between the two, clear of both circles.
+  const [from,to]=(()=>{
+    noTransition(true);
+    const at=on=>{stage.classList.toggle('dark',on);const m=new DOMMatrix(getComputedStyle(ring).transform);return[12+m.e,12+m.f]};
+    const ends=[at(false),at(true)];
+    stage.classList.remove('dark');void stage.offsetWidth;noTransition(false);
+    return ends;
+  })();
+  (function(){
+    const gap=+ring.getAttribute('r')+.7,len=Math.hypot(to[0]-from[0],to[1]-from[1]),ux=(to[0]-from[0])/len,uy=(to[1]-from[1])/len;
+    const xy=(x,y)=>x.toFixed(2)+' '+y.toFixed(2),tip=[to[0]-ux*gap,to[1]-uy*gap];
+    const wing=k=>xy(tip[0]-ux*1.5-uy*k*.9,tip[1]-uy*1.5+ux*k*.9);
+    const ghost=stage.querySelector('.see-ghost');
+    ghost.setAttribute('cx',from[0]);ghost.setAttribute('cy',from[1]);
+    stage.querySelector('.see-path').setAttribute('d','M'+xy(from[0]+ux*gap,from[1]+uy*gap)+'L'+xy(tip[0],tip[1]));
+    stage.querySelector('.see-head').setAttribute('d','M'+wing(1)+'L'+xy(tip[0],tip[1])+'L'+wing(-1));
+  })();
+
+  // Compare's first half: a copy of the button and card that swaps at once. Made once, after `moving` is collected: its mask has
+  // an id of its own, nothing else has one, and it is out of the Tab order and hidden from screen readers. It follows the stage's
+  // dark class by the page's own rules (it has the demo and dark classes itself), with its transitions off.
+  const twin=document.createElement('div');
+  twin.className='twin demo';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  const swap=document.createElement('span');swap.className='toggle';
+  swap.innerHTML=toggle.innerHTML.replace(/moon-mask/g,'moon-mask-b');swap.querySelector('.see').remove();
+  twin.append(swap,card.cloneNode(true));
+  stage.insertBefore(twin,toggle);
+
+  // The button and Show me both switch the theme through setDark(). A press also lifts Compare's moment, in the same step,
+  // so the change carries on from where the moment held it.
   function setDark(on){
+    unpose();
     stage.classList.toggle('dark',on);
+    twin.classList.toggle('dark',on);
     toggle.setAttribute('aria-label',on?'Switch to light theme':'Switch to dark theme');
   }
-  toggle.addEventListener('click',()=>setDark(!stage.classList.contains('dark')));
+  toggle.addEventListener('click',()=>setDark(!isDark()));
 
   // Show me: one run at a time. Every timer of the run goes through later(); stopRun() cancels the whole run.
   // later(fn, move, hold) waits move*(slow?3:1) + hold ms: Slow motion triples the movement, never the hold.
@@ -207,18 +309,18 @@
   function stopRun(){runTimers.forEach(clearTimeout);runTimers=[]}
   // A run starts in the light theme, put there without animating: the transitions are turned off, the theme is switched,
   // a reflow makes it stick, and the transitions come back.
-  function toRest(){
-    moving.forEach(el=>el.style.setProperty('transition','none','important'));
-    setDark(false);
+  function toRest(on){
+    noTransition(true);
+    setDark(!!on);
     void stage.offsetWidth;
-    moving.forEach(el=>el.style.removeProperty('transition'));
+    noTransition(false);
   }
   // The sun becomes the moon as a press makes it, stays a moment, and after one change plus a 1000ms hold the moon becomes the sun again.
   document.getElementById('btn-demo').addEventListener('click',()=>{
     stopRun();
     toRest();
     setDark(true);
-    later(()=>setDark(false),dur,1000);
+    later(()=>{setDark(false);later(refresh,dur)},dur,1000);
   });
   // The visitor pressed, typed, scrolled or touched inside the stage: the run stops and the theme stays as it is.
   document.addEventListener('hb:input',()=>{if(running())stopRun()});
@@ -228,10 +330,110 @@
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('speed-seg',d=>{dur=+d.ms;vars.setProperty('--morph-dur',dur+'ms')});
-  choices('feel-seg',d=>{vars.setProperty('--morph-ease',d.ease)});
+  choices('feel-seg',d=>{ease=d.ease;vars.setProperty('--morph-ease',d.ease)});
+  slowTog.addEventListener('change',()=>{words();place()});
+
+  // ---- See inside and Compare
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const RM_IN='Inside, shown still: the dashed circle, hidden in Normal, is what cuts the moon out of the sun; with motion on, it slides over the sun while the rays shrink.';
+  const RM_POSED='Shown still, a moment after the same press: Swaps at once is already the moon; Becomes a moon is caught part way, its circle sliding onto the sun and its card turning.';
+  const RM_PLAIN='With motion off, Becomes a moon swaps at once too, so the halves match. Press Compare again to see the still a moment after a press.';
+  if(!motionOk){noteIn.textContent=RM_IN;noteCmp.textContent=RM_PLAIN}
+  function note(){
+    if(motionOk)return;
+    const text=posed?RM_POSED:RM_PLAIN;
+    if(noteCmp.textContent!==text)noteCmp.textContent=text;
+  }
+
+  // How far a speed curve has come after a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt(spec,x){
+    if(spec==='linear')return x;
+    const [a,b,c,e]=spec.match(/-?[\d.]+/g).map(Number);
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // Compare's moment: the real half a fifth of a second after a press at full speed (Slow motion leaves it as it is), on top of a
+  // theme that is still light. The page's time and curve give --p, held under 0.9 so a curve that is already done or past it by
+  // then (Springy, or Fast) still leaves the half part way; the transitions are off while it is drawn.
+  const PEEK=200;
+  function pose(){
+    noTransition(true);
+    stage.style.setProperty('--p',Math.min(.9,curveAt(ease,Math.min(1,PEEK/dur))).toFixed(3));
+    stage.classList.add('posed');twin.classList.add('dark');
+    void stage.offsetWidth;noTransition(false);
+    posed=true;note();
+  }
+  function unpose(snap){
+    if(!posed)return;
+    if(snap)noTransition(true);
+    stage.classList.remove('posed');twin.classList.toggle('dark',isDark());
+    if(snap){void stage.offsetWidth;noTransition(false)}
+    posed=false;note();
+  }
+  // The caption about time, in words, for the Speed and Feel chosen (three times as long in Slow motion)
+  const FEEL={'cubic-bezier(.4,0,.2,1)':'easing in and out','cubic-bezier(.34,1.56,.64,1)':'overshooting a little',linear:'at one steady speed'};
+  const caps={};['ring','rays','card','time'].forEach(k=>{caps[k]=stage.querySelector('.cap-'+k)});
+  function words(){
+    const ms=dur*(slowTog.checked?3:1);
+    const t=ms<=350?'about a third of a second':ms<=650?'half a second':ms<=950?'almost a second':ms<=1700?'a second and a half':'over two seconds';
+    const text='Takes '+t+', '+FEEL[ease];
+    if(caps.time.textContent!==text)caps.time.textContent=text;
+  }
+  // See inside's four captions, placed from the measured parts: the first above the parked circle, the next two under the button
+  // and the card, the last along the bottom. Each is as narrow as its lines allow.
+  function place(){
+    if(mode!=='inside')return;
+    const s=stage.getBoundingClientRect(),W=s.width,H=s.height,narrow=W<480;
+    const box=el=>{const r=el.getBoundingClientRect();return{l:r.left-s.left,r:r.right-s.left,t:r.top-s.top,b:r.bottom-s.top}};
+    const g=box(stage.querySelector('.see-ghost')),b=box(toggle),c=box(card);
+    const fit=(el,max)=>{
+      el.style.width='';el.style.maxWidth=max+'px';el.style.transform='none';
+      const h=el.offsetHeight;let lo=0,hi=Math.ceil(el.getBoundingClientRect().width);
+      while(hi-lo>2){const m=(lo+hi)>>1;el.style.width=m+'px';if(el.offsetHeight>h)lo=m;else hi=m}
+      el.style.width=hi+'px';
+    };
+    const x=(el,cx)=>Math.round(Math.min(Math.max(cx-el.offsetWidth/2,8),W-8-el.offsetWidth));
+    const at=(el,left,top)=>{el.style.transform='translate('+left+'px,'+Math.round(top)+'px)'};
+    fit(caps.ring,Math.min(W-16,narrow?200:360));fit(caps.rays,Math.max(90,Math.min(220,c.l-16)));
+    fit(caps.card,Math.min(W-16,narrow?c.r-c.l:260));fit(caps.time,Math.min(W-16,360));
+    // The circle swings a little past its waiting place when the feel is Springy, so the caption keeps that much room
+    at(caps.ring,x(caps.ring,(g.l+g.r)/2),g.t-5-(g.r-g.l)*.22-caps.ring.offsetHeight);
+    const row=Math.max(b.b,c.b)+8,xr=x(caps.rays,(b.l+b.r)/2);
+    at(caps.rays,xr,row);
+    at(caps.card,Math.min(Math.max(x(caps.card,(c.l+c.r)/2),xr+caps.rays.offsetWidth+8),W-8-caps.card.offsetWidth),row);
+    at(caps.time,x(caps.time,W/2),H-8-caps.time.offsetHeight);
+  }
+  // Draws the mode for the state the page is in: Compare's moment shows while the theme is light and no run is pending (it does
+  // not come back by itself after the visitor's own press: it comes back with a mode press, a setting, a resize or the end of Show me)
+  function refresh(){
+    words();place();
+    if(mode==='compare'&&!isDark()&&!running())pose();
+    else if(mode!=='compare')unpose(true);
+  }
+  // Normal's own theme is kept while a mode shows and put back when Normal is pressed
+  document.addEventListener('hb:mode',e=>{
+    const was=mode;mode=e.detail.mode;
+    if(mode==='normal'){if(kept){stopRun();toRest(kept.dark);kept=null}}
+    else if(was==='normal')kept={dark:isDark()&&!running()};
+    if(mode==='compare'&&isDark()&&!running())toRest(false);
+    refresh();
+  });
+  // A resized window (or a phone turned) can leave the 3D card's layer drawn at its old fractional place, a pixel off: once the
+  // resizing has stopped and nothing moves, the card is rebuilt
+  let rebuildT=0;
+  function rebuild(){
+    if(running()||card.getAnimations({subtree:true}).length){rebuildT=setTimeout(rebuild,400);return}
+    card.style.display='none';void card.offsetWidth;card.style.display='';rebuildT=0;
+  }
+  addEventListener('resize',()=>{place();clearTimeout(rebuildT);rebuildT=setTimeout(rebuild,200)});
+  document.fonts.ready.then(place);
+  words();
 </script>
 </body>
 </html>
