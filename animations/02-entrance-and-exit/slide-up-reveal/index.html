@@ -32,6 +32,48 @@
     .headline{font-size:clamp(28px,5vw,52px);font-weight:bold;text-align:center;line-height:1.1}
     .sub-line{font-size:clamp(13px,2vw,16px);color:var(--ui-muted);text-align:center}
     @media(prefers-reduced-motion:reduce){.line{opacity:0;transition:opacity 300ms linear!important;transform:none!important;clip-path:none!important}  .line.in{opacity:1!important}}
+    /* See inside and Compare. The script wraps each window in a .slot with a faint copy of its line (.ghost) and an edge mark (.edge),
+       and makes the "No edge" half (.twin) once; all of it, and every caption, is hidden in Normal. */
+    .stage{position:relative}
+    .slot{position:relative;line-height:1.15}
+    .ghost,.edge,.twin,.lbl{display:none}
+    .lbl{position:absolute;left:0;top:0;z-index:3;width:max-content;max-width:var(--mw,none);padding:3px 7px;border-radius:5px;background:rgba(11,11,13,.92);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);text-wrap:balance}
+    .lbl[hidden]{display:none!important}
+    .stage.posed .when{visibility:visible}
+    .when{visibility:hidden}
+    [data-method="translatey"] .ghost{transform:translateY(110%);transition:transform var(--dur) var(--ease);transition-delay:calc(var(--d,0)*var(--stagger))}
+    [data-method="translatey"] .ghost.in{transform:translateY(0)}
+    [data-method="clippath"] .edge{transform:translateY(100%);transition:transform var(--dur) var(--ease);transition-delay:calc(var(--d,0)*var(--stagger))}
+    [data-method="clippath"] .edge.in{transform:translateY(0)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{padding:34px 8px}
+    .stage[data-hb-mode="inside"] .headline,.stage[data-hb-mode="compare"] .headline{font-size:var(--f,28px)}
+    .stage[data-hb-mode="inside"] .for-inside,.stage[data-hb-mode="inside"] .for-both,.stage[data-hb-mode="compare"] .for-compare,.stage[data-hb-mode="compare"] .for-both{display:block}
+    /* See inside: each line in its own outlined window with a gap under it as tall as the line, so the part under the edge has room */
+    .stage[data-hb-mode="inside"].narrow{align-items:flex-start;padding-left:12px}
+    .stage[data-hb-mode="inside"] .slot{margin-bottom:var(--gap,0)}
+    .stage[data-hb-mode="inside"] .line-wrap{position:relative;outline:1px solid color-mix(in srgb,var(--ui-accent) 75%,transparent);background:color-mix(in srgb,var(--ui-accent) 9%,transparent)}
+    .stage[data-hb-mode="inside"] .ghost{display:block;position:absolute;left:0;right:0;top:0;opacity:.34;pointer-events:none}
+    .stage[data-hb-mode="inside"] .edge{display:block;position:absolute;left:-8px;right:-8px;pointer-events:none}
+    .stage[data-hb-mode="inside"][data-method="translatey"] .edge{top:100%;height:2px;margin-top:-1px;background:var(--ui-accent)}
+    .stage[data-hb-mode="inside"][data-method="clippath"] .edge{top:0;bottom:0;border-top:2px solid var(--ui-accent)}
+    /* Compare: the lines twice, "No edge" (windows that do not clip) beside "Behind an edge" (the real ones) */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:center;justify-items:center;gap:0}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:34px;bottom:34px;width:1px;background:rgba(255,255,255,.16)}
+    .stage[data-hb-mode="compare"] .twin{display:block}
+    .stage[data-hb-mode="compare"] .twin .line-wrap{overflow:visible}
+    .stage[data-hb-mode="compare"] .twin .line{clip-path:none!important}
+    .stage[data-hb-mode="compare"] #lines-wrap .edge{display:block;position:absolute;left:0;right:0;opacity:.6;pointer-events:none}
+    .stage[data-hb-mode="compare"][data-method="translatey"] #lines-wrap .edge{top:100%;height:1px;background:var(--ui-accent)}
+    .stage[data-hb-mode="compare"][data-method="clippath"] #lines-wrap .edge{top:0;bottom:0;border-top:1px solid var(--ui-accent)}
+    /* The rest pose, a fifth of a second into the reveal: each line at its own share (--p), beating .line.in and the reduced motion rules */
+    .stage[data-hb-mode="inside"].posed .line,.stage[data-hb-mode="compare"].posed .line{opacity:1!important;transition:none!important}
+    .stage[data-hb-mode="inside"].posed :is(.ghost,.edge),.stage[data-hb-mode="compare"].posed .edge{transition:none!important}
+    .stage[data-hb-mode="inside"].posed[data-method="translatey"] :is(.line,.ghost),.stage[data-hb-mode="compare"].posed[data-method="translatey"] .line{transform:translateY(calc((1 - var(--p))*110%))!important}
+    .stage[data-hb-mode="inside"].posed[data-method="clippath"] .line,.stage[data-hb-mode="compare"].posed[data-method="clippath"] #lines-wrap .line{clip-path:inset(calc((1 - var(--p))*100%) 0 0 0)!important}
+    .stage[data-hb-mode="inside"].posed[data-method="clippath"] .edge,.stage[data-hb-mode="compare"].posed[data-method="clippath"] #lines-wrap .edge{transform:translateY(calc((1 - var(--p))*100%))!important}
+    @media(max-width:600px){.lbl{padding:2px 5px}}
+    @media(max-width:600px),(max-height:500px){.stage[data-hb-mode="inside"] .t-late{display:none}}
+    @media(prefers-reduced-motion:reduce){.ghost,.edge{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -54,17 +96,33 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots" id="stage" data-method="translatey">
       <div id="lines-wrap">
         <div class="line-wrap"><span class="headline line" id="l0" style="--d:0">Beautiful</span></div>
         <div class="line-wrap"><span class="headline line" id="l1" style="--d:1">interfaces</span></div>
         <div class="line-wrap"><span class="sub-line line" id="l2" style="--d:2">crafted with care.</span></div>
       </div>
+      <p class="lbl for-inside t-edge" data-hb-caption aria-hidden="true">The edge: nothing shows below it</p>
+      <p class="lbl for-inside t-hid" data-hb-caption aria-hidden="true">Still hidden, already there</p>
+      <p class="lbl for-inside t-move" data-hb-caption aria-hidden="true">Each line rises from behind its edge</p>
+      <p class="lbl for-inside t-late" data-hb-caption aria-hidden="true">Each line starts a moment after the one above</p>
+      <p class="lbl for-compare t-first" data-hb-caption aria-hidden="true">No edge</p>
+      <p class="lbl for-compare t-second" data-hb-caption aria-hidden="true">Behind an edge</p>
+      <p class="lbl for-both when" data-hb-caption aria-hidden="true">A fifth of a second in</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each line sits in its own window: below the window's edge nothing shows. The faint part is the line still hidden under the edge as it rises.</p>
+      <p data-hb-for="compare" hidden>No edge: you see each line travel up from below. Behind an edge: each line is cut off until it rises into view, so it seems to come from behind a surface.</p>
     </div>
   </section>
 
@@ -161,7 +219,41 @@
   const vars=document.documentElement.style;
   const loopTog=document.getElementById('loop-tog'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
-  let ms=700,stagger=60,ease='cubic-bezier(.2,.7,.3,1)',timers=[];
+  let ms=700,stagger=60,ease='cubic-bezier(.2,.7,.3,1)',timers=[],restTimer=0;
+
+  // See inside and Compare. Copies are made once, out of reach of the keyboard and screen readers: "No edge" (Compare's first half:
+  // the three lines again, with windows that do not clip), and for each window a faint copy of its line that is never clipped
+  // (.ghost) and an edge mark (.edge). Each window sits in a .slot that holds them; Normal does not show any of it.
+  const linesWrap=document.getElementById('lines-wrap');
+  const twin=linesWrap.cloneNode(true);
+  twin.removeAttribute('id');twin.classList.add('twin');twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.querySelectorAll('[id]').forEach(e=>e.removeAttribute('id'));
+  linesWrap.before(twin);
+  const parts=lines.map((l,i)=>{
+    const slot=document.createElement('div'),ghost=l.cloneNode(true),edge=document.createElement('span'),win=l.parentElement;
+    slot.className='slot';
+    ghost.removeAttribute('id');ghost.classList.replace('line','ghost');ghost.inert=true;ghost.setAttribute('aria-hidden','true');
+    edge.className='edge';edge.style.setProperty('--d',i);edge.setAttribute('aria-hidden','true');
+    win.before(slot);slot.append(ghost,win,edge);
+    return {win,slot,ghost,edge,twin:twin.querySelectorAll('.line')[i]};
+  });
+  const all=[...lines,...parts.flatMap(p=>[p.ghost,p.edge,p.twin])];
+  // The rest pose is a fifth of a second into the reveal; the band, gutters and ticks are in pixels
+  const POSE_MS=200,BAND=34,PAD=8,TICK=14;
+  const NOTES={
+    slide:{inside:document.querySelector('[data-hb-for="inside"]').textContent,compare:document.querySelector('[data-hb-for="compare"]').textContent},
+    wipe:{inside:"Inside, each line stays still in its own window, and the window's edge opens upward. The faint part is the line still hidden.",
+      compare:'With Wipe nothing moves: No edge shows the text at once, and Behind an edge uncovers each line from the bottom up.'},
+    slideStill:{inside:'Shown still, a fifth of a second in: each line sits in its own window, and the faint part is the line still hidden under its edge.',
+      compare:'Shown still, a fifth of a second in: No edge shows each line below its place, while Behind an edge cuts each one off at its edge.'},
+    wipeStill:{inside:'Shown still, a fifth of a second in: each line stays still in its own window, and the faint part is still hidden above the opening edge.',
+      compare:'Shown still, a fifth of a second in: No edge shows the text whole, while Behind an edge has uncovered only the bottom of each line.'}
+  };
+  const WORDS={slide:{edge:'The edge: nothing shows below it',move:'Each line rises from behind its edge'},
+    wipe:{edge:'The opening edge: nothing shows above it',move:'The text stays still; its edge opens upward'}};
+  const L=n=>stage.querySelector('.'+n);
+  const clamp=(v,a,b)=>Math.min(Math.max(v,a),b);
+  let mode='normal',EM=5.2;
 
   function dur(){return slowTog.checked?ms*3:ms}
   function stag(){return slowTog.checked?stagger*3:stagger}
@@ -171,40 +263,129 @@
     vars.setProperty('--ease',ease);
   }
   function later(fn,wait){timers.push(setTimeout(fn,wait))}
+  function setIn(on){all.forEach(el=>el.classList.toggle('in',on))}
   function revealIn(){
     // snap back to hidden without a transition so every play rises from behind the edge again
-    lines.forEach(l=>l.style.setProperty('transition','none','important'));
-    lines.forEach(l=>l.classList.remove('in'));
+    all.forEach(l=>l.style.setProperty('transition','none','important'));
+    setIn(false);
     void stage.offsetWidth;
-    lines.forEach(l=>l.style.removeProperty('transition'));
-    lines.forEach(l=>l.classList.add('in'));
+    all.forEach(l=>l.style.removeProperty('transition'));
+    setIn(true);
   }
   // One play reveals the lines. While Loop is on it then holds, drops the lines back down, waits and plays again;
   // switching Loop off lets the lines finish risen. Slow motion stretches the reveal and the stagger, not the waits.
   function cycle(){
-    apply();revealIn();
-    if(!loopTog.checked||!motionOk)return;
+    clearTimeout(restTimer);apply();pose(false);revealIn();
+    if(!loopTog.checked||!motionOk){restLater();return}
     later(()=>{
       if(!loopTog.checked)return;
-      lines.forEach(l=>l.classList.remove('in'));
+      setIn(false);
       later(cycle,dur()+400);
     },dur()+1000);
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // How far line i has come a fifth of a second in: its own delay first, the same Speed and Feel (Slow motion does not move a rest pose)
+  function share(i){return curveAt(ease==='linear'?[0,0,1,1]:ease.match(/[\d.]+/g).map(Number),clamp((POSE_MS-i*stagger)/ms,0,1))}
+  // The still moment both views rest on between plays (Loop off, and always under reduced motion), set again for every deal
+  function pose(on){
+    on=on&&mode!=='normal';
+    stage.classList.toggle('posed',on);
+    if(on)parts.forEach((p,i)=>[lines[i],p.ghost,p.edge,p.twin].forEach(el=>el.style.setProperty('--p',share(i).toFixed(3))));
+  }
+  // Leaving the still moment shows the lines as they now are, at once; a play under way is left alone
+  function unpose(){
+    if(!stage.classList.contains('posed'))return;
+    all.forEach(el=>el.style.setProperty('transition','none','important'));
+    pose(false);void stage.offsetWidth;
+    all.forEach(el=>el.style.removeProperty('transition'));
+  }
+  // With Loop off a view goes back to its still moment once the lines have risen and been seen for a moment
+  function restLater(){clearTimeout(restTimer);restTimer=setTimeout(()=>pose(true),(motionOk?dur():300)+2*stag()+700)}
+
+  function say(el,text){if(el.textContent!==text)el.textContent=text}
+  function words(){
+    const m=stage.dataset.method==='clippath'?'wipe':'slide',n=NOTES[m+(motionOk?'':'Still')];
+    say(document.querySelector('[data-hb-for="inside"]'),n.inside);say(document.querySelector('[data-hb-for="compare"]'),n.compare);
+    say(L('t-edge'),WORDS[m].edge);say(L('t-move'),WORDS[m].move);
+  }
+  // The box's own pixels: the headline is fitted to the box (to the room left for the side captions in See inside, to half the
+  // width in Compare), the gap under each window is its line's height, and each caption is placed from its measured size.
+  function layout(){
+    if(mode==='normal')return;
+    const W=stage.clientWidth,H=stage.clientHeight,inside=mode==='inside',wipe=stage.dataset.method==='clippath';
+    const s=parseFloat(getComputedStyle(lines[2]).fontSize),r=document.createRange();
+    r.selectNodeContents(lines[1]);
+    EM=r.getBoundingClientRect().width/parseFloat(getComputedStyle(lines[1]).fontSize)||EM;
+    // a narrow box keeps the lines to the left and both side captions to their right
+    const narrow=inside&&W<500,gut=clamp((W-130)/2,80,111);
+    stage.classList.toggle('narrow',narrow);
+    const f=Math.floor(clamp(Math.min(inside?52:clamp(innerWidth*.05,28,52),inside?(narrow?W-12-gut:W-2*gut)/EM:(W/2-2*PAD-4)/EM,
+      inside?(H-2*BAND-2.3*s-8)/4.4:(H-2*BAND-1.15*s-8)/3.4),20,52));
+    stage.style.setProperty('--f',f+'px');
+    parts.forEach(p=>p.slot.style.setProperty('--gap',p.win.offsetHeight+'px'));
+    const O=stage.getBoundingClientRect(),
+      box=el=>{const b=el.getBoundingClientRect();return{l:b.left-O.left-stage.clientLeft,r:b.right-O.left-stage.clientLeft,t:b.top-O.top-stage.clientTop,b:b.bottom-O.top-stage.clientTop}};
+    const put=(el,cap,x,y,lo=4,hi=H-4)=>{
+      el.style.setProperty('--mw',cap+'px');el.style.left='0';el.style.top='0';
+      const w=el.offsetWidth,h=el.offsetHeight;
+      el.style.left=clamp(x(w),4,W-w-4)+'px';el.style.top=clamp(y(h),lo,hi-h)+'px';
+    };
+    put(L('when'),W-16,w=>(W-w)/2,h=>H-h-8);
+    if(!inside){
+      put(L('t-first'),W/2-12,w=>W/4-w/2,()=>8);put(L('t-second'),W/2-12,w=>3*W/4-w/2,()=>8);
+      return;
+    }
+    const k=parts.map(p=>box(p.win)),h0=k[0].b-k[0].t,h1=k[1].b-k[1].t;
+    // the edge: Slide's is the window's bottom; Wipe's is where the first line's still moment has opened it. The second line's hidden part:
+    // below its window (Slide) or above its opening edge (Wipe)
+    const ey=wipe?k[0].t+Math.max(1-share(0),0)*h0:k[0].b,hy=wipe?k[1].t+Math.max(1-share(1),.2)*h1/2:k[1].b+.55*Math.max(1-share(1),.1)*h1;
+    // the side captions keep between the top caption and the bottom one
+    const top=L('t-move');put(top,W-16,w=>(W-w)/2,()=>8);
+    const lo=top.offsetTop+top.offsetHeight+4,hi=L('when').offsetTop-4;
+    put(L('t-edge'),W-k[0].r-TICK-6,()=>k[0].r+TICK,h=>ey-h/2,lo,hi);
+    if(narrow)put(L('t-hid'),W-k[0].r-TICK-6,()=>k[0].r+TICK,h=>hy-h/2,lo,hi);
+    else put(L('t-hid'),k[0].l-TICK-6,w=>k[0].l-TICK-w,h=>hy-h/2,lo,hi);
+    const late=L('t-late');
+    put(late,W-k[0].r-TICK-6,()=>k[0].r+TICK,h=>(k[1].t+k[1].b)/2-h/2,lo,hi);
+    const a=late.getBoundingClientRect(),b=L('t-edge').getBoundingClientRect();
+    late.hidden=a.top<b.bottom+6&&a.bottom>b.top-6;
+  }
+  function refresh(){
+    if(stage.classList.contains('posed'))pose(true);
+    words();layout();
+  }
+  // The mode switch: draws the mode at once, never plays. The shared script then presses Replay (not under reduced motion).
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='normal')unpose();else pose(!(loopTog.checked&&motionOk));
+    refresh();
+  });
+  new ResizeObserver(layout).observe(stage);
+  document.fonts.ready.then(layout);
+
   document.getElementById('btn-play').addEventListener('click',play);
-  loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  loopTog.addEventListener('change',()=>{if(loopTog.checked)play();else restLater()});
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      refresh();
     }));
   }
   choices('speed-seg',d=>{ms=+d.ms});
   choices('stagger-seg',d=>{stagger=+d.stagger});
   choices('method-seg',d=>{stage.dataset.method=d.method});
   choices('feel-seg',d=>{ease=d.ease});
+  words();
   apply();
 </script>
 </body>
