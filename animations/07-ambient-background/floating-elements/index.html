@@ -32,6 +32,23 @@
     .fg-body{font-size:13px;color:rgba(255,255,255,.72);line-height:1.6}
     /* On phones and short screens the card shrinks to leave the shapes in view */
     @media(max-width:600px),(max-height:760px){.fg-card{padding:12px 14px}.fg-eyebrow{margin-bottom:4px}.fg-title{margin-bottom:0}.fg-body{display:none}}
+    /* See inside and Compare: a canvas for the marks, a second set of shapes for the first half, a divider, and plain words on dark pills */
+    .guide,.copy-layer,.divide,.lbl{display:none}
+    .guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+    .divide{position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:#2a2e3a;z-index:3}
+    .lbl{position:absolute;left:0;top:0;z-index:20;padding:4px 9px;border-radius:999px;background:rgba(3,5,10,.92);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap;pointer-events:none}
+    .fl{width:max-content;max-width:calc(100% - 16px);white-space:normal}
+    .side{top:10px}.side.first{left:10px}.side.second{left:calc(50% + 10px)}
+    .k-cross::before{content:"+";color:var(--ui-accent);font-weight:700;margin-right:6px}
+    .k-oval::before,.k-push::before{content:"";display:inline-block;border:1px dashed #cfd2d8;margin-right:6px;vertical-align:-1px}
+    .k-oval::before{width:14px;height:9px;border-radius:50%}
+    .k-push::before{width:11px;height:11px;border-radius:50%}
+    .stage[data-hb-mode="inside"] .guide,.stage[data-hb-mode="compare"] .guide,.stage[data-hb-mode="compare"] .divide,.stage[data-hb-mode="compare"] .side,.stage[data-hb-mode="inside"] .fl:not([hidden]){display:block}
+    .stage[data-hb-mode="inside"] .fg-card,.stage[data-hb-mode="compare"] .fg-card{display:none}
+    .stage[data-hb-mode="compare"] .float-layer{top:40px;left:50%}
+    .stage[data-hb-mode="compare"] .copy-layer{display:block;left:0;right:50%}
+    .stage[data-hb-mode="compare"] .el.skip{display:none}
+    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}.side.first{left:6px}.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -54,17 +71,35 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="float-layer" id="float-layer" aria-hidden="true"></div>
+      <div class="float-layer copy-layer" id="copy-layer" aria-hidden="true" inert></div>
       <div class="fg-card">
         <div class="fg-eyebrow">Floating elements</div>
         <div class="fg-title">No two shapes move together</div>
         <div class="fg-body">Each shape follows its own slow path, so the motion never looks mechanical.</div>
       </div>
+      <div class="divide" aria-hidden="true"></div>
+      <canvas class="guide" id="guide" aria-hidden="true"></canvas>
+      <p class="lbl fl k-cross" aria-hidden="true" data-hb-caption>Cross: each shape's home spot</p>
+      <p class="lbl fl k-oval" aria-hidden="true" data-hb-caption>It wanders inside its own oval</p>
+      <p class="lbl fl" aria-hidden="true" data-hb-caption>Each at its own pace: one to two and a half minutes across and back</p>
+      <p class="lbl fl k-push" aria-hidden="true" data-hb-caption hidden>Shapes slide away from your pointer or finger</p>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>All in step</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Own paths</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each shape has its own home spot and wanders inside its own dashed oval, at its own pace, so no two ever move together.</p>
+      <p data-hb-for="compare" hidden>All in step moves every shape along the same path at the same time, like one sheet. Own paths gives every shape its own way and pace, so it looks alive.</p>
     </div>
   </section>
 
@@ -188,6 +223,24 @@
   let COUNT=8,SPD=0.5,RANGE=50,SHAPE='mixed',PAL='cool',ROT=true,PULSE=true,REACT=false;
   let elements=[];
 
+  // See inside and Compare: a canvas over the shapes for the marks, a second set of shapes for Compare's first half, the captions
+  // and the notes. NM is the room the half names take above each half, NP the steps of a path line, TAIL the time a path line
+  // covers for each unit of Speed.
+  const copyLayer=document.getElementById('copy-layer'),guide=document.getElementById('guide'),gx=guide.getContext('2d');
+  const caps=[...document.querySelectorAll('.fl')],paceCap=caps[2],pushCap=caps[3];
+  const noteIn=document.querySelector('[data-hb-for="inside"]'),noteCmp=document.querySelector('[data-hb-for="compare"]');
+  const phone=matchMedia('(max-width:600px),(max-height:500px)');
+  const ACCENT=getComputedStyle(document.documentElement).getPropertyValue('--ui-accent').trim();
+  const NM=40,NP=16,TAIL=6,TAU=Math.PI*2,DASH=[4,5],SOLID=[];
+  const FADE=['rgba(244,244,242,.12)','rgba(244,244,242,.25)','rgba(244,244,242,.42)','rgba(244,244,242,.7)']; // a path line, faintest part first
+  const SH={amp:0,freq:.55,phase:1.5,phaseY:1.4,rotSpd:.1,pulsePhs:0}; // what every shape in the first half shares: the middle of each range
+  const SP={x:0,y:0},PT={x:-999,y:-999,over:-1};
+  let mode='normal',copies=[],copiesOf=null,srot=0,DPR=1;
+  // The notes hold their moving words in the markup; the still ones show while the loop is paused
+  const GO_IN=noteIn.textContent,GO_CMP=noteCmp.textContent;
+  const STILL_IN='Inside, shown still: each shape has its own home spot and wanders inside its own dashed oval, at its own pace.';
+  const STILL_CMP='Shown still: the line behind each shape is its recent path, the same for all in All in step and different for each in Own paths.';
+
   const PALETTES={
     cool:['rgba(88,166,255,.3)','rgba(100,80,220,.3)','rgba(56,200,180,.25)'],
     warm:['rgba(255,166,87,.3)','rgba(248,81,73,.3)','rgba(255,210,100,.25)'],
@@ -222,29 +275,65 @@
       el.style.borderRadius='50%';el.style.background=col;
     }
     layer.appendChild(el);
-    return{el,bx,by,amp,freq,phase,phaseY,rotSpd,pulsePhs,rot:0};
+    return{el,sz,bx,by,amp,freq,phase,phaseY,rotSpd,pulsePhs,rot:0,px:0,py:0,hx:0,hy:0,off:false};
   }
 
-  // Writes each shape's position, turn and opacity for t: every frame, after rebuild(), and after a setting changes while paused
+  // Where a shape sits at time tt in a box pw wide and ph tall: its home plus the two sways, then slid aside by the pointer when
+  // Shapes avoid the pointer is on. m holds its pace, drift and phases: its own, or the ones the first half shares. Writes SP.
+  function spot(bx,by,m,tt,pw,ph){
+    let x=bx/100*pw+Math.sin(m.freq*tt+m.phase)*m.amp;
+    let y=by/100*ph+Math.cos(m.freq*tt*0.7+m.phaseY)*m.amp*.6;
+    // Shapes avoid the pointer
+    if(REACT&&PT.x>0){
+      const dx=x-PT.x,dy=y-PT.y,d=Math.sqrt(dx*dx+dy*dy);
+      if(d>0&&d<120){const f=120-d;x+=dx/d*f*.08;y+=dy/d*f*.08;}
+    }
+    SP.x=x;SP.y=y;
+  }
+  // In Compare the pointer counts from the corner of the half it is over, so it acts at the same spot of both halves
+  function aimLocal(){
+    const cmp=mode==='compare';
+    PT.over=cmp&&mouse.x>0?(mouse.x>=W/2?1:0):-1;
+    PT.x=PT.over===1?mouse.x-W/2:mouse.x;
+    PT.y=cmp?mouse.y-NM:mouse.y;
+  }
+
+  // Writes each shape's position, turn and opacity for t: every frame, after rebuild(), and after a setting changes while paused.
+  // In Compare the real shapes fill the right half and their copies, moving by the shared numbers, the left one.
   function place(){
-    elements.forEach(e=>{
-      let x=e.bx/100*W+Math.sin(e.freq*t+e.phase)*e.amp;
-      let y=e.by/100*H+Math.cos(e.freq*t*0.7+e.phaseY)*e.amp*.6;
-      // Shapes avoid the pointer
-      if(REACT&&mouse.x>0){
-        const dx=x-mouse.x,dy=y-mouse.y,d=Math.sqrt(dx*dx+dy*dy);
-        if(d>0&&d<120){const f=120-d;x+=dx/d*f*.08;y+=dy/d*f*.08;}
-      }
+    aimLocal();
+    const cmp=mode==='compare',pw=cmp?W/2:W,ph=cmp?H-NM:H;
+    for(const e of elements){
+      spot(e.bx,e.by,e,t,pw,ph);
+      e.px=SP.x;e.py=SP.y;e.hx=e.bx/100*pw+e.sz/2;e.hy=e.by/100*ph+e.sz/2;
       const op=PULSE?0.4+0.3*Math.sin(e.pulsePhs+t*.5):0.5;
-      e.el.style.transform=`translate(${x.toFixed(1)}px,${y.toFixed(1)}px) rotate(${(ROT?e.rot:0).toFixed(1)}deg)`;
+      e.el.style.transform=`translate(${SP.x.toFixed(1)}px,${SP.y.toFixed(1)}px) rotate(${(ROT?e.rot:0).toFixed(1)}deg)`;
       e.el.style.opacity=op;
-    });
+    }
+    if(!cmp)return;
+    SH.amp=RANGE*.75;
+    const op=PULSE?0.4+0.3*Math.sin(t*.5):0.5;
+    for(let i=0;i<copies.length;i++){
+      spot(elements[i].bx,elements[i].by,SH,t,pw,ph);
+      copies[i].style.transform=`translate(${SP.x.toFixed(1)}px,${SP.y.toFixed(1)}px) rotate(${(ROT?srot:0).toFixed(1)}deg)`;
+      copies[i].style.opacity=op;
+    }
   }
 
   function rebuild(){
     layer.textContent='';
     elements=Array.from({length:COUNT},mkEl);
+    if(mode==='compare')copies=buildCopies();
     place();
+    if(mode!=='normal'){layout();draw();}
+  }
+  // One inert, hidden copy of each shape, made again whenever the shapes are
+  function buildCopies(){
+    copyLayer.textContent='';copiesOf=elements;
+    return elements.map(e=>{
+      const c=e.el.cloneNode(false);c.setAttribute('aria-hidden','true');c.inert=true;
+      copyLayer.appendChild(c);return c;
+    });
   }
 
   // One pending frame at a time: Pause cancels it, Play starts one loop again. A step moves t and each turn (a third of a step in
@@ -257,7 +346,8 @@
     const k=dt/FRAME*(slowTog.checked?1/3:1);
     t+=SPD*.005*k;
     if(ROT)elements.forEach(e=>{e.rot+=e.rotSpd*k});
-    place();
+    if(ROT&&mode==='compare')srot+=SH.rotSpd*k;
+    place();draw();
   }
   function start(){if(raf)return;lastT=null;raf=requestAnimationFrame(loop)}
 
@@ -266,6 +356,13 @@
     paused=e.detail.paused;
     if(paused){cancelAnimationFrame(raf);raf=null}
     else start();
+    notes();
+  });
+  // The mode switch draws the mode at once, paused or not. The real shapes and their time carry on unchanged for Normal.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    if(mode==='compare'&&copiesOf!==elements)copies=buildCopies();
+    place();layout();draw();notes();
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null});
@@ -274,7 +371,10 @@
   function resize(){
     const w=stage.clientWidth,h=stage.clientHeight;
     if(w===W&&h===H)return;
-    W=w;H=h;place();
+    W=w;H=h;DPR=Math.min(window.devicePixelRatio||1,2);
+    guide.width=Math.round(W*DPR);guide.height=Math.round(H*DPR);
+    place();
+    if(mode!=='normal'){layout();draw();}
   }
 
   // The pointer's position comes from pointermove and pointerdown, so a finger resting on the stage counts too
@@ -292,20 +392,132 @@
     }));
   }
   // While paused, a setting that changes how the shapes look places them again so the change shows
-  function still(){if(paused)place()}
+  function still(){if(paused){place();draw()}}
   // The settings that build the shapes ignore a press on the choice already made, so it does not scatter a new arrangement
   choices('count-seg',d=>{if(+d.n===COUNT)return;COUNT=+d.n;rebuild()});
-  choices('speed-seg',d=>{SPD=+d.spd;still()});
+  choices('speed-seg',d=>{SPD=+d.spd;pace();still()});
   choices('range-seg',d=>{if(+d.px===RANGE)return;RANGE=+d.px;rebuild()});
   choices('shape-seg',d=>{if(d.shape===SHAPE)return;SHAPE=d.shape;rebuild()});
   choices('pal-seg',d=>{if(d.pal===PAL)return;PAL=d.pal;rebuild()});
   document.getElementById('rot-tog').addEventListener('change',e=>{ROT=e.target.checked;still()});
   document.getElementById('pulse-tog').addEventListener('change',e=>{PULSE=e.target.checked;still()});
-  document.getElementById('react-tog').addEventListener('change',e=>{REACT=e.target.checked;still()});
+  document.getElementById('react-tog').addEventListener('change',e=>{
+    REACT=e.target.checked;pushCap.hidden=!REACT;still();
+    if(mode==='inside'){placeCaps();draw()}
+  });
+
+  // Which shapes a half shows (every other one on a phone in Compare, so a half keeps Normal's crowd), then the captions
+  function layout(){
+    const thin=mode==='compare'&&phone.matches;
+    elements.forEach((e,i)=>{
+      e.off=thin&&i%2===1;e.el.classList.toggle('skip',e.off);
+      if(copies[i])copies[i].classList.toggle('skip',e.off);
+    });
+    placeCaps();
+  }
+  // See inside's captions each take the free spot nearest their own corner, at the widest wrap that has one: clear of every cross
+  // and the other captions and, if it can be, of the ovals the shapes wander in. Worked out when the picture, its size or the
+  // words change, not every frame.
+  const hit=(a,b,c,d,x,y,w,h)=>a<x+w&&x<a+c&&b<y+h&&y<b+d;
+  function placeCaps(){
+    if(mode!=='inside')return;
+    const done=[];
+    caps.forEach((c,i)=>{
+      if(c.hidden)return;
+      let pick=null,best=Infinity,seen=0;
+      for(const mw of [W-16,260,200,150]){
+        c.style.maxWidth=mw+'px';c.style.left=c.style.top='0px';
+        const w=c.offsetWidth,h=c.offsetHeight,fx=i%2?W-8-w:8,fy=i<2?8:H-8-h;
+        if(w===seen)continue;seen=w;
+        for(let y=8;y<=Math.max(8,H-8-h);y+=8)for(let x=8;x<=Math.max(8,W-8-w);x+=8){
+          let s=Math.hypot(x-fx,y-fy)*.05+(h-24)*1.6; // a longer wrap costs
+          for(const e of elements){
+            if(hit(x,y,w,h,e.hx-12,e.hy-12,24,24))s+=1e6;
+            else if(hit(x,y,w,h,e.hx-e.amp,e.hy-e.amp*.6,e.amp*2,e.amp*1.2))s+=60;
+          }
+          for(const d of done)if(hit(x-6,y-6,w+12,h+12,d[0],d[1],d[2],d[3]))s+=1e9;
+          if(s<best){best=s;pick=[x,y,w,h,mw]}
+        }
+      }
+      c.style.maxWidth=pick[4]+'px';c.style.left=pick[0]+'px';c.style.top=pick[1]+'px';done.push(pick);
+    });
+  }
+  // The pace caption works out how long the quickest and slowest shapes take to go across and back from Speed (slow motion
+  // included), in half minutes
+  const HALVES=['','half a','one','one and a half','two','two and a half','three','three and a half','four','four and a half'];
+  function pace(){
+    const rate=SPD*.3*(slowTog.checked?1/3:1),a=Math.round(TAU/(.8*rate)/30),b=Math.round(TAU/(.3*rate)/30);
+    const unit=n=>n<3?' minute':' minutes';
+    const span=b>9?Math.max(1,Math.round(a/2))+' to '+Math.round(b/2)+' minutes'
+      :a===b?'about '+HALVES[a]+unit(a):(a<2?'half a minute':HALVES[a])+' to '+HALVES[b]+unit(b);
+    const s='Each at its own pace: '+span+' across and back';
+    if(paceCap.textContent===s)return;
+    paceCap.textContent=s;placeCaps();
+  }
+  slowTog.addEventListener('change',()=>{pace();still()});
+  function notes(){
+    const a=paused?STILL_IN:GO_IN,b=paused?STILL_CMP:GO_CMP;
+    if(noteIn.textContent!==a)noteIn.textContent=a;
+    if(noteCmp.textContent!==b)noteCmp.textContent=b;
+  }
+
+  // The canvas over the shapes, cleared and drawn again each frame (and at once when paused) from the shapes' own numbers
+  function draw(){
+    if(mode==='normal')return;
+    gx.setTransform(DPR,0,0,DPR,0,0);gx.clearRect(0,0,W,H);
+    if(mode==='inside')inside();else compare();
+  }
+  // See inside: each shape's home (a cross), the oval it wanders in (twice its drift wide, 0.6 of that tall), a line from home to
+  // the shape's middle (a dot), and while the pointer is over the box a ring as far as it pushes. All at the shape's middle.
+  function inside(){
+    gx.setLineDash(DASH);gx.strokeStyle='rgba(244,244,242,.4)';gx.lineWidth=1;gx.beginPath();
+    for(const e of elements){gx.moveTo(e.hx+e.amp,e.hy);gx.ellipse(e.hx,e.hy,e.amp,e.amp*.6,0,0,TAU)}
+    if(REACT&&PT.x>0){gx.moveTo(PT.x+120,PT.y);gx.arc(PT.x,PT.y,120,0,TAU)}
+    gx.stroke();gx.setLineDash(SOLID);
+    gx.strokeStyle='rgba(255,255,255,.65)';gx.beginPath();
+    for(const e of elements){gx.moveTo(e.hx,e.hy);gx.lineTo(e.px+e.sz/2,e.py+e.sz/2)}
+    gx.stroke();
+    gx.fillStyle='#fff';gx.beginPath();
+    for(const e of elements){gx.moveTo(e.px+e.sz/2+3,e.py+e.sz/2);gx.arc(e.px+e.sz/2,e.py+e.sz/2,3,0,TAU)}
+    gx.fill();
+    gx.strokeStyle=ACCENT;gx.lineWidth=1.5;gx.beginPath();
+    for(const e of elements){gx.moveTo(e.hx-6,e.hy);gx.lineTo(e.hx+6,e.hy);gx.moveTo(e.hx,e.hy-6);gx.lineTo(e.hx,e.hy+6)}
+    gx.stroke();
+  }
+  // Compare: in each half every shape trails a line that fades away behind it, its path over a stretch of time worked out from its
+  // numbers (the first half's shared, the second's own); a dashed ring in the half the pointer is not over shows where it pushes.
+  // A shape that has left its half takes its line with it.
+  function compare(){
+    const pw=W/2,ph=H-NM,span=TAIL*SPD,per=NP/4;
+    for(let h=0;h<2;h++){
+      gx.save();gx.beginPath();gx.rect(h*pw,NM,pw,ph);gx.clip();gx.translate(h*pw,NM);
+      gx.lineWidth=1.5;gx.lineCap='round';
+      for(let q=0;q<4;q++){
+        gx.strokeStyle=FADE[q];gx.beginPath();
+        for(const e of elements){
+          spot(e.bx,e.by,h?e:SH,t,pw,ph);
+          if(e.off||SP.x<-e.sz||SP.x>pw||SP.y<-e.sz||SP.y>ph)continue;
+          for(let j=q*per;j<=(q+1)*per;j++){
+            spot(e.bx,e.by,h?e:SH,t-span*(1-j/NP),pw,ph);
+            if(j>q*per)gx.lineTo(SP.x+e.sz/2,SP.y+e.sz/2);else gx.moveTo(SP.x+e.sz/2,SP.y+e.sz/2);
+          }
+        }
+        gx.stroke();
+      }
+      if(REACT&&PT.over>=0&&PT.over!==h){
+        gx.setLineDash(DASH);gx.lineWidth=1;gx.strokeStyle='rgba(244,244,242,.4)';gx.beginPath();
+        gx.arc(PT.x,PT.y,120,0,TAU);gx.stroke();gx.setLineDash(SOLID);
+      }
+      gx.restore();
+    }
+  }
 
   resize();
   rebuild();
+  pace();
   window.addEventListener('resize',resize);
+  phone.addEventListener('change',()=>{if(mode==='compare'){layout();place();draw()}});
+  if(document.fonts)document.fonts.ready.then(placeCaps);
   start();
 </script>
 </body>
