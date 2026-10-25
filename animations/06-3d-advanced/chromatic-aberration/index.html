@@ -55,6 +55,50 @@
       86%{transform:translate(calc(var(--ca-amt)*2),calc(var(--ca-amt)*-1))}
       88%{transform:var(--b-t)}
     }
+    /* See inside and Compare. Their parts are built by the script and not shown in Normal, so Normal is as it was. In a mode the
+       stage becomes a grid; a hidden copy of the word at Normal's own size stays in the flow, so the box is as tall as Normal's. */
+    .ca-real{display:contents}
+    .ca-ruler,.ca-minis,.ca-first,.ca-cap{display:none}
+    .ca-cap{position:relative;z-index:2;margin:0;padding:3px 8px;border-radius:6px;background:rgba(4,6,12,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font);text-align:center}
+    .ca-short{display:none}
+    /* A copy of the word, on its own or stacked plainly: its layers do not add light and take their shifts from the root variables */
+    .ca-copy .ca-layer{mix-blend-mode:normal}
+    .ca-copy .ca-r{transform:var(--r-t)}
+    .ca-copy .ca-b{transform:var(--b-t)}
+    .ca-mini .ca-layer.base .ca-text{-webkit-text-stroke:1px rgba(205,210,222,.55)}
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);column-gap:clamp(12px,3vw,28px);justify-content:normal;align-items:stretch}
+    .stage[data-hb-mode="inside"] .ca-ruler,.stage[data-hb-mode="compare"] .ca-ruler{display:flex;align-items:center;justify-content:center;grid-area:1/1/-1/-1;visibility:hidden;pointer-events:none}
+    .stage[data-hb-mode="inside"] .ca-real,.stage[data-hb-mode="compare"] .ca-real,.stage[data-hb-mode="compare"] .ca-first{display:flex;flex-direction:column;align-items:center;min-width:0;min-height:0;overflow:hidden;contain:size}
+    /* See inside: the three copies apart at two fifths of the word's size, each over a faint outline of the word unshifted, and the real word */
+    .stage[data-hb-mode="inside"] .ca-minis{display:grid;grid-area:1/1;grid-template-columns:fit-content(55%) auto;justify-content:center;align-content:center;align-items:center;gap:16px 24px;min-width:0;min-height:0;overflow:hidden;contain:size}
+    .stage[data-hb-mode="inside"] .ca-mini{display:contents}
+    .stage[data-hb-mode="inside"] .ca-minis .ca-cap{display:block;text-align:left;white-space:nowrap}
+    .stage[data-hb-mode="inside"] .ca-minis .ca-text{font-size:calc(var(--ca-fs)*.4)}
+    .stage[data-hb-mode="inside"] .ca-real{grid-area:1/2;justify-content:center;gap:12px}
+    .stage[data-hb-mode="inside"] .ca-real .ca-text{font-size:var(--ca-fs)}
+    .stage[data-hb-mode="inside"] .ca-sum{display:block}
+    /* Compare: the same word twice, stacked plainly (the blue copy hides the others) and as set (the light adds up) */
+    .stage[data-hb-mode="compare"] .ca-first{grid-area:1/1}
+    .stage[data-hb-mode="compare"] .ca-real{grid-area:1/2}
+    .stage[data-hb-mode="compare"] .ca-real .ca-text,.stage[data-hb-mode="compare"] .ca-first .ca-text{font-size:var(--ca-fs)}
+    .stage[data-hb-mode="compare"] .ca-real .ca-wrap,.stage[data-hb-mode="compare"] .ca-first .ca-wrap{margin:auto}
+    .stage[data-hb-mode="compare"] .ca-name{display:block}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;left:50%;top:24px;bottom:24px;width:1px;background:rgba(255,255,255,.14)}
+    /* Where the three copies and their names do not fit beside the word, they sit in a row above it, named by color only */
+    @media(max-width:900px){
+      .ca-long{display:none}
+      .ca-short{display:inline}
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(0,2fr) minmax(0,3fr);row-gap:0}
+      .stage[data-hb-mode="inside"] .ca-minis{grid-template-columns:repeat(3,minmax(0,1fr));gap:0 8px}
+      .stage[data-hb-mode="inside"] .ca-mini{display:flex;flex-direction:column;align-items:center;gap:14px;min-width:0}
+      .stage[data-hb-mode="inside"] .ca-minis .ca-text{font-size:calc(var(--ca-fs)*.4)}
+      .stage[data-hb-mode="inside"] .ca-real{grid-area:2/1;padding-top:10px}
+    }
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr));row-gap:0}
+      .stage[data-hb-mode="compare"] .ca-real{grid-area:2/1}
+      .stage[data-hb-mode="compare"]::after{left:16px;right:16px;top:50%;bottom:auto;width:auto;height:1px}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -77,17 +121,28 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
-      <div class="ca-wrap pulse" id="ca-wrap">
-        <div class="ca-layer base"><div class="ca-text" id="ca-base-text">PRISM</div></div>
-        <div class="ca-layer ca-r" id="ca-r" aria-hidden="true"><div class="ca-text" id="ca-r-text">PRISM</div></div>
-        <div class="ca-layer ca-g" id="ca-g" aria-hidden="true"><div class="ca-text" id="ca-g-text">PRISM</div></div>
-        <div class="ca-layer ca-b" id="ca-b" aria-hidden="true"><div class="ca-text" id="ca-b-text">PRISM</div></div>
+      <div class="ca-real">
+        <div class="ca-wrap pulse" id="ca-wrap">
+          <div class="ca-layer base"><div class="ca-text" id="ca-base-text">PRISM</div></div>
+          <div class="ca-layer ca-r" id="ca-r" aria-hidden="true"><div class="ca-text" id="ca-r-text">PRISM</div></div>
+          <div class="ca-layer ca-g" id="ca-g" aria-hidden="true"><div class="ca-text" id="ca-g-text">PRISM</div></div>
+          <div class="ca-layer ca-b" id="ca-b" aria-hidden="true"><div class="ca-text" id="ca-b-text">PRISM</div></div>
+        </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the word is three copies, shown apart: red shifted one way, blue the other, green in place. Their light adds up, so where all three meet it is white.</p>
+      <p data-hb-for="compare" hidden>Copies cover just stacks the three copies, so the blue one on top hides the rest. Copies add up adds their light: white where they meet, color at the edges.</p>
     </div>
   </section>
 
@@ -199,8 +254,14 @@
     vars.setProperty('--ca-amt',amt+'px');
     vars.setProperty('--ca-angle',angle+'deg');
   }
+  // Every copy of the word is found by class, so Your text reaches the views too
   function setText(t){
-    ['ca-base-text','ca-r-text','ca-g-text','ca-b-text'].forEach(id=>{document.getElementById(id).textContent=t});
+    document.querySelectorAll('.ca-text').forEach(n=>{n.textContent=t});
+    fit();
+  }
+  // Movement is one class on the wrap of the real word and of each copy
+  function setMove(m){
+    wraps.forEach(w=>{w.classList.remove('pulse','glitch');if(m!=='none')w.classList.add(m)});
   }
 
   function choices(id,pick){
@@ -211,8 +272,7 @@
     }));
   }
   choices('move-seg',d=>{
-    wrap.classList.remove('pulse','glitch');
-    if(d.move!=='none')wrap.classList.add(d.move);
+    setMove(d.move);
     applyOffset();
   });
   choices('amt-seg',d=>{amt=+d.amt;applyOffset()});
@@ -222,6 +282,91 @@
   txtIn.addEventListener('input',()=>{const v=txtIn.value;setText(v.trim()?v:'PRISM')});
 
   applyOffset();
+
+  // See inside and Compare. Their parts are built once here from the real word: no ids, out of reach of readers and clicks.
+  const stage=document.querySelector('.stage'),realBox=wrap.parentNode;
+  const wraps=[wrap];
+  let mode='normal';
+  function make(tag,cls,parent,text){
+    const n=document.createElement(tag);n.className=cls;
+    if(text)n.textContent=text;
+    if(parent)parent.appendChild(n);
+    return n;
+  }
+  function hide(n){n.setAttribute('aria-hidden','true');n.inert=true;return n}
+  function caption(cls,parent,long,short){
+    const p=make('p','ca-cap '+cls,parent);
+    p.setAttribute('data-hb-caption','');p.setAttribute('aria-hidden','true');
+    if(short){make('span','ca-long',p,long);make('span','ca-short',p,short)}else p.textContent=long;
+    return p;
+  }
+  // A copy of the word; keep is 'r', 'g' or 'b' for one colored layer on its own, nothing for all three
+  function copyWord(keep){
+    const w=wrap.cloneNode(true);
+    w.classList.add('ca-copy');
+    [w,...w.querySelectorAll('[id]')].forEach(n=>n.removeAttribute('id'));
+    w.querySelectorAll('.ca-layer').forEach(l=>{
+      l.removeAttribute('style');
+      if(keep&&!l.classList.contains('base')&&!l.classList.contains('ca-'+keep))l.remove();
+    });
+    wraps.push(w);
+    return w;
+  }
+  // A hidden copy of the word at Normal's own size stays in the flow in a mode, so the box is as tall as in Normal for any text
+  const ruler=hide(make('div','ca-ruler',stage));
+  const rulerBase=make('div','ca-layer base',make('div','ca-wrap',ruler));
+  const rulerText=make('div','ca-text',rulerBase,document.getElementById('ca-base-text').textContent);
+  const minis=hide(make('div','ca-minis',stage));
+  [['r','Red copy, shifted one way','Red'],['g','Green copy, in place','Green'],['b','Blue copy, shifted the other way','Blue']].forEach(([k,long,short])=>{
+    const row=make('div','ca-mini',minis);
+    row.appendChild(copyWord(k));
+    caption('',row,long,short);
+  });
+  const first=hide(make('div','ca-first',stage));
+  caption('ca-name',first,'Copies cover');
+  first.appendChild(copyWord());
+  realBox.insertBefore(caption('ca-name',null,'Copies add up'),realBox.firstChild);
+  caption('ca-sum',realBox,'Added together: white where all three meet, color at the edges');
+
+  // A copy starts from zero when it is first shown, so it takes the time and speed of the real red or blue layer
+  function syncCopies(){
+    [[rLayer,'.ca-r'],[bLayer,'.ca-b']].forEach(([src,sel])=>{
+      const a=src.getAnimations()[0];
+      if(!a||a.currentTime==null)return;
+      wraps.forEach(w=>{
+        if(w===wrap)return;
+        w.querySelectorAll(sel).forEach(l=>{
+          const c=l.getAnimations()[0];
+          if(!c)return;
+          const copy=()=>{c.currentTime=a.currentTime;c.playbackRate=a.playbackRate};
+          copy();
+          c.ready.then(copy,()=>{}); // a copy just shown starts a frame later, so it is set again as it starts
+        });
+      });
+    });
+  }
+  // One font size for the mode, from the word's size in Normal, made smaller until each view fits the room Normal's box gives it
+  function fits(box){
+    const b=box.getBoundingClientRect();
+    return [...box.querySelectorAll('.ca-layer.base,.ca-cap')].every(n=>{
+      if(!n.getClientRects().length)return true;
+      const r=n.getBoundingClientRect();
+      return r.top>=b.top-1&&r.bottom<=b.bottom+1;
+    });
+  }
+  function fit(){
+    if(mode==='normal')return;
+    const boxes=mode==='inside'?[minis,realBox]:[first,realBox];
+    let s=parseFloat(getComputedStyle(rulerText).fontSize)*(mode==="compare"?.85:1);
+    for(let i=0;i<30;i++){
+      stage.style.setProperty('--ca-fs',s.toFixed(1)+'px');
+      if(s<6||boxes.every(fits))break;
+      s*=.92;
+    }
+  }
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;syncCopies();fit()});
+  addEventListener('resize',fit);
+  if(document.fonts)document.fonts.ready.then(fit);
 </script>
 </body>
 </html>
