@@ -63,6 +63,49 @@
     .crt-inner{position:absolute;inset:-5%;background:radial-gradient(ellipse at center,transparent 60%,rgba(0,0,0,.5) 100%)}
     /* Glowing text (via CSS on terminal) */
     .phosphor .term-line{text-shadow:0 0 8px #58a6ff,0 0 20px rgba(88,166,255,.3)}
+    /* See inside and Compare: every rule here names one of them, so Normal is drawn as it always was. The wrapper around the beam
+       only stands in for it (it draws nothing in Normal); the views reuse the page's own layers, so every setting reaches them. */
+    .beam-card{display:contents}
+    .band-start,.cap,.side,.sweep-arrow,.copy{display:none}
+    .cap,.side{position:absolute;z-index:8;padding:3px 8px;border-radius:5px;background:rgba(8,8,10,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font)}
+    /* See inside: the layers pulled apart into cards at two fifths of the box, fanned from the top left (the screen, at the back)
+       to the bottom right (the front), in the order they lie in Normal. The script gives each shown card its place along the
+       fan (--f, 0 to 1) and the stage a margin for the arrow (--mr). A card is the layer itself, scaled and moved with scale and
+       translate (the beam's own animation keeps running), except the lines: their card is laid out at its size, so the lines
+       keep their real spacing instead of blurring into a gray wash. Captions are drawn at their size over the cards. */
+    .stage[data-hb-mode="inside"]{--m:8px;--mr:0px}
+    .stage[data-hb-mode="inside"] :is(.screen-content,.crt-wrap,.beam-card){scale:.4;translate:calc(var(--m) + var(--f,0) * (60% - 2 * var(--m) - var(--mr)) - 30%) calc(var(--m) + var(--f,0) * (60% - 2 * var(--m)) - 30%);outline:5px solid rgba(244,244,242,.6);outline-offset:-5px}
+    .stage[data-hb-mode="inside"] .screen-content{z-index:1;background:#0c131c;align-items:flex-end;padding-bottom:18px}
+    .stage[data-hb-mode="inside"] .crt-wrap{z-index:2;overflow:hidden;background:#7d848f}
+    .stage[data-hb-mode="inside"] .scanlines{z-index:3;inset:auto;width:40%;height:40%;left:calc(var(--m) + var(--f,0) * (60% - 2 * var(--m) - var(--mr)));
+      top:calc(var(--m) + var(--f,0) * (60% - 2 * var(--m)));top:round(calc(var(--m) + var(--f,0) * (60% - 2 * var(--m))),1px);background-color:#d3d7dd;outline:2px solid rgba(244,244,242,.6);outline-offset:-2px}
+    .stage[data-hb-mode="inside"] .beam-card{display:block;position:absolute;inset:0;z-index:4;overflow:hidden;background:#1f2733}
+    .stage[data-hb-mode="inside"] .beam-card.off{display:none}
+    /* Where each sweep starts: the band's own size at the top of its card (ruling 2: the sweep is drawn at card size), and an arrow
+       beside the card for its path */
+    .stage[data-hb-mode="inside"] .band-start{display:block;position:absolute;left:14px;right:14px;top:0;height:120px;z-index:7;
+      border:5px dashed rgba(244,244,242,.5);border-top:0}
+    .stage[data-hb-mode="inside"] :is(.cap-screen,.cap-corners,.cap-lines){left:calc(var(--m) + var(--f,0) * (60% - 2 * var(--m) - var(--mr)) + 6px);top:calc(var(--m) + var(--f,0) * (60% - 2 * var(--m)) + 6px);white-space:nowrap}
+    .stage[data-hb-mode="inside"] .cap-beam{right:calc(40% + var(--m) + var(--mr) + 6px);bottom:var(--m);max-width:calc(60% - var(--m) - var(--mr) - 14px)}
+    .stage[data-hb-mode="inside"] .cap:not([hidden]){display:block}
+    .stage[data-hb-mode="inside"] .sweep-arrow{position:absolute;z-index:8;right:14px;top:calc(60% - var(--m) + 6px);bottom:calc(var(--m) + 14px);width:2px;background:rgba(244,244,242,.7)}
+    .stage[data-hb-mode="inside"] .sweep-arrow:not([hidden]){display:block}
+    .stage[data-hb-mode="inside"] .sweep-arrow::after{content:"";position:absolute;left:-5px;bottom:-9px;border:6px solid transparent;border-top:9px solid rgba(244,244,242,.7);border-bottom:0}
+    .stage[data-hb-mode="inside"] .phosphor .term-line{text-shadow:0 0 16px #58a6ff,0 0 40px rgba(88,166,255,.45)}
+    /* Compare: the plain terminal on the left, the real screen with its lines, beam and corners on the right half. The layers keep
+       their rules and only move their left edge to the middle, so the beam's sweep carries on. Both scenes start under the names. */
+    .stage[data-hb-mode="compare"]{background:#142031}
+    .stage[data-hb-mode="compare"] .screen-content{top:38px;padding:6px}
+    .stage[data-hb-mode="compare"] .copy{display:flex;right:50%}
+    .stage[data-hb-mode="compare"] .screen-content:not(.copy){left:50%}
+    .stage[data-hb-mode="compare"] :is(.scanlines,.beam,.crt-wrap){left:50%}
+    .stage[data-hb-mode="compare"] .crt-wrap{overflow:hidden}
+    .stage[data-hb-mode="compare"] .terminal{padding:12px 12px 8px}
+    .stage[data-hb-mode="compare"] .term-bar{margin-bottom:8px}
+    .stage[data-hb-mode="compare"] .term-line{white-space:nowrap}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;top:0;bottom:0;left:50%;width:2px;margin-left:-1px;background:rgba(244,244,242,.35);z-index:7}
+    .stage[data-hb-mode="compare"] .side{display:block;top:8px}
+    .side-a{left:8px}.side-b{left:calc(50% + 8px)}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -85,6 +128,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
       <div class="screen-content">
         <div class="terminal" id="terminal">
@@ -97,12 +145,26 @@
         </div>
       </div>
       <div class="scanlines" aria-hidden="true"></div>
-      <div class="beam" id="beam" aria-hidden="true"></div>
+      <div class="beam-card" aria-hidden="true">
+        <div class="beam" id="beam" aria-hidden="true"></div>
+        <div class="band-start"></div>
+      </div>
       <div class="crt-wrap" id="crt-wrap" aria-hidden="true"><div class="crt-inner"></div></div>
+      <span class="cap cap-screen" data-hb-caption aria-hidden="true">The screen</span>
+      <span class="cap cap-corners" data-hb-caption aria-hidden="true" hidden>Dark corners</span>
+      <span class="cap cap-lines" data-hb-caption aria-hidden="true">Thin dark lines</span>
+      <span class="cap cap-beam" data-hb-caption aria-hidden="true">A band of light sweeps down every 4 seconds</span>
+      <i class="sweep-arrow" aria-hidden="true"></i>
+      <span class="side side-a" data-hb-caption aria-hidden="true">Plain screen</span>
+      <span class="side side-b" data-hb-caption aria-hidden="true">Scanlines</span>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the layers are pulled apart: the screen, a sheet of thin dark lines laid over it and a soft band of light that sweeps down again and again.</p>
+      <p data-hb-for="compare" hidden>Plain screen is the same terminal with nothing over it. Scanlines lays thin dark lines across it and sweeps a soft band of light down, like an old tube screen.</p>
     </div>
   </section>
 
@@ -244,6 +306,93 @@
   document.getElementById('glow-tog').addEventListener('change',e=>{
     document.getElementById('terminal').classList.toggle('phosphor',e.target.checked);
   });
+
+  // See inside and Compare. The listener for the mode switch comes first and the rest follows it.
+  const stage=document.querySelector('.stage'),scene=stage.querySelector('.screen-content');
+  const beamCard=beam.parentElement,crt=document.getElementById('crt-wrap'),lines=stage.querySelector('.scanlines');
+  const crtTog=document.getElementById('crt-tog'),slowTog=document.getElementById('slow-tog'),arrow=stage.querySelector('.sweep-arrow');
+  const cap={screen:stage.querySelector('.cap-screen'),corners:stage.querySelector('.cap-corners'),lines:stage.querySelector('.cap-lines'),beam:stage.querySelector('.cap-beam')};
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  let mode='normal',paused=reduceMQ.matches,posed=true;
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;if(!paused)posed=false;describe()});
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    layout();sweepWords();
+    if(mode==='compare')syncBlink();
+    if(mode!=='normal')poseBeam();
+    describe();
+  });
+  reduceMQ.addEventListener('change',()=>{if(mode!=='normal')poseBeam();describe()});
+
+  // Compare's plain half: a copy of the terminal made once, without its id, inert and hidden from screen readers. It never gets
+  // the glow, which belongs to the effect.
+  const copy=scene.cloneNode(true);
+  copy.classList.add('copy');copy.inert=true;copy.setAttribute('aria-hidden','true');
+  copy.querySelectorAll('[id]').forEach(el=>el.removeAttribute('id'));
+  scene.before(copy);
+  // The copy's cursor starts blinking when Compare first shows it: it takes the real cursor's time, so both blink together.
+  function syncBlink(){
+    const real=scene.querySelector('.term-cursor').getAnimations()[0],twin=copy.querySelector('.term-cursor').getAnimations()[0];
+    if(real&&twin&&real.currentTime!=null)twin.currentTime=real.currentTime;
+  }
+
+  // The cards fan out in the order the layers lie in Normal: the screen, the corners, the lines, the beam. Each shown card (and
+  // its caption) gets its place along the fan, and the stage a margin on the right for the beam's arrow.
+  function layout(){
+    const beamOn=beamTog.checked,cornersOn=crtTog.checked,parts=[[scene,cap.screen]];
+    if(cornersOn)parts.push([crt,cap.corners]);
+    parts.push([lines,cap.lines]);
+    if(beamOn)parts.push([beamCard,null]);
+    parts.forEach(([card,label],i)=>{
+      card.style.setProperty('--f',i/(parts.length-1));
+      if(label)label.style.setProperty('--f',i/(parts.length-1));
+    });
+    cap.corners.hidden=!cornersOn;cap.beam.hidden=arrow.hidden=!beamOn;
+    beamCard.classList.toggle('off',!beamOn);
+    stage.style.setProperty('--mr',beamOn?'22px':'0px');
+  }
+  // The beam's caption says how long a sweep takes now: Beam speed, three times as long in slow motion
+  function sweepWords(){
+    const words='A band of light sweeps down every '+ +(beamSecs*(slowTog.checked?3:1)).toFixed(1)+' seconds';
+    if(cap.beam.textContent!==words)cap.beam.textContent=words;
+  }
+  // Under reduced motion the loop rests wherever it was paused, perhaps with the band out of sight: a mode shows the band at
+  // the point of its sweep where the page starts it, on screen
+  function poseBeam(){
+    const a=reduceMQ.matches&&paused&&beam.getAnimations()[0];
+    if(a){a.currentTime=0;posed=true}
+  }
+  // The notes: the markup holds the words for a moving band; these are the others. The still ones show only while the loop is
+  // paused under reduced motion (and, with the band, only while it stands where a mode posed it), and a note is written only when
+  // its words change, as its box is read out loud.
+  const notes={inside:document.querySelector('[data-hb-for="inside"]'),compare:document.querySelector('[data-hb-for="compare"]')};
+  const WORDS={
+    inside:{
+      moving:notes.inside.textContent,
+      still:'Inside, the layers are pulled apart and shown still: the screen, a sheet of thin dark lines and a band of light; the arrow shows its sweep.',
+      plain:'Inside, the layers are pulled apart: the screen and a sheet of thin dark lines laid over it, like the rows of an old tube screen.',
+      plainStill:'Inside, the layers are pulled apart and shown still: the screen and a sheet of thin dark lines laid over it.'},
+    compare:{
+      moving:notes.compare.textContent,
+      still:'Plain screen is the same terminal with nothing over it. Scanlines, shown still, lays thin dark lines across it, with a soft band of light part way down.',
+      plain:'Plain screen is the same terminal with nothing over it. Scanlines lays thin dark lines across it, like the rows of an old tube screen.'}
+  };
+  WORDS.compare.plainStill=WORDS.compare.plain;
+  function describe(){
+    const still=reduceMQ.matches&&paused;
+    for(const k in notes){
+      const w=WORDS[k],words=beamTog.checked?(still&&posed?w.still:w.moving):(still?w.plainStill:w.plain);
+      if(notes[k].textContent!==words)notes[k].textContent=words;
+    }
+  }
+  beamTog.addEventListener('change',()=>{
+    if(beamTog.checked&&paused)posed=true; // a beam shown anew starts where the page starts it
+    layout();sweepWords();describe();
+  });
+  crtTog.addEventListener('change',layout);
+  slowTog.addEventListener('change',sweepWords);
+  document.querySelectorAll('#speed-seg button').forEach(b=>b.addEventListener('click',sweepWords));
+  layout();sweepWords();describe();
 </script>
 </body>
 </html>
