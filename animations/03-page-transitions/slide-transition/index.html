@@ -21,9 +21,9 @@
   <meta name="twitter:image" content="https://matinmonshizadeh.github.io/animation-handbook/og-image.png">
   <script type="application/ld+json">{"@context": "https://schema.org", "@type": "TechArticle", "headline": "Slide Transition", "name": "Slide Transition", "description": "Pages slide across, and going back slides the other way. Best for step flows.", "url": "https://matinmonshizadeh.github.io/animation-handbook/animations/03-page-transitions/slide-transition/", "inLanguage": "en", "articleSection": "Page Transitions", "isPartOf": {"@type": "WebSite", "name": "Animation Handbook", "url": "https://matinmonshizadeh.github.io/animation-handbook/"}, "author": {"@type": "Person", "name": "matinmonshizadeh"}, "keywords": "web animation, CSS animation, Page Transitions, Slide Transition"}</script>
   <style>
-    :root{--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
+    :root{--zoom:.3;--bg:#0b0b0d;--ui-bg:#111114;--ui-border:rgba(255,255,255,.09);--ui-accent:#b98cff;--ui-text:#f4f4f2;--ui-muted:#8a8a92}
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    .stage{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
+    .stage{position:relative;display:flex;flex-direction:column;overflow:hidden;background:var(--bg);color:var(--ui-text)}
     .mini-nav{display:flex;gap:6px;padding:10px 12px;background:var(--ui-bg);border-bottom:1px solid var(--ui-border);flex-shrink:0}
     .nav-btn{background:none;border:1px solid var(--ui-border);color:var(--ui-muted);font:inherit;font-size:13px;padding:0 12px;border-radius:4px;cursor:pointer;min-height:44px}
     .nav-btn.active{border-color:var(--ui-accent);color:var(--ui-accent)}
@@ -44,6 +44,56 @@
     /* Short windows leave the page area under 220px: tighter spacing keeps the tallest page inside it with room to spare */
     @media(max-height:640px){.pc{gap:8px}.gi{padding:12px}}
     @media(prefers-reduced-motion:reduce){.page{transition:none!important}}
+    /* The small site: its nav row over its page area. In Compare a copy of it, the twin, sits beside it. */
+    .box{position:relative;display:flex;flex-direction:column;flex:1;min-height:0;min-width:0}
+    .twin,.zv,.side{display:none}
+    .twin .nav-btn{display:inline-flex;align-items:center}
+    .lbl{padding:2px 6px;border-radius:5px;background:rgba(8,8,10,.92);color:var(--ui-text);font:600 12px/1.25 var(--hb-font);white-space:nowrap}
+    /* See inside: the page area drawn at a third of its size around its middle, with its edge off, so the track shows: the old
+       page's way out and the new page's way in lie beside the box, which is the middle place. A layer over the page area (not
+       the nav) dims all but the box, outlines where the new page started and draws the arrow and the labels at their own size. */
+    .stage[data-hb-mode="inside"] .page-area{overflow:visible;scale:var(--zoom)}
+    .stage[data-hb-mode="inside"] .page.away{visibility:hidden}
+    .stage[data-hb-mode="inside"] .zv{display:block}
+    .zv{position:absolute;left:0;right:0;overflow:hidden;pointer-events:none}
+    .zwin,.zstart{position:absolute;border-radius:3px}
+    .zwin{border:2px solid var(--ui-accent);box-shadow:0 0 0 100vmax rgba(11,11,13,.62)}
+    .zstart{border:2px dashed rgba(244,244,242,.65)}
+    .zar{position:absolute;border-radius:2px;background:var(--ui-accent)}
+    .zar::after{content:"";position:absolute;border:solid transparent}
+    .zar.h::after{top:-5px;right:-3px;border-width:6.5px 0 6.5px 10px;border-left-color:var(--ui-accent)}
+    .zar.h.rev::after{right:auto;left:-3px;border-width:6.5px 10px 6.5px 0;border-left-color:transparent;border-right-color:var(--ui-accent)}
+    .zar.v::after{left:-5px;bottom:-3px;border-width:10px 6.5px 0;border-top-color:var(--ui-accent)}
+    .zl{position:absolute;text-align:center}
+    .zl[hidden]{display:none}
+    .zl.zbox{color:var(--ui-accent)}
+    .zl.zlen{width:max-content;white-space:normal;text-wrap:balance}
+    /* Compare: on the left a copy of the site that changes page at once; on the right the real site. At rest the real one is held a
+       fifth of the way into the new page's slide: the old page part way out, the new one part way in. */
+    .stage[data-hb-mode="compare"]{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:2px;background:#2a2a30}
+    .stage[data-hb-mode="compare"] .box{background:var(--bg)}
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .side{display:block}
+    .side{position:absolute;bottom:10px;z-index:11}
+    .side.first{left:10px}
+    .side.second{left:calc(50% + 10px)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .mini-nav{gap:4px;padding:6px}
+      .stage[data-hb-mode="compare"] .nav-btn{padding:0 6px;font-size:12px;min-width:44px;justify-content:center}
+      .stage[data-hb-mode="compare"] .pc{padding:12px;gap:6px}
+      .stage[data-hb-mode="compare"] .ph{font-size:16px}
+    }
+    /* Phones and short windows leave the page area short: the page keeps only its eyebrow and heading, clear of the half names */
+    @media(max-width:600px),(max-height:650px){
+      .stage[data-hb-mode="compare"] .pp,.stage[data-hb-mode="compare"] .pgrid,.stage[data-hb-mode="compare"] .pstat{display:none}
+    }
+    /* From 360px down the halves stack; a stacked half is short, so its page text starts at the top, clear of its name */
+    @media(max-width:360px){
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .side.first{bottom:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"] .side.second{left:10px}
+      .stage[data-hb-mode="compare"] .pc{justify-content:flex-start}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,14 +116,36 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Click it</h2><p>Click Work or About at the top of the box, or press Show me.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage">
-      <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
-      <div class="page-area" id="page-area"></div>
+      <div class="box" id="box">
+        <nav class="mini-nav" id="nav" aria-label="Demo pages"></nav>
+        <div class="page-area" id="page-area"></div>
+        <div class="zv" id="zv" aria-hidden="true">
+          <span class="zwin" id="zwin"></span><span class="zstart" id="zstart"></span><span class="zar" id="zar"></span>
+          <p class="lbl zl zbox" id="l-box" data-hb-caption>The box</p>
+          <p class="lbl zl" id="l-old" data-hb-caption>Old page<br>slides out</p>
+          <p class="lbl zl" id="l-new" data-hb-caption>New page<br>slides in</p>
+          <p class="lbl zl zlen" id="l-len" data-hb-caption>Each slide takes half a second</p>
+          <p class="lbl zl" id="l-start" data-hb-caption>Started here</p>
+          <p class="lbl zl" id="l-gap" data-hb-caption>Gap: the new<br>page starts later</p>
+        </div>
+      </div>
+      <p class="lbl side first" aria-hidden="true" data-hb-caption>Switches at once</p>
+      <p class="lbl side second" aria-hidden="true" data-hb-caption>Slides across</p>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-demo" data-hb-demo><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.037 4.688a.495.495 0 0 1 .651-.651l16 6.5a.5.5 0 0 1-.063.947l-6.124 1.58a2 2 0 0 0-1.438 1.435l-1.579 6.126a.5.5 0 0 1-.947.063z"/></svg>Show me</button>
       <button class="hb-play" type="button" id="btn-reset" data-hb-reset><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Reset</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, the view is zoomed out: the box is a window, and the old and new page slide past it together, like panels on a track. Click Work or About, or press Show me.</p>
+      <p data-hb-for="compare" hidden>Switches at once simply changes page; Slides across moves the old page out one way as the new one comes in from the other end. Click Work or About, or press Show me.</p>
     </div>
   </section>
 
@@ -172,16 +244,27 @@
     {name:'Work',bg:'linear-gradient(135deg,#0d1f15,#152e1e)',html:`<div class="pc"><div class="pe">Selected Work</div><p class="ph">The Portfolio</p><div class="pgrid">${['Atlas','Orbit','Prism','Lumen','Frame','Echo'].map(n=>`<div class="gi">${n}</div>`).join('')}</div></div>`},
     {name:'About',bg:'linear-gradient(135deg,#1f0d26,#2e1540)',html:`<div class="pc"><div class="pe">Our Story</div><p class="ph">Built on conviction.</p><p class="pp">18 people who care unreasonably about craft. Independent since 2016.</p><div class="pstat"><div><b>140+</b><span>Projects</span></div><div><b>9</b><span>Years</span></div><div><b>3</b><span>Continents</span></div></div></div>`},
   ];
+  const box=document.getElementById('box'),stage=box.parentElement;
   const nav=document.getElementById('nav'),area=document.getElementById('page-area'),slowTog=document.getElementById('slow-tog');
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   let current=0,animating=false,dirMode='auto',dur=500,stagger=0,ease='cubic-bezier(.2,.7,.3,1)',afterMove=null,wayBack=0,timers=[];
+  let mode='normal',byUser=false,tour=false,tourStart=0,backTo=0,run=null,poses=[];
   const pages=[],navBtns=[];
 
   PAGES.forEach((p,i)=>{
     const d=document.createElement('div');d.className='page';d.style.background=p.bg;d.innerHTML=p.html;area.appendChild(d);pages.push(d);
     const b=document.createElement('button');b.type='button';b.className='nav-btn';b.textContent=p.name;
-    b.addEventListener('click',()=>navigate(i));nav.appendChild(b);navBtns.push(b);
+    b.addEventListener('click',()=>{if(i!==current&&!animating)byUser=true;navigate(i)});nav.appendChild(b);navBtns.push(b);
   });
+  // Compare's first half: the same small site, changing page at once. A copy built from the same pages, with no ids and no
+  // buttons, out of the Tab order and hidden from screen readers; it changes page the moment a change of the real site starts.
+  const twin=document.createElement('div');
+  twin.className='box twin';twin.inert=true;twin.setAttribute('aria-hidden','true');
+  twin.innerHTML=`<div class="mini-nav">${PAGES.map(p=>`<span class="nav-btn">${p.name}</span>`).join('')}</div>`+
+    `<div class="page-area">${PAGES.map(p=>`<div class="page" style="background:${p.bg}">${p.html}</div>`).join('')}</div>`;
+  box.before(twin);
+  const twinPages=[...twin.querySelectorAll('.page')],twinNav=[...twin.querySelectorAll('.nav-btn')];
+  function showTwin(n){twinPages.forEach((el,i)=>{el.style.transform=i===n?'':'translateX(100%)'});twinNav.forEach((b,i)=>b.classList.toggle('active',i===n))}
 
   // Drops a timer's id once it fires, so `timers` only holds the ones still waiting.
   function later(fn,wait){
@@ -213,20 +296,32 @@
   // The resting state for page n, at once
   function showPage(n){
     pages.forEach((el,i)=>rest(el,i===n));
-    updateNav(n);
+    updateNav(n);showTwin(n);
   }
 
+  // The pages keep their layers (will-change) for good, so a resize while a slide runs leaves them drawn from a stale size, their
+  // text a shade off a fresh draw. After that run the layers are dropped for two frames and drawn again.
+  let stale=false;
+  addEventListener('resize',()=>{if(animating||tour)stale=true});
+  function renew(){
+    stale=false;
+    pages.forEach(p=>{p.style.willChange='auto'});
+    requestAnimationFrame(()=>requestAnimationFrame(()=>pages.forEach(p=>{p.style.willChange=''})));
+  }
   // Ends a slide: the demo is idle again, and a Show me run goes on to its next step
   function finish(){
-    animating=false;
+    animating=false;run=null;
     const then=afterMove;afterMove=null;
     if(then)then();
+    if(stale&&!tour)renew();
+    pose();
   }
   // Stops everything at once and shows the resting state for `current`
   function settle(){
-    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;
+    timers.forEach(clearTimeout);timers=[];wayBack=0;afterMove=null;run=null;
     animating=false;
     showPage(current);
+    pose();
   }
 
   function getDir(prev,next){
@@ -238,10 +333,10 @@
 
   function navigate(next,then){
     if(next===current||animating)return;
-    const prev=current;current=next;updateNav(next);
-    afterMove=then||null;
+    const prev=current;current=next;updateNav(next);showTwin(next);
+    afterMove=then||null;run={prev,next};animating=true;
+    pose();                               // the change begins: the mode's pose goes
     if(!motionOk){showPage(next);finish();return}
-    animating=true;
     const scale=slowTog.checked?3:1;
     doTransition(prev,next,dur*scale,stagger*scale,ease);
   }
@@ -263,29 +358,126 @@
   }
 
   // Show me: one visit to the next page, a hold of 1200ms, and the way back to where the run started
+  // A second press while a run is under way goes back to where the first one began
   function showMe(){
-    settle();
-    const start=current;
-    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start)},1200)});
+    const start=tour?tourStart:current;
+    current=start;byUser=false;settle();
+    tour=true;tourStart=backTo=start;
+    navigate((start+1)%PAGES.length,()=>{wayBack=later(()=>{wayBack=0;navigate(start,()=>{tour=false})},1200)});
   }
-  function reset(){current=0;settle()}
+  function reset(){current=0;tour=byUser=false;settle()}
 
   document.getElementById('btn-demo').addEventListener('click',showMe);
   document.getElementById('btn-reset').addEventListener('click',reset);
   // The visitor took over: cancel what the run has not started yet. A slide already moving finishes on its own.
-  document.addEventListener('hb:input',()=>{afterMove=null;cancel(wayBack);wayBack=0});
+  document.addEventListener('hb:input',()=>{
+    const had=tour||wayBack;
+    afterMove=null;cancel(wayBack);wayBack=0;tour=false;
+    if(had){byUser=true;pose()}
+  });
+
+  // ---- See inside and Compare
+  const $=id=>document.getElementById(id);
+  const Z=parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--zoom'));
+  const zv=$('zv'),zwin=$('zwin'),zstart=$('zstart'),zar=$('zar'),phone=matchMedia('(max-width:600px),(max-height:500px)');
+  const L={};['box','old','new','len','start','gap'].forEach(k=>{L[k]=$('l-'+k)});
+  const LEN={300:'about a third of a second',500:'half a second',800:'nearly a second',900:'nearly a second',1500:'a second and a half',2400:'two and a half seconds'};
+  // Under reduced motion the notes say what the still shows, and change with whether the pose is up
+  const STILL={
+    inside:['Shown still and zoomed out: the box is a window over a track of pages. Press Reset to see the old page part way out and the new one part way in.',
+      'Shown still and zoomed out: the box is a window, with the old page part way out of it and the new one part way in from the other end.'],
+    compare:['Shown still: both halves show the same page. Press Reset to see Slides across caught part way, the old page sliding out as the new one slides in.',
+      'Shown still: Switches at once has already changed page; Slides across is caught part way, the old page sliding out as the new one slides in.']};
+
+  function axis(prev,next){const d=getDir(prev,next);return{dir:Math.abs(d)===2?'Y':'X',sign:d<0?-1:1}}
+  // The change a mode shows: the one under way, else the one Show me would make next (or its way back)
+  function change(){return run||{prev:current,next:wayBack?backTo:(current+1)%PAGES.length}}
+  // One page's slide, with the page's own length and curve, held at `t` ms
+  function hold(el,from,to,t){
+    const a=el.animate([{transform:from},{transform:to}],{duration:dur,easing:ease,fill:'both'});
+    a.pause();a.currentTime=t;return a;
+  }
+  // At rest in a mode the change stands still a fifth of the way into the new page's slide (the old page, which started
+  // earlier by the gap, further out). Any change lifts it. It comes back after a Show me run, a mode press, a setting or
+  // Reset, but not right after the visitor's own click; a resize only lays the view out again.
+  function pose(){
+    poses.forEach(a=>a.cancel());poses=[];
+    const c=change(),on=mode!=='normal'&&!animating&&!wayBack&&!byUser;
+    const show=on||animating?[c.prev,c.next]:[current];
+    pages.forEach((el,i)=>el.classList.toggle('away',mode==='inside'&&!show.includes(i)));
+    if(on){
+      const{dir,sign}=axis(c.prev,c.next);
+      poses=[hold(pages[c.prev],`translate${dir}(0)`,`translate${dir}(${sign*100}%)`,.2*dur+stagger),
+        hold(pages[c.next],`translate${dir}(${-sign*100}%)`,`translate${dir}(0)`,.2*dur)];
+    }
+    // the nav marks the page the change is heading for, as it does the moment a real change starts
+    const shown=on?c.next:current;
+    showTwin(shown);navBtns.forEach((b,i)=>b.classList.toggle('active',i===shown));
+    words();layout();
+  }
+  function words(){
+    const t='Each slide takes '+LEN[dur*(slowTog.checked?3:1)];
+    if(L.len.textContent!==t)L.len.textContent=t;
+    if(motionOk||mode==='normal')return;
+    const note=document.querySelector(`[data-hb-for="${mode}"]`),txt=STILL[mode][poses.length?1:0];
+    if(note.textContent!==txt)note.textContent=txt;
+  }
+  function put(el,l,t,w,h){el.style.cssText=`left:${l}px;top:${t}px;width:${w}px;height:${h}px`}
+  // Spreads labels along a line: each wants its middle at c, none touches another, all stay between lo and hi
+  function spread(items,lo,hi){
+    items.sort((a,b)=>a.c-b.c);
+    let x=lo;items.forEach(i=>{i.at=Math.max(i.c-i.s/2,x);x=i.at+i.s+6});
+    x=hi;for(let k=items.length-1;k>=0;k--){items[k].at=Math.min(items[k].at,x-items[k].s);x=items[k].at-6}
+  }
+  // See inside, drawn from the box's measured size: the window in the middle, the new page's start place and the old page's
+  // end place beside it (above and below it when the track is upright), the arrow along the track and the labels
+  function layout(){
+    if(mode!=='inside')return;
+    const c=change(),{dir,sign}=axis(c.prev,c.next),H=dir==='X';
+    const W=area.offsetWidth,A=area.offsetHeight,w=W*Z,h=A*Z,l=(W-w)/2,t=(A-h)/2;
+    const ux=H?sign*w:0,uy=H?0:h,x0=l+w/2-ux,y0=t+h/2-uy;
+    zv.style.cssText=`top:${area.offsetTop}px;height:${A}px`;
+    put(zwin,l,t,w,h);put(zstart,l-ux,t-uy,w,h);
+    zar.className=H?(sign<0?'zar h rev':'zar h'):'zar v';
+    put(zar,H?Math.min(x0,x0+2*ux):l-13.5,H?t-13.5:y0,H?2*Math.abs(ux):3,H?3:2*uy);
+    // the gap lies between the two posed pages
+    const mid=H?l+w/2:t+h/2,step=H?ux:uy;
+    let g=mid;
+    if(poses.length){
+      const o=pages[c.prev].getBoundingClientRect(),n=pages[c.next].getBoundingClientRect(),z=zv.getBoundingClientRect();
+      g=H?(sign>0?n.right+o.left:o.right+n.left)/2-z.left:(n.bottom+o.top)/2-z.top;
+    }
+    L.start.hidden=phone.matches;L.gap.hidden=phone.matches||!stagger;
+    Object.values(L).forEach(e=>{e.style.left=e.style.top='0px'});
+    // the length shares the top row with the two page labels when the track lies across, the left column when it is upright
+    L.len.style.maxWidth=Math.min(230,H?W-22-L.new.offsetWidth-L.old.offsetWidth:l-30)+'px';
+    const line=(row,at)=>{
+      const it=row.map(([k,c])=>({e:L[k],c})).filter(i=>!i.e.hidden);
+      it.forEach(i=>{i.s=H?i.e.offsetWidth:i.e.offsetHeight});
+      spread(it,4,(H?W:A)-4);
+      it.forEach(i=>{const[x,y]=at(i);i.e.style.left=x+'px';i.e.style.top=y+'px'});
+    };
+    line(H?[['new',mid-step],['len',mid],['old',mid+step]]:[['new',mid-step],['box',mid],['old',mid+step]],
+      i=>H?[i.at,t-24-i.e.offsetHeight]:[l+w+8,i.at]);
+    line(H?[['start',mid-step],['box',mid],['gap',g]]:[['start',mid-step],['len',mid],['gap',g]],
+      i=>H?[i.at,t+h+7]:[l-26-i.e.offsetWidth,i.at]);
+  }
+  document.addEventListener('hb:mode',e=>{mode=e.detail.mode;byUser=false;pose()});
+  new ResizeObserver(layout).observe(stage);
+  document.fonts.ready.then(layout);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
-      pick(b.dataset);
+      pick(b.dataset);byUser=false;pose();
     }));
   }
   choices('dir-seg',d=>{dirMode=d.dir});
   choices('speed-seg',d=>{dur=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
   choices('gap-seg',d=>{stagger=+d.ms});
+  slowTog.addEventListener('change',pose);
   showPage(0);
 </script>
 </body>
