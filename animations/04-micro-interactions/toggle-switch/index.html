@@ -423,9 +423,10 @@
     // Only what the view changes is put in place without sliding: a slide already under way goes on
     if(leaving||stage.classList.contains('posed')!==(mode==='compare'&&!running()))snap(draw);else draw();
   });
-  // The visitor presses a switch in Compare: the held moment lifts first, so the knob starts from where it really stands
+  // The visitor presses a switch in Compare: the held moment lifts as the press ends, before the switch flips, so the knob starts from where it
+  // really stands; a finger that only scrolls the page across a row ends in pointercancel and leaves it
   function lift(){wanted=false;if(stage.classList.contains('posed'))snap(()=>setPose(false));else notes()}
-  stage.addEventListener('pointerdown',e=>{if(e.isTrusted&&mode==='compare'&&e.target.closest('.tog-row:not(.cp)'))lift()},true);
+  stage.addEventListener('pointerup',e=>{if(e.isTrusted&&mode==='compare'&&e.target.closest('.tog-row:not(.cp)'))lift()},true);
   stage.addEventListener('keydown',e=>{if(e.isTrusted&&mode==='compare'&&e.key===' '&&e.target.closest('.sw'))lift()},true);
   boxes.forEach(b=>b.addEventListener('change',()=>{if(stage.classList.contains('posed'))lift();sync()}));
   slowTog.addEventListener('change',describe);
