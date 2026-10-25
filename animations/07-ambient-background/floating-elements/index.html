@@ -48,7 +48,7 @@
     .stage[data-hb-mode="compare"] .float-layer{top:40px;left:50%}
     .stage[data-hb-mode="compare"] .copy-layer{display:block;left:0;right:50%}
     .stage[data-hb-mode="compare"] .el.skip{display:none}
-    @media(max-width:360px){.lbl{font-size:12px;padding:3px 7px}.side.first{left:6px}.side.second{left:calc(50% + 6px)}}
+    @media(max-width:360px){.lbl{font-size:12px;line-height:15px;padding:3px 7px}.side.first{left:6px}.side.second{left:calc(50% + 6px)}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -235,7 +235,7 @@
   const FADE=['rgba(244,244,242,.12)','rgba(244,244,242,.25)','rgba(244,244,242,.42)','rgba(244,244,242,.7)']; // a path line, faintest part first
   const SH={amp:0,freq:.55,phase:1.5,phaseY:1.4,rotSpd:.1,pulsePhs:0}; // what every shape in the first half shares: the middle of each range
   const SP={x:0,y:0},PT={x:-999,y:-999,over:-1};
-  let mode='normal',copies=[],copiesOf=null,srot=0,DPR=1;
+  let mode='normal',copies=[],copiesOf=null,srot=0,DPR=1,IB=0; // IB: the room See inside's captions take along the top on a phone
   // The notes hold their moving words in the markup; the still ones show while the loop is paused
   const GO_IN=noteIn.textContent,GO_CMP=noteCmp.textContent;
   const STILL_IN='Inside, shown still: each shape has its own home spot and wanders inside its own dashed oval, at its own pace.';
@@ -295,14 +295,14 @@
     const cmp=mode==='compare';
     PT.over=cmp&&mouse.x>0?(mouse.x>=W/2?1:0):-1;
     PT.x=PT.over===1?mouse.x-W/2:mouse.x;
-    PT.y=cmp?mouse.y-NM:mouse.y;
+    PT.y=mouse.y-(cmp?NM:IB);
   }
 
   // Writes each shape's position, turn and opacity for t: every frame, after rebuild(), and after a setting changes while paused.
   // In Compare the real shapes fill the right half and their copies, moving by the shared numbers, the left one.
   function place(){
     aimLocal();
-    const cmp=mode==='compare',pw=cmp?W/2:W,ph=cmp?H-NM:H;
+    const cmp=mode==='compare',pw=cmp?W/2:W,ph=cmp?H-NM:H-IB;
     for(const e of elements){
       spot(e.bx,e.by,e,t,pw,ph);
       e.px=SP.x;e.py=SP.y;e.hx=e.bx/100*pw+e.sz/2;e.hy=e.by/100*ph+e.sz/2;
@@ -362,7 +362,7 @@
   document.addEventListener('hb:mode',e=>{
     mode=e.detail.mode;
     if(mode==='compare'&&copiesOf!==elements)copies=buildCopies();
-    place();layout();draw();notes();
+    layout();draw();notes();
   });
   // A tab that comes back after being hidden has no earlier frame to measure from, so its first frame adds no step
   document.addEventListener('visibilitychange',()=>{lastT=null});
@@ -403,24 +403,47 @@
   document.getElementById('pulse-tog').addEventListener('change',e=>{PULSE=e.target.checked;still()});
   document.getElementById('react-tog').addEventListener('change',e=>{
     REACT=e.target.checked;pushCap.hidden=!REACT;still();
-    if(mode==='inside'){placeCaps();draw()}
+    relay();
   });
 
-  // Which shapes a half shows (every other one on a phone in Compare, so a half keeps Normal's crowd), then the captions
+  // Which shapes a half shows (every other one on a phone in Compare, so a half keeps Normal's crowd), the room the captions
+  // take, the shapes in the room that is left, then the captions
   function layout(){
     const thin=mode==='compare'&&phone.matches;
     elements.forEach((e,i)=>{
       e.off=thin&&i%2===1;e.el.classList.toggle('skip',e.off);
       if(copies[i])copies[i].classList.toggle('skip',e.off);
     });
-    placeCaps();
+    band();place();placeCaps();
+  }
+  function relay(){if(mode==='inside'){layout();draw()}}
+  // On a phone or in a small box there is no spot the shapes never pass, so See inside's captions are packed into rows along the top,
+  // at the wrap that takes the least height, and the shapes, homes and marks live in the room under them
+  function band(){
+    let h=0;
+    if(mode==='inside'&&(phone.matches||W*H<190000)){
+      const on=caps.filter(c=>!c.hidden);let best=null;
+      for(const mw of [W-16,Math.min(300,W-16),Math.min(240,W-16)]){
+        let x=8,y=8,row=0;const at=[];
+        for(const c of on){
+          c.style.maxWidth=mw+'px';c.style.left=c.style.top='0px';
+          const w=c.offsetWidth,ch=c.offsetHeight;
+          if(x>8&&x+w>W-8){x=8;y+=row+4;row=0}
+          at.push([x,y]);x+=w+6;row=Math.max(row,ch);
+        }
+        if(!best||y+row+8<best.h-2)best={h:y+row+8,mw,at};
+      }
+      on.forEach((c,i)=>{c.style.maxWidth=best.mw+'px';c.style.left=best.at[i][0]+'px';c.style.top=best.at[i][1]+'px'});
+      h=best.h;
+    }
+    if(h!==IB){IB=h;layer.style.top=h?h+'px':''}
   }
   // See inside's captions each take the free spot nearest their own corner, at the widest wrap that has one: clear of every cross
   // and the other captions and, if it can be, of the ovals the shapes wander in. Worked out when the picture, its size or the
   // words change, not every frame.
   const hit=(a,b,c,d,x,y,w,h)=>a<x+w&&x<a+c&&b<y+h&&y<b+d;
   function placeCaps(){
-    if(mode!=='inside')return;
+    if(mode!=='inside'||IB)return;
     const done=[];
     caps.forEach((c,i)=>{
       if(c.hidden)return;
@@ -452,7 +475,7 @@
       :a===b?'about '+HALVES[a]+unit(a):(a<2?'half a minute':HALVES[a])+' to '+HALVES[b]+unit(b);
     const s='Each at its own pace: '+span+' across and back';
     if(paceCap.textContent===s)return;
-    paceCap.textContent=s;placeCaps();
+    paceCap.textContent=s;relay();
   }
   slowTog.addEventListener('change',()=>{pace();still()});
   function notes(){
@@ -470,6 +493,7 @@
   // See inside: each shape's home (a cross), the oval it wanders in (twice its drift wide, 0.6 of that tall), a line from home to
   // the shape's middle (a dot), and while the pointer is over the box a ring as far as it pushes. All at the shape's middle.
   function inside(){
+    gx.save();gx.beginPath();gx.rect(0,IB,W,H-IB);gx.clip();gx.translate(0,IB);
     gx.setLineDash(DASH);gx.strokeStyle='rgba(244,244,242,.4)';gx.lineWidth=1;gx.beginPath();
     for(const e of elements){gx.moveTo(e.hx+e.amp,e.hy);gx.ellipse(e.hx,e.hy,e.amp,e.amp*.6,0,0,TAU)}
     if(REACT&&PT.x>0){gx.moveTo(PT.x+120,PT.y);gx.arc(PT.x,PT.y,120,0,TAU)}
@@ -482,7 +506,7 @@
     gx.fill();
     gx.strokeStyle=ACCENT;gx.lineWidth=1.5;gx.beginPath();
     for(const e of elements){gx.moveTo(e.hx-6,e.hy);gx.lineTo(e.hx+6,e.hy);gx.moveTo(e.hx,e.hy-6);gx.lineTo(e.hx,e.hy+6)}
-    gx.stroke();
+    gx.stroke();gx.restore();
   }
   // Compare: in each half every shape trails a line that fades away behind it, its path over a stretch of time worked out from its
   // numbers (the first half's shared, the second's own); a dashed ring in the half the pointer is not over shows where it pushes.
@@ -516,8 +540,8 @@
   rebuild();
   pace();
   window.addEventListener('resize',resize);
-  phone.addEventListener('change',()=>{if(mode==='compare'){layout();place();draw()}});
-  if(document.fonts)document.fonts.ready.then(placeCaps);
+  phone.addEventListener('change',()=>{if(mode!=='normal'){layout();draw()}});
+  if(document.fonts)document.fonts.ready.then(relay);
   start();
 </script>
 </body>
