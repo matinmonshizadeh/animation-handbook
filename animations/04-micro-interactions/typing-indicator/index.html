@@ -44,6 +44,65 @@
     @keyframes ty-fade{0%,60%,100%{transform:scale(var(--small));opacity:.3}30%{transform:scale(1);opacity:1}}
     @keyframes ty-wave{0%,100%{transform:translateY(calc(var(--lift)*-.5));opacity:.55}50%{transform:translateY(var(--lift));opacity:1}}
     @media(prefers-reduced-motion:reduce){.typing{--hop:0px;--lift:0px;--small:1}}
+    /* See inside and Compare. Their parts are made by the script, hidden here and shown only by the mode rules. */
+    .ti-half,.ti-graph,.ti-name,.ti-now{display:none}
+    .ti-cap{position:absolute;padding:3px 7px;border-radius:5px;background:rgba(8,8,10,.9);color:#f4f4f2;font:600 12px/1.2 var(--hb-font);white-space:nowrap}
+    .ti-probe{position:fixed;left:-99px;top:0;visibility:hidden;pointer-events:none}
+    .ti-probe .dot{animation-play-state:paused}
+    .stage .ti-all .dot{animation-delay:0s}
+    /* Both modes show the bubble alone at twice its size; the chat around it steps aside, but the bubble and its dots stay drawn */
+    .stage[data-hb-mode="inside"],.stage[data-hb-mode="compare"]{display:grid;overflow:hidden}
+    .stage[data-hb-mode="inside"] .chat,.stage[data-hb-mode="compare"] .chat{display:flex;align-items:center;justify-content:center;width:auto;max-width:none;padding:0;border:0;border-radius:0;background:none}
+    .stage[data-hb-mode="inside"] .chat>:not(.typing),.stage[data-hb-mode="compare"] .chat>:not(.typing):not(.ti-name){display:none}
+    .stage[data-hb-mode="inside"] .typing,.stage[data-hb-mode="compare"] .typing{align-self:auto;margin:18px 35px;transform:scale(2)}
+    /* The graph: one row per dot, the dot's own round drawn from the keyframes, the next row a little later; the playhead rides the first dot's round */
+    .stage[data-hb-mode="inside"]{grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr);align-items:center;gap:clamp(8px,2vw,24px);padding:16px clamp(12px,2.5vw,24px)}
+    .stage[data-hb-mode="inside"] .ti-graph{display:flex}
+    .ti-graph{--tag:28px;--lane:0px;flex-direction:column;justify-content:center;gap:6px;align-self:stretch;min-width:0;min-height:0}
+    .ti-plot{position:relative;flex:1 1 0;min-height:0;max-height:192px;margin-top:var(--lane);display:flex;flex-direction:column}
+    .ti-row{flex:1 1 0;min-height:0;display:flex;gap:8px}
+    .ti-tag{flex:none;width:var(--tag);display:flex;align-items:center;justify-content:center;gap:3px}
+    .ti-tag i{width:6px;height:6px;border-radius:50%;background:var(--dot);opacity:.3}
+    .ti-tag i.on{opacity:1}
+    .ti-trace{position:relative;flex:1;min-width:0;border-bottom:1px solid rgba(255,255,255,.16)}
+    .ti-trace svg{position:absolute;left:0;top:4px;bottom:1px;width:100%;height:calc(100% - 5px);overflow:visible}
+    .ti-trace path,.ti-trace line{vector-effect:non-scaling-stroke}
+    .ti-cur{fill:none;stroke:var(--dot);stroke-width:2.5;stroke-linejoin:round}
+    .ti-area{fill:var(--dot);fill-opacity:.15}
+    .ti-tick{stroke:rgba(244,244,242,.5);stroke-dasharray:3 3}
+    .ti-over{position:absolute;inset:0 0 0 calc(var(--tag) + 8px);pointer-events:none}
+    .ti-band{position:absolute;left:90%;right:0;top:0;bottom:0;background:rgba(244,244,242,.09);border-left:1px dashed rgba(244,244,242,.5)}
+    .ti-wave .ti-band{display:none}
+    .ti-head{position:absolute;left:0;top:calc(-1*var(--lane));bottom:0;width:100%;animation:ti-sweep var(--dur) linear infinite}
+    .ti-line{position:absolute;left:-1px;top:0;bottom:0;width:2px;background:var(--ui-accent)}
+    .ti-now{right:100%;top:0;margin-right:3px}
+    .ti-notes{display:flex;flex-wrap:wrap;justify-content:space-between;gap:6px 10px}
+    .ti-note{position:static}
+    .ti-rest{margin-left:auto}
+    .ti-bar{position:relative;display:flex;justify-content:center;margin-left:calc(var(--tag) + 8px)}
+    .ti-bar::before{content:"";position:absolute;left:0;right:0;top:50%;height:10px;margin-top:-5px;border:solid rgba(244,244,242,.5);border-width:0 2px;background:linear-gradient(rgba(244,244,242,.5),rgba(244,244,242,.5)) center/100% 2px no-repeat}
+    .ti-round{position:relative;max-width:100%;white-space:normal;text-align:center}
+    @keyframes ti-sweep{from{transform:translateX(0)}to{transform:translateX(100%)}}
+    @media(min-width:601px) and (min-height:501px){.ti-graph{--lane:24px}.ti-now{display:block}}
+    /* Compare: the same bubble twice; first the common mistake, all three dots on one beat, then the real bubble */
+    .stage[data-hb-mode="compare"]{grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:minmax(0,1fr);align-items:stretch;gap:0;padding:0}
+    .stage[data-hb-mode="compare"] .ti-half{display:flex;flex-direction:column;border-right:1px solid rgba(255,255,255,.14)}
+    .stage[data-hb-mode="compare"] .ti-half,.stage[data-hb-mode="compare"] .chat{position:relative;min-width:0;padding:34px 8px 10px;align-items:center;justify-content:center}
+    .stage[data-hb-mode="compare"] .ti-name{display:block;top:8px;left:50%;transform:translateX(-50%)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);gap:8px;padding:12px}
+      .stage[data-hb-mode="inside"] .chat{justify-self:center}
+      .stage[data-hb-mode="compare"]{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(2,minmax(0,1fr))}
+      .stage[data-hb-mode="compare"] .ti-half{border-right:0;border-bottom:1px solid rgba(255,255,255,.14)}
+    }
+    /* Under reduced motion the dots are paused at the start of the round, which is a still of three resting dots: a mode starts them a
+       third of a round in (the first at its peak, the second rising, the third waiting), and the playhead stays at that place */
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] .dot,.stage[data-hb-mode="compare"] .dot{animation-delay:calc(var(--dur)*-.3)}
+      .stage[data-hb-mode="inside"] .chat .dot:nth-child(2),.stage[data-hb-mode="compare"] .chat .dot:nth-child(2){animation-delay:calc(var(--dur)*-.15)}
+      .stage[data-hb-mode="inside"] .chat .dot:nth-child(3),.stage[data-hb-mode="compare"] .chat .dot:nth-child(3){animation-delay:0s}
+      .ti-head{animation:none;transform:translateX(30%)}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -66,6 +125,11 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each dot take its turn.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="chat" role="group" aria-label="Chat with Maya">
         <div class="head"><span class="avatar" aria-hidden="true">M</span><p class="who">Maya<span class="state">typing…</span></p></div>
@@ -77,6 +141,10 @@
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each row is one dot's round: all three dots run the same round, each starting a little after the one before, so they move in turn.</p>
+      <p data-hb-for="compare" hidden>All at once: the three dots move together and read as a blink. One after another: each starts a little later, so they read as someone typing.</p>
     </div>
   </section>
 
@@ -158,7 +226,88 @@
 <script>
   const stage=document.querySelector('.stage'),bubble=document.getElementById('bubble');
   const vars=document.documentElement.style;
-  let dotMs=1200;
+  const slowTog=document.getElementById('slow-tog');
+  let dotMs=1200,style='bounce';
+
+  // See inside and Compare: their parts are made once, here, and only the mode rules show them. Nothing is drawn per frame: the
+  // playhead, the copy's dots and the real dots are CSS animations of the same length, which Pause, Slow motion and Speed all reach.
+  const SVG='http://www.w3.org/2000/svg',N=100;
+  const make=(tag,cls,kids=[],text)=>{const e=document.createElement(tag);e.className=cls;if(text)e.textContent=text;e.append(...kids);return e};
+  const shape=(tag,attrs)=>{const e=document.createElementNS(SVG,tag);for(const k in attrs)e.setAttribute(k,attrs[k]);return e};
+  const cap=(cls,text)=>{const e=make('span','ti-cap '+cls,[],text);e.setAttribute('data-hb-caption','');e.setAttribute('aria-hidden','true');return e};
+  const roundMs=()=>parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dur'));
+  // how much later each dot starts, in percent of a round, as the page's own styles give it (0, 15 and 30)
+  const SHIFT=[...bubble.children].map(d=>Math.round(parseFloat(getComputedStyle(d).animationDelay)*1000/roundMs()*100));
+  const copy=bubble.cloneNode(true);
+  ['id','role','aria-label'].forEach(a=>copy.removeAttribute(a));
+  const half=make('div','ti-half ti-all',[cap('ti-name','All at once'),copy]);
+  const rows=[0,1,2].map(n=>{
+    const area=shape('path',{class:'ti-area'}),line=shape('path',{class:'ti-cur'});
+    const pic=shape('svg',{viewBox:'0 0 100 20',preserveAspectRatio:'none'});
+    pic.append(area,line,shape('line',{class:'ti-tick',x1:SHIFT[n],x2:SHIFT[n],y1:10,y2:20}));
+    const tag=make('span','ti-tag',[0,1,2].map(k=>make('i',k===n?'on':'')));
+    return {area,line,row:make('div','ti-row',[tag,make('div','ti-trace',[pic])])};
+  });
+  const head=make('div','ti-head',[make('i','ti-line'),cap('ti-now','Now')]);
+  const round=cap('ti-note ti-round'),rest=cap('ti-note ti-rest');
+  const graph=make('div','ti-graph',[
+    make('div','ti-plot',[...rows.map(r=>r.row),make('div','ti-over',[make('i','ti-band'),head])]),
+    make('div','ti-notes',[cap('ti-note','Same round, each dot a little later'),rest]),
+    make('div','ti-bar',[round])]);
+  [half,graph].forEach(e=>{e.setAttribute('aria-hidden','true');e.inert=true});
+  bubble.parentNode.append(cap('ti-name','One after another'));
+  stage.prepend(half);stage.append(graph);
+
+  // The rows are the page's own dot, read off its running keyframes: a hidden dot with the same animation is held at 100 moments of
+  // its round and its brightness is read (it rises and falls with the movement). Each row is the same round, as much later as its dot starts.
+  const probe=make('div','ti-probe typing',[make('i','dot')]);
+  probe.setAttribute('aria-hidden','true');probe.inert=true;document.body.append(probe);
+  function drawRows(){
+    probe.className='ti-probe typing s-'+style;
+    const dot=probe.firstChild,ms=roundMs(),seen=[];
+    for(let i=0;i<N;i++){dot.style.animationDelay=-i/N*ms+'ms';seen.push(+getComputedStyle(dot).opacity)}
+    const lo=Math.min(...seen),span=Math.max(...seen)-lo;
+    rows.forEach((r,n)=>{
+      const d='M'+seen.concat(seen[0]).map((_,i)=>i+' '+(20-20*(seen[(i-SHIFT[n]+N)%N]-lo)/span).toFixed(1)).join('L');
+      r.line.setAttribute('d',d);r.area.setAttribute('d',d+'L100 20L0 20Z');
+    });
+  }
+  const ROUND={1800:['almost two seconds','over five seconds'],1200:['a little over a second','about three and a half seconds'],800:['under a second','about two and a half seconds']};
+  function words(){
+    const a='One round: '+ROUND[dotMs][+slowTog.checked],b=style==='wave'?'No rest: always moving':'All three rest here';
+    if(round.textContent!==a)round.textContent=a;
+    if(rest.textContent!==b)rest.textContent=b;
+    graph.classList.toggle('ti-wave',style==='wave');
+  }
+  // The playhead and the copy's dots take the real first dot's place in its round (they start when their mode is shown, and a new
+  // style starts the real dots over), at its pace; once more when each has started, as a new animation starts a frame later.
+  function follow(){
+    const real=bubble.querySelector('.dot').getAnimations()[0];
+    if(!real||real.currentTime==null)return;
+    const kin=[head,...copy.querySelectorAll('.dot')].flatMap(e=>e.getAnimations());
+    const mirror=()=>kin.forEach(a=>{a.playbackRate=real.playbackRate;a.currentTime=real.currentTime});
+    mirror();[real,...kin].forEach(a=>a.ready.then(mirror,()=>{}));
+  }
+  // Compare's rest pose: while paused, the halves are drawn a third of a round in (the copy's dots all at their peak; the real dots at
+  // their peak, rising and waiting), by moving each dot's delay, never its time, so Play carries on from where the loop stopped.
+  let paused=false;
+  function pose(){
+    const on=paused&&stage.dataset.hbMode==='compare',ms=roundMs();
+    [...bubble.querySelectorAll('.dot'),...copy.querySelectorAll('.dot')].forEach((d,i)=>{
+      const a=d.getAnimations()[0];
+      d.style.animationDelay=on&&a&&a.currentTime!=null?a.currentTime-(i<3?.3-SHIFT[i]/100:.3)*ms+'ms':'';
+      if(on&&a&&a.pending)a.ready.then(pose,()=>{}); // a pause takes hold a frame later, a little further on: draw the pose again
+    });
+  }
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;pose()});
+  drawRows();words();
+
+  const NAME={normal:'Maya is typing',inside:"Maya is typing, shown with a graph of each dot's round",compare:'Maya is typing, beside dots that move all at once'};
+  document.addEventListener('hb:mode',e=>{
+    bubble.setAttribute('aria-label',NAME[e.detail.mode]);
+    if(e.detail.mode!=='normal')follow();
+    pose();
+  });
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -168,7 +317,11 @@
     }));
   }
   // A new style starts the dots' round again from its beginning (paused there while the demo is paused).
-  choices('style-seg',d=>{bubble.classList.remove('s-bounce','s-fade','s-wave');bubble.classList.add('s-'+d.style)});
+  choices('style-seg',d=>{
+    style=d.style;
+    [bubble,copy].forEach(b=>{b.classList.remove('s-bounce','s-fade','s-wave');b.classList.add('s-'+style)});
+    drawRows();words();follow();pose();
+  });
   // A new --dur keeps the time already played, so every dot would jump to another point of its round. Scaling each dot's time by the
   // same factor as its length (its delay is a share of the length too) keeps the dots where they are, moving or paused.
   choices('speed-seg',d=>{
@@ -176,7 +329,9 @@
     stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/dotMs});
     dotMs=next;
     vars.setProperty('--dur',next+'ms');
+    words();pose();
   });
+  slowTog.addEventListener('change',words);
   choices('color-sw',d=>{vars.setProperty('--in',d.c);vars.setProperty('--dot',d.dot)});
 </script>
 </body>
