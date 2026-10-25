@@ -40,7 +40,49 @@
     .line-text.dir-rtl{clip-path:inset(0 0 0 100%)}
     .line-text.dir-ttb{clip-path:inset(0 0 100% 0)}
     .line-text.revealed{clip-path:inset(0 0% 0 0)!important}
-    @media(prefers-reduced-motion:reduce){.line-text{clip-path:inset(0)!important;transition:none!important}}
+    /* See inside and Compare. Each line has a faint copy under it and a bright edge over it. The edge takes the clip's own transition
+       from the same class, so it rides exactly with the window; it is as wide as the line and slid out of sight, its bar on the side
+       the window grows toward. The stage's other parts are placed from measured sizes (the script) and never change its height. */
+    .stage{position:relative}
+    .line-wrap{position:relative}
+    .ghost,.edge,.legend,.hn{display:none}
+    .ghost{position:absolute;inset:0;z-index:-1;font-size:clamp(28px,5vw,56px);font-weight:700;color:rgba(255,255,255,.25)}
+    .edge{position:absolute;inset:0;pointer-events:none;transform:translateX(-100%);transition:transform var(--line-dur) var(--ease)}
+    .edge::after{content:"";position:absolute;top:0;bottom:0;right:-1.5px;width:3px;background:var(--ui-accent)}
+    .line-text.dir-rtl~.edge{transform:translateX(100%)}
+    .line-text.dir-rtl~.edge::after{right:auto;left:-1.5px}
+    .line-text.dir-ttb~.edge{transform:translateY(-100%)}
+    .line-text.dir-ttb~.edge::after{top:auto;left:0;right:0;bottom:-1.5px;width:auto;height:3px}
+    .line-text.revealed~.edge{transform:none}
+    .twin{display:none;position:absolute;pointer-events:none}
+    .twin .line-text{clip-path:none!important;transition:none!important}
+    .cap{margin:0;padding:3px 8px;border-radius:5px;background:rgba(8,10,16,.92);color:#f4f4f2;font:600 13px/1.25 var(--hb-font)}
+    .cap.posecap{visibility:hidden;white-space:nowrap}
+    .stage[data-hb-mode="inside"] .line-wrap,.stage[data-hb-mode="compare"] .line-wrap{outline:1.5px dashed rgba(244,244,242,.4);outline-offset:-1.5px}
+    /* See inside: the real headline above, a key below it (three words for the three parts and, at rest, the pose's words) */
+    .stage[data-hb-mode="inside"] .line-wrap{isolation:isolate}
+    .stage[data-hb-mode="inside"] .ghost{display:block}
+    .stage[data-hb-mode="inside"] .edge{display:block}
+    .stage[data-hb-mode="inside"] .legend{display:flex;position:absolute;left:10px;right:10px;bottom:10px;flex-wrap:wrap;gap:6px;align-items:flex-start}
+    .legend .cap{display:flex;align-items:center;gap:8px;max-width:100%}
+    .legend .cap span{text-wrap:balance}
+    .sw{flex:none;width:16px;height:12px;background-repeat:no-repeat}
+    .sw.s-in{background:rgba(255,255,255,.25);border-radius:2px}
+    .sw.s-win{height:14px;background-image:linear-gradient(var(--ui-accent),var(--ui-accent));background-position:50% 0;background-size:3px 100%}
+    .sw.s-gap{background-image:linear-gradient(#f4f4f2,#f4f4f2),linear-gradient(#f4f4f2,#f4f4f2),linear-gradient(#f4f4f2,#f4f4f2);
+      background-position:0 0,0 5px,0 10px;background-size:16px 2px,10px 2px,5px 2px}
+    .stage[data-hb-mode="inside"].posed .legend .posecap,.stage[data-hb-mode="compare"].posed .hn .posecap{visibility:visible}
+    /* Compare: the whole headline on one side, the real one on the other, each below its name (side by side, or one over the other on phones) */
+    .stage[data-hb-mode="compare"] .twin{display:flex}
+    .stage[data-hb-mode="compare"] .hn{display:flex;position:absolute;top:10px;gap:6px;align-items:center}
+    .hn.first{left:10px}
+    .hn.second{left:calc(50% + 10px)}
+    .stage[data-hb-mode="compare"]::after{content:"";position:absolute;top:0;bottom:0;left:50%;border-left:1px solid rgba(244,244,242,.14)}
+    @media(max-width:600px){
+      .stage[data-hb-mode="compare"] .hn.second{left:10px;top:calc(50% + 10px)}
+      .stage[data-hb-mode="compare"]::after{top:50%;bottom:auto;left:0;right:0;border-left:0;border-top:1px solid rgba(244,244,242,.14)}
+    }
+    @media(prefers-reduced-motion:reduce){.line-text{clip-path:inset(0)!important;transition:none!important}.edge{transition:none!important}}
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -63,13 +105,31 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It plays by itself. Turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots hb-grow">
       <div class="headline" id="headline" aria-live="polite"></div>
+      <div class="headline twin" aria-hidden="true" inert></div>
+      <div class="legend" aria-hidden="true">
+        <p class="cap" data-hb-caption><i class="sw s-in"></i><span>Every letter is already in place, just hidden</span></p>
+        <p class="cap" data-hb-caption><i class="sw s-win"></i><span class="t-win">Each line's window opens from the left in about two thirds of a second, slowing as it ends</span></p>
+        <p class="cap" data-hb-caption><i class="sw s-gap"></i><span class="t-gap">Each line starts a fifth of a second after the one above</span></p>
+        <p class="cap posecap" data-hb-caption>Shown part way through</p>
+      </div>
+      <div class="hn first" aria-hidden="true"><p class="cap" data-hb-caption>Appears at once</p></div>
+      <div class="hn second" aria-hidden="true"><p class="cap" data-hb-caption>Line by line</p><p class="cap posecap" data-hb-caption>Part way through</p></div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-play" data-hb-replay><svg class="hb-ic" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Replay</button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="loop-tog" data-hb-loop autocomplete="off"><span>Loop</span></label>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, every letter is already in its place, shown faint. Each line is only uncovered by a window that grows from one side, a moment after the line above.</p>
+      <p data-hb-for="compare" hidden>Appears at once shows the whole headline in one go. Line by line uncovers each line in turn, so it reads as a cascade, while no letter ever moves.</p>
     </div>
   </section>
 
@@ -176,6 +236,19 @@ Always.</textarea>
   const motionOk=!window.matchMedia('(prefers-reduced-motion:reduce)').matches;
   const DEFAULT_LINES=['Good design','Is honest','Always.'];
   let dir='ltr',dur=700,stag=180,ease='ease-out',timers=[];
+  // See inside and Compare. The Feel choices as the four numbers of their speed curves (the browser's own), and the pieces the views draw.
+  const CURVES={'ease-out':[0,0,.58,1],'ease-in-out':[.42,0,.58,1],linear:[0,0,1,1]};
+  const SIDES={ltr:'the left',rtl:'the right',ttb:'the top'};
+  const FEELS={'ease-out':'slowing as it ends','ease-in-out':'easing in and out',linear:'at one steady pace'};
+  const stage=headline.parentElement,twin=stage.querySelector('.twin'),legend=stage.querySelector('.legend');
+  const tWin=legend.querySelector('.t-win'),tGap=legend.querySelector('.t-gap');
+  const PAD=10,NAMES=40;
+  let mode='normal',running=false,posed=false;
+  // Under reduced motion both views are still pictures, and their notes say so
+  if(!motionOk){
+    document.querySelector('[data-hb-for="inside"]').textContent="Shown still, part way through: the faint letters are already in place, and each line's window is open no further than the one above.";
+    document.querySelector('[data-hb-for="compare"]').textContent="Shown still, part way through: Appears at once is complete, while Line by line has each line's window open no further than the one above.";
+  }
 
   function lineDur(){return slowTog.checked?dur*3:dur}
   function gapDur(){return slowTog.checked?stag*3:stag}
@@ -199,15 +272,26 @@ Always.</textarea>
   function buildLines(){
     const rows=linesIn.value.split('\n').map(l=>l.trim()).filter(Boolean);
     const useRows=rows.length?rows:DEFAULT_LINES;
-    headline.innerHTML='';
-    return useRows.map(line=>{
+    headline.innerHTML='';twin.innerHTML='';
+    const spans=useRows.map(line=>{
       const wrap=document.createElement('div');wrap.className='line-wrap';
+      // See inside's faint copy of the line (under it) and bright edge (over it): never read aloud
+      const ghost=document.createElement('span');ghost.className='ghost';ghost.textContent=line;
       const span=document.createElement('span');span.className='line-text';
       if(dir!=='ltr')span.classList.add(dir==='rtl'?'dir-rtl':'dir-ttb');
       span.textContent=line;
-      wrap.appendChild(span);headline.appendChild(wrap);
+      const edge=document.createElement('span');edge.className='edge';
+      ghost.setAttribute('aria-hidden','true');edge.setAttribute('aria-hidden','true');
+      wrap.append(ghost,span,edge);headline.appendChild(wrap);
+      // Compare's first half: the same line, whole
+      const whole=wrap.cloneNode(false),copy=document.createElement('span');
+      copy.className='line-text';copy.textContent=line;
+      whole.appendChild(copy);twin.appendChild(whole);
       return span;
     });
+    posed=false;stage.classList.remove('posed');
+    if(mode!=='normal'){layout();if(!running)pose()}
+    return spans;
   }
 
   // One play reveals the lines in turn. While Loop is on, the last line's reveal is followed by a 1200ms
@@ -215,6 +299,7 @@ Always.</textarea>
   // Loop's value at that moment, so switching Loop off during the hold still leaves the lines shown.
   function cycle(){
     apply();
+    running=true;
     const lines=buildLines();
     void headline.offsetWidth;
     const gap=gapDur();
@@ -222,20 +307,97 @@ Always.</textarea>
       later(()=>{span.classList.add('revealed')},50+gap*i);
     });
     later(()=>{
-      if(!loopTog.checked||!motionOk)return;
+      if(!loopTog.checked||!motionOk){running=false;if(mode!=='normal')pose();return}
       cycle();
     },50+gap*(lines.length-1)+lineDur()+1200);
+    // Reduced motion shows every line at once, so the views are stills from the start
+    if(!motionOk){running=false;if(mode!=='normal')pose()}
   }
   function play(){timers.forEach(clearTimeout);timers=[];cycle()}
 
+  // The value of a speed curve at a share x of its time: the curve's own t for x found by halving, then its height there
+  function curveAt([a,b,c,e],x){
+    const at=(p,q,t)=>3*p*t*(1-t)*(1-t)+3*q*t*t*(1-t)+t*t*t;
+    let lo=0,hi=1,t=x;
+    for(let i=0;i<30;i++){t=(lo+hi)/2;if(at(a,c,t)<x)lo=t;else hi=t}
+    return at(b,e,t);
+  }
+  // Rest: the moment the middle line is half way through its time, each line open as far as the curve has taken it by then (the
+  // window and its edge, set at once). Worked out by progress, so Slow motion changes nothing.
+  function pose(){
+    const spans=headline.querySelectorAll('.line-text'),m=spans.length>>1;
+    spans.forEach((span,i)=>{
+      const shut=(1-curveAt(CURVES[ease],Math.min(1,Math.max(0,(stag*(m-i)+dur/2)/dur))))*100+'%';
+      span.style.setProperty('clip-path',dir==='ltr'?`inset(0 ${shut} 0 0)`:dir==='rtl'?`inset(0 0 0 ${shut})`:`inset(0 0 ${shut} 0)`,'important');
+      span.style.setProperty('transition','none','important');
+      const edge=span.nextElementSibling;
+      edge.style.transition='none';
+      edge.style.transform=dir==='ttb'?`translateY(-${shut})`:`translateX(${dir==='rtl'?'':'-'}${shut})`;
+    });
+    posed=spans.length>0;stage.classList.toggle('posed',posed);
+  }
+  // Leaving the pose shows the lines as the page has them, at once, never a wipe from the posed point
+  function unpose(){
+    if(!posed)return;
+    const parts=headline.querySelectorAll('.line-text,.edge');
+    parts.forEach(el=>{el.style.removeProperty('clip-path');el.style.removeProperty('transform')});
+    void headline.offsetWidth;
+    parts.forEach(el=>el.style.removeProperty('transition'));
+    posed=false;stage.classList.remove('posed');
+  }
+  // The real headline stays in its place in the flow (so the box keeps Normal's height); each view moves and shrinks it into its room
+  // with a transform: See inside into the room above the key, Compare into its half, with the whole copy in the other half.
+  function layout(){
+    const W=stage.clientWidth,H=stage.clientHeight,box=getComputedStyle(headline),hw=parseFloat(box.width),hh=parseFloat(box.height);
+    if(!hw||!hh)return;
+    const cx=headline.offsetLeft+hw/2,cy=headline.offsetTop+hh/2;
+    const put=(el,r)=>el.style.transform=`translate(${r.x+r.w/2-cx}px,${r.y+r.h/2-cy}px) scale(${Math.min(1,r.w/hw,r.h/hh)})`;
+    if(mode==='inside'){
+      put(headline,{x:PAD,y:PAD,w:W-2*PAD,h:H-legend.offsetHeight-3*PAD});
+      return;
+    }
+    const stacked=matchMedia('(max-width:600px)').matches,w=stacked?W:W/2,h=stacked?H/2:H;
+    const half=k=>({x:stacked?PAD:k*w+PAD,y:stacked?k*h+NAMES:NAMES,w:w-2*PAD,h:h-NAMES-8});
+    twin.style.cssText=`left:${headline.offsetLeft}px;top:${headline.offsetTop}px;width:${hw}px`;
+    put(twin,half(0));put(headline,half(1));
+  }
+  function lasts(t){return t<500?'under half a second':t<900?'about two thirds of a second':t<1500?'about a second':t<2500?'about two seconds':'over three seconds'}
+  function after(g){return g<140?'a tenth of a second':g<240?'a fifth of a second':g<400?'about a third of a second':g<700?'half a second':'nearly a second'}
+  function say(el,text){if(el.textContent!==text)el.textContent=text}
+  function words(){
+    say(tWin,`Each line's window opens from ${SIDES[dir]} in ${lasts(lineDur())}, ${FEELS[ease]}`);
+    say(tGap,`Each line starts ${after(gapDur())} after the one above`);
+  }
+  // A setting changed: the key's words follow, and a view at rest is built and posed again at once (a run is replayed by the page)
+  function settle(){
+    words();
+    if(mode==='normal')return;
+    if(running)layout();else buildLines();
+  }
+
+  // The mode switch: draws the mode at once. The shared script then presses Replay (not under reduced motion), which plays it.
+  document.addEventListener('hb:mode',e=>{
+    mode=e.detail.mode;
+    words();
+    if(mode==='normal'){unpose();headline.style.transform='';return}
+    layout();
+    if(!running)pose();
+  });
+  // The box changes size with the window, and its words with the site font once it has loaded: the views are placed again
+  const replace=()=>{if(mode!=='normal')layout()};
+  const watch=new ResizeObserver(replace);watch.observe(stage);watch.observe(headline);watch.observe(legend);
+  if(document.fonts)document.fonts.ready.then(replace);
+
   document.getElementById('btn-play').addEventListener('click',play);
   loopTog.addEventListener('change',()=>{if(loopTog.checked)play()});
+  slowTog.addEventListener('change',settle);
   linesIn.addEventListener('input',buildLines);
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
     buttons.forEach(b=>b.addEventListener('click',()=>{
       buttons.forEach(x=>{x.classList.toggle('on',x===b);x.setAttribute('aria-pressed',String(x===b))});
       pick(b.dataset);
+      settle();
     }));
   }
   choices('dir-seg',d=>{dir=d.dir});
@@ -243,6 +405,7 @@ Always.</textarea>
   choices('delay-seg',d=>{stag=+d.ms});
   choices('feel-seg',d=>{ease=d.ease});
   apply();
+  words();
 </script>
 </body>
 </html>
