@@ -299,11 +299,21 @@
     updateNav(n);showTwin(n);
   }
 
+  // The pages keep their layers (will-change) for good, so a resize while a slide runs leaves them drawn from a stale size, their
+  // text a shade off a fresh draw. After that run the layers are dropped for two frames and drawn again.
+  let stale=false;
+  addEventListener('resize',()=>{if(animating||tour)stale=true});
+  function renew(){
+    stale=false;
+    pages.forEach(p=>{p.style.willChange='auto'});
+    requestAnimationFrame(()=>requestAnimationFrame(()=>pages.forEach(p=>{p.style.willChange=''})));
+  }
   // Ends a slide: the demo is idle again, and a Show me run goes on to its next step
   function finish(){
     animating=false;run=null;
     const then=afterMove;afterMove=null;
     if(then)then();
+    if(stale&&!tour)renew();
     pose();
   }
   // Stops everything at once and shows the resting state for `current`
@@ -388,8 +398,8 @@
     a.pause();a.currentTime=t;return a;
   }
   // At rest in a mode the change stands still a fifth of the way into the new page's slide (the old page, which started
-  // earlier by the gap, further out). Any change lifts it. It comes back after a Show me run, a mode press, a setting, a
-  // resize or Reset, but not right after the visitor's own click.
+  // earlier by the gap, further out). Any change lifts it. It comes back after a Show me run, a mode press, a setting or
+  // Reset, but not right after the visitor's own click; a resize only lays the view out again.
   function pose(){
     poses.forEach(a=>a.cancel());poses=[];
     const c=change(),on=mode!=='normal'&&!animating&&!wayBack&&!byUser;
@@ -400,7 +410,9 @@
       poses=[hold(pages[c.prev],`translate${dir}(0)`,`translate${dir}(${sign*100}%)`,.2*dur+stagger),
         hold(pages[c.next],`translate${dir}(${-sign*100}%)`,`translate${dir}(0)`,.2*dur)];
     }
-    showTwin(on?c.next:current);
+    // the nav marks the page the change is heading for, as it does the moment a real change starts
+    const shown=on?c.next:current;
+    showTwin(shown);navBtns.forEach((b,i)=>b.classList.toggle('active',i===shown));
     words();layout();
   }
   function words(){
