@@ -55,6 +55,68 @@
     /* 6. Square rotate */
     .sp-square{width:calc(var(--sz)*0.65);height:calc(var(--sz)*0.65);border:3px solid var(--clr);animation:sq-spin var(--spd) ease-in-out infinite}
     @keyframes sq-spin{0%{transform:rotate(0deg)}50%{transform:rotate(180deg) scale(.7)}100%{transform:rotate(360deg)}}
+    /* See inside and Compare. Every added part is made once and kept drawn, so Pause, Slow motion and the Speed rescale reach it;
+       the drawings and the scene's ring take their sizes, colors and turn times from --sz, --clr and --spd. */
+    .stage{position:relative}
+    .grid .spin-box{display:contents}
+    .dr,.spin-cap,.spin-half{display:none}
+    .dr{position:absolute;left:50%;top:50%;translate:-50% -50%;color:var(--clr);opacity:.6;pointer-events:none}
+    .dr-turn{width:calc(var(--sz) + 26px);height:calc(var(--sz) + 26px)}
+    .dr-turn path{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+    .dr-circ,.dr-sq{width:calc(var(--sz)*var(--k));height:calc(var(--sz)*var(--k));border:1.5px dashed currentColor}
+    .dr-circ{border-radius:50%}
+    .dr-hop{width:52px;height:0;border-top:1.5px dashed currentColor;translate:-50% 0}
+    .dr-hop.top{top:calc(50% - 19px)}
+    .dr-hop.base{top:calc(50% + 5px)}
+    .cmp{position:absolute;inset:0;display:grid;grid-template-columns:repeat(2,minmax(0,340px));justify-content:center;gap:clamp(8px,2.5vw,14px);padding:clamp(10px,3vw,16px);visibility:hidden;pointer-events:none}
+    .half{display:flex;flex-direction:column;align-items:flex-start;gap:8px;min-width:0}
+    .spin-half{padding:3px 9px;border:1px solid var(--ui-border);border-radius:6px;background:rgba(8,8,10,.9);color:#f4f4f2;font:600 13px/1.2 var(--hb-font);white-space:nowrap}
+    .panel{align-self:stretch;flex:1;min-height:0;display:flex;flex-direction:column;gap:8px;padding:10px;background:var(--ui-bg);border:1px solid var(--ui-border);border-radius:8px}
+    .panel-title{font:600 13px/1.2 var(--hb-font);color:#d6d6dc}
+    .panel-body{flex:1;min-height:0;display:grid;place-items:center;border:1px dashed rgba(255,255,255,.18);border-radius:6px}
+    .cmp .spin-box,.stage[data-hb-mode="inside"] .grid .spin-box{display:grid;place-items:center;position:relative;width:calc(var(--sz) + 28px);height:calc(var(--sz) + 28px)}
+    .cmp .spin-box>:not(.dr),.stage[data-hb-mode="inside"] .spin-box>:not(.dr){position:relative}
+    /* See inside: the grid fills the box, each cell a spinner with its drawing and, beside it, its name and what it is made of */
+    .stage[data-hb-mode="inside"]{padding:12px}
+    .stage[data-hb-mode="inside"] .grid{max-width:none;height:100%;grid-template-rows:repeat(2,minmax(0,1fr));gap:10px}
+    .stage[data-hb-mode="inside"] .spin-cell{display:grid;grid-template-columns:auto minmax(0,210px);justify-content:center;grid-template-rows:1fr auto auto 1fr;column-gap:12px;row-gap:3px;align-items:start;min-width:0;padding:6px 10px;text-align:left}
+    .stage[data-hb-mode="inside"] .spin-box{grid-row:1/-1;align-self:center}
+    .stage[data-hb-mode="inside"] .spin-label{grid-column:2;grid-row:2;font-size:12px;text-align:left}
+    .stage[data-hb-mode="inside"] .spin-cap{display:block;grid-column:2;grid-row:3;color:#e9e9ee;font:400 12.5px/1.3 var(--hb-font)}
+    .stage[data-hb-mode="inside"] .dr{display:block}
+    /* Compare: the six spinners step aside, out of the flow but still turning, and the scene shows */
+    .stage[data-hb-mode="compare"] .grid{position:absolute;visibility:hidden}
+    .stage[data-hb-mode="compare"] .cmp{visibility:visible}
+    .stage[data-hb-mode="compare"] .spin-half{display:block}
+    @media(max-width:760px){
+      .stage[data-hb-mode="inside"]{padding:10px}
+      .stage[data-hb-mode="inside"] .spin-cell{column-gap:8px;padding:4px 8px}
+      .stage[data-hb-mode="inside"] .spin-cap{font-size:12px;line-height:1.25}
+    }
+    /* Narrow boxes show Ring, Orbit and Bounce only: the other three step aside, out of the flow but still turning. Up to 600
+       wide they stack in one column; from 601 to 660 they stand in a row, each with its name and words under the spinner. */
+    @media(max-width:660px){
+      .stage[data-hb-mode="inside"] .spin-cell:is(:nth-child(3),:nth-child(n+5)){position:absolute;visibility:hidden}
+    }
+    @media(max-width:600px){
+      .stage[data-hb-mode="inside"]{padding:8px}
+      .stage[data-hb-mode="inside"] .grid{grid-template-columns:minmax(0,1fr);grid-template-rows:repeat(3,minmax(0,1fr));gap:6px}
+    }
+    @media(min-width:601px) and (max-width:660px){
+      .stage[data-hb-mode="inside"] .grid{grid-template-rows:minmax(0,1fr)}
+      .stage[data-hb-mode="inside"] .spin-cell{grid-template-columns:minmax(0,1fr);grid-template-rows:1fr auto auto auto 1fr;justify-items:center;text-align:center}
+      .stage[data-hb-mode="inside"] :is(.spin-box,.spin-label,.spin-cap){grid-column:1;text-align:center}
+      .stage[data-hb-mode="inside"] .spin-box{grid-row:2}
+      .stage[data-hb-mode="inside"] .spin-label{grid-row:3}
+      .stage[data-hb-mode="inside"] .spin-cap{grid-row:4}
+    }
+    /* Paused at time zero the bounce dots sit level: in See inside they start part way in, each 15% of a turn after the one before */
+    @media(prefers-reduced-motion:reduce){
+      .stage[data-hb-mode="inside"] .sp-bounce span{animation-delay:calc(var(--spd)*-.4)}
+      .stage[data-hb-mode="inside"] .sp-bounce span:nth-child(2){animation-delay:calc(var(--spd)*-.25)}
+      .stage[data-hb-mode="inside"] .sp-bounce span:nth-child(3){animation-delay:calc(var(--spd)*-.1)}
+      .cmp .dr-turn{display:block}
+    }
   </style>
   <link rel="stylesheet" href="../../../assets/css/demo-page.css?v=10">
   <script src="../../../assets/js/demo-page.js?v=10" defer></script>
@@ -77,43 +139,91 @@
       <span class="hb-num" aria-hidden="true">1</span>
       <div><h2 id="hb-watch-title">Watch it</h2><p>It moves by itself. Pause it to look closely, or turn on slow motion to see each part of the movement.</p></div>
     </div>
+    <div class="seg hb-modes" role="group" aria-label="What the box shows" data-hb-modes>
+      <button type="button" data-hb-mode="normal" class="on" aria-pressed="true">Normal</button>
+      <button type="button" data-hb-mode="inside" aria-pressed="false">See inside</button>
+      <button type="button" data-hb-mode="compare" aria-pressed="false">Compare</button>
+    </div>
     <div class="stage hb-dots">
       <div class="grid">
         <div class="spin-cell">
-          <div class="sp-ring" role="status" aria-label="Loading"></div>
+          <div class="spin-box">
+            <svg class="dr dr-turn" viewBox="0 0 100 100" aria-hidden="true"><path d="M10.2 27A46 46 0 1 1 73 89.8M82.4 93.6L69.5 91.8L74.4 79.8"/></svg>
+            <div class="sp-ring" role="status" aria-label="Loading"></div>
+          </div>
           <div class="spin-label">Ring</div>
+          <p class="spin-cap" id="ring-cap" aria-hidden="true" data-hb-caption>The ring turns a little more than once a second</p>
         </div>
         <div class="spin-cell">
-          <div class="sp-dots" role="status" aria-label="Loading">
-            <span></span><span></span><span></span><span></span><span></span><span></span>
+          <div class="spin-box">
+            <svg class="dr dr-turn" viewBox="0 0 100 100" aria-hidden="true"><path d="M10.2 27A46 46 0 1 1 73 89.8M82.4 93.6L69.5 91.8L74.4 79.8"/></svg>
+            <div class="sp-dots" role="status" aria-label="Loading">
+              <span></span><span></span><span></span><span></span><span></span><span></span>
+            </div>
           </div>
           <div class="spin-label">Orbit</div>
+          <p class="spin-cap" aria-hidden="true" data-hb-caption>Six dots, each fainter than the last, turning as one</p>
         </div>
         <div class="spin-cell">
-          <svg class="sp-arc" viewBox="0 0 40 40" role="status" aria-label="Loading">
-            <circle cx="20" cy="20" r="16"/>
-          </svg>
+          <div class="spin-box">
+            <i class="dr dr-circ" style="--k:.8" aria-hidden="true"></i>
+            <svg class="sp-arc" viewBox="0 0 40 40" role="status" aria-label="Loading">
+              <circle cx="20" cy="20" r="16"/>
+            </svg>
+          </div>
           <div class="spin-label">Arc</div>
+          <p class="spin-cap" aria-hidden="true" data-hb-caption>The colored part grows and shrinks as it turns</p>
         </div>
         <div class="spin-cell">
-          <div class="sp-bounce" role="status" aria-label="Loading">
-            <span></span><span></span><span></span>
+          <div class="spin-box">
+            <i class="dr dr-hop top" aria-hidden="true"></i><i class="dr dr-hop base" aria-hidden="true"></i>
+            <div class="sp-bounce" role="status" aria-label="Loading">
+              <span></span><span></span><span></span>
+            </div>
           </div>
           <div class="spin-label">Bounce</div>
+          <p class="spin-cap" aria-hidden="true" data-hb-caption>The same hop, each dot a little later</p>
         </div>
         <div class="spin-cell">
-          <div class="sp-pulse" role="status" aria-label="Loading"></div>
+          <div class="spin-box">
+            <i class="dr dr-circ" style="--k:.8" aria-hidden="true"></i><i class="dr dr-circ" style="--k:1.5" aria-hidden="true"></i>
+            <div class="sp-pulse" role="status" aria-label="Loading"></div>
+          </div>
           <div class="spin-label">Pulse</div>
+          <p class="spin-cap" aria-hidden="true" data-hb-caption>Grows from the inner circle to the outer one, fading out</p>
         </div>
         <div class="spin-cell">
-          <div class="sp-square" role="status" aria-label="Loading"></div>
+          <div class="spin-box">
+            <i class="dr dr-sq" style="--k:.455" aria-hidden="true"></i>
+            <div class="sp-square" role="status" aria-label="Loading"></div>
+          </div>
           <div class="spin-label">Square</div>
+          <p class="spin-cap" aria-hidden="true" data-hb-caption>Turns half way while shrinking, then grows back</p>
+        </div>
+      </div>
+      <div class="cmp" aria-hidden="true" inert>
+        <div class="half">
+          <p class="spin-half" data-hb-caption>Looks stuck</p>
+          <div class="panel"><p class="panel-title">Your files</p><div class="panel-body"></div></div>
+        </div>
+        <div class="half">
+          <p class="spin-half" data-hb-caption>With a spinner</p>
+          <div class="panel"><p class="panel-title">Your files</p><div class="panel-body">
+            <div class="spin-box">
+              <svg class="dr dr-turn" viewBox="0 0 100 100" aria-hidden="true"><path d="M10.2 27A46 46 0 1 1 73 89.8M82.4 93.6L69.5 91.8L74.4 79.8"/></svg>
+              <div class="sp-ring"></div>
+            </div>
+          </div></div>
         </div>
       </div>
     </div>
     <div class="hb-player">
       <button class="hb-play" type="button" id="btn-pause" data-hb-pause="css" data-state="playing"><svg class="hb-ic hb-i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg><svg class="hb-ic hb-i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3l14 9-14 9z"/></svg><span class="hb-pause-label">Pause</span></button>
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
+    </div>
+    <div class="hb-mode-notes" aria-live="polite">
+      <p data-hb-for="inside" hidden>Inside, each spinner is taken apart: what turns, what grows or fades, and what starts a little later. They all loop until the wait is over.</p>
+      <p data-hb-for="compare" hidden>Looks stuck: an empty box, so you cannot tell whether anything is happening; With a spinner: the turning ring shows the page is still working.</p>
     </div>
   </section>
 
@@ -204,6 +314,42 @@
   const vars=document.documentElement.style;
   const pulse=document.querySelector('.sp-pulse');
   let turnMs=800;
+  // The Ring's caption says how often it turns, from the same turn time and Slow motion that move it
+  const slowTog=document.getElementById('slow-tog'),ringCap=document.getElementById('ring-cap');
+  function turnWords(){
+    const s=turnMs*(slowTog.checked?3:1)/1000;
+    if(s<.6)return 'twice a second';
+    if(s<1)return 'a little more than once a second';
+    if(s<1.4)return 'about once every second and a quarter';
+    if(s<2)return 'about once every second and a half';
+    if(s<3)return 'about once every two and a half seconds';
+    return 'about once every four seconds';
+  }
+  function ringWords(){
+    const words='The ring turns '+turnWords();
+    if(ringCap.textContent!==words)ringCap.textContent=words;
+  }
+  // Under reduced motion the loop starts paused, so both views are stills and their notes say so; once Play moves them the notes
+  // say the markup's own words again. hb:pause is sent on every Pause and Play, and once at boot under reduced motion.
+  const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
+  const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
+    'Inside, each spinner is taken apart, shown still: what turns, what grows or fades, and what starts a little later.',
+    'Shown still: Looks stuck is an empty box; With a spinner has a ring that turns while the page works, so people know to wait.'];
+  let paused=reduceMQ.matches;
+  function describe(){
+    notes.forEach((n,i)=>{const words=reduceMQ.matches&&paused?still[i]:moving[i];if(n.textContent!==words)n.textContent=words});
+  }
+  document.addEventListener('hb:pause',e=>{paused=e.detail.paused;describe()});
+  // The page's only named picture is the Arc spinner's own, so each view names the box (a group, only while it shows)
+  const names={inside:'Each loading spinner taken apart to show what moves',compare:'A box with no spinner beside the same box with a spinner turning'};
+  document.addEventListener('hb:mode',e=>{
+    const name=names[e.detail.mode];
+    if(name){stage.setAttribute('role','group');stage.setAttribute('aria-label',name)}
+    else{stage.removeAttribute('role');stage.removeAttribute('aria-label')}
+    describe();ringWords();
+  });
+  reduceMQ.addEventListener('change',describe);
+  slowTog.addEventListener('change',ringWords);
 
   function choices(id,pick){
     const buttons=document.querySelectorAll('#'+id+' button');
@@ -219,6 +365,7 @@
     stage.getAnimations({subtree:true}).forEach(a=>{if(a.currentTime!=null)a.currentTime=a.currentTime*next/turnMs});
     turnMs=next;
     vars.setProperty('--spd',next+'ms');
+    ringWords();
   });
   choices('size-seg',d=>{vars.setProperty('--sz',d.px+'px')});
   // The Pulse spinner also fills its ring with the color at 15% opacity (26 is 15% written in hex)
