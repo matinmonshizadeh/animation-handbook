@@ -77,6 +77,7 @@
     .stage[data-hb-mode="inside"] .gb-sq{opacity:.28}
     .stage[data-hb-mode="inside"] .gb-sqline{opacity:.85}
     .stage[data-hb-mode="inside"] .gb-btn .gb-in{background:rgba(18,18,22,.78);outline:2px dashed #f4f4f2;outline-offset:-2px}
+    .stage[data-hb-mode="inside"] .gb-btn:active .gb-in{background:rgba(26,26,32,.78)}
     .stage[data-hb-mode="inside"] .sq-lbls{display:grid;position:absolute;inset:0;padding:12px;pointer-events:none;grid-template-columns:var(--sqw) 1fr var(--sqw)}
     .stage[data-hb-mode="inside"].no-glow .sq-glow{display:none}
     .sq-lead{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
@@ -85,9 +86,9 @@
     .sq-col{display:flex;flex-direction:column;justify-content:center;gap:10px;grid-row:1}
     .sq-l{grid-column:1;align-items:flex-end}
     .sq-r{grid-column:3;align-items:flex-start}
-    .stage[data-hb-mode="inside"] .sq-lbls.corners{grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto;column-gap:8px;padding:8px}
+    .stage[data-hb-mode="inside"] .sq-lbls.corners{grid-template-columns:1fr 1fr;grid-template-rows:auto 1fr auto;column-gap:6px;padding:6px}
     .sq-lbls.corners .sq-col{display:contents}
-    .corners .cap{font-size:12px}
+    .corners .cap{font:600 12px/14px var(--hb-font);padding:3px 6px}
     .corners .sq-glow{display:none}
     .corners .sq-1{grid-area:1/1}
     .corners .sq-2{grid-area:1/2;justify-self:end}
@@ -316,15 +317,26 @@
   document.querySelectorAll('#speed-seg button').forEach(b=>b.addEventListener('click',words));
 
   // The button and its square are drawn smaller together, by one factor, until the circle the square's corners sweep fits the box;
-  // labels go in two columns beside the circle, or in the corners when there is no room, each with a line to the part it names
+  // labels go in two columns beside the circle, or in the corners when there is no room, each with a line to the part it names.
+  // In the corners the factor also keeps that whole circle a few pixels clear of every label, so no label covers the square at any angle
+  const LONG=caps[0].textContent,SHORT='A square of colors turns behind it';
   function inside(){
-    const w=stage.clientWidth,h=stage.clientHeight,R=btn.offsetWidth*Math.SQRT2;
-    const kw=(w-360)/(2*R),corners=kw<.6,k=Math.min(1,(Math.min(w,h)-16)/(2*R),corners?1:kw),side=(w-2*R*k)/2-30;
+    const w=stage.clientWidth,h=stage.clientHeight,R=btn.offsetWidth*Math.SQRT2,fit=Math.min(1,(Math.min(w,h)-16)/(2*R)),kw=(w-360)/(2*R);
+    const s=stage.getBoundingClientRect(),c0=btn.getBoundingClientRect(),cx=c0.left+c0.width/2-s.left,cy=c0.top+c0.height/2-s.top;
+    const place=on=>{lbls.classList.toggle('corners',on);caps[0].textContent=on?SHORT:LONG};
+    let corners=kw<.6,k=Math.min(fit,Math.max(kw,0));
+    if(corners){
+      place(true);
+      let d=1e9;
+      caps.forEach(c=>{const r=c.getBoundingClientRect();
+        if(r.width)d=Math.min(d,Math.hypot(Math.max(r.left-s.left-cx,0,cx-r.right+s.left),Math.max(r.top-s.top-cy,0,cy-r.bottom+s.top)))});
+      const kc=Math.min(fit,(d-4)/R);
+      if(kc>k)k=Math.max(kc,.3);else corners=false;
+    }
+    place(corners);
     btn.style.setProperty('--k',k);
-    lbls.classList.toggle('corners',corners);
-    lbls.style.setProperty('--sqw',Math.min(side,230)+'px');
-    const s=stage.getBoundingClientRect(),b=btn.getBoundingClientRect(),u=b.width,v=b.height;
-    const cx=b.left+u/2-s.left,cy=b.top+v/2-s.top;
+    lbls.style.setProperty('--sqw',Math.min((w-2*R*k)/2-30,230)+'px');
+    const b=btn.getBoundingClientRect(),u=b.width,v=b.height;
     [0,1,2,4].forEach((n,j)=>{
       const r=caps[n].getBoundingClientRect(),g=lead.children[2*j],dot=lead.children[2*j+1];
       g.style.display=dot.style.display=r.width?'':'none';
