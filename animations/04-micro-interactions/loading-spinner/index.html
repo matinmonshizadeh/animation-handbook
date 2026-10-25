@@ -222,7 +222,7 @@
       <label class="hb-toggle"><input class="hb-switch" type="checkbox" role="switch" id="slow-tog" data-hb-slowmo="css" autocomplete="off"><span>Slow motion</span></label>
     </div>
     <div class="hb-mode-notes" aria-live="polite">
-      <p data-hb-for="inside" hidden>Inside, each spinner is taken apart: what turns, what grows or fades, and what starts a little later. They all loop until the wait is over.</p>
+      <p data-hb-for="inside" hidden>Inside, each spinner is taken apart: what turns, what fades, and what starts a little later. They all loop until the wait is over.</p>
       <p data-hb-for="compare" hidden>Looks stuck: an empty box, so you cannot tell whether anything is happening; With a spinner: the turning ring shows the page is still working.</p>
     </div>
   </section>
@@ -333,7 +333,7 @@
   // say the markup's own words again. hb:pause is sent on every Pause and Play, and once at boot under reduced motion.
   const reduceMQ=matchMedia('(prefers-reduced-motion: reduce)');
   const notes=[...document.querySelectorAll('[data-hb-for]')],moving=notes.map(n=>n.textContent),still=[
-    'Inside, each spinner is taken apart, shown still: what turns, what grows or fades, and what starts a little later.',
+    'Inside, each spinner is taken apart, shown still: what turns, what fades, and what starts a little later.',
     'Shown still: Looks stuck is an empty box; With a spinner has a ring that turns while the page works, so people know to wait.'];
   let paused=reduceMQ.matches;
   function describe(){
@@ -348,7 +348,8 @@
     else{stage.removeAttribute('role');stage.removeAttribute('aria-label')}
     describe();ringWords();
   });
-  reduceMQ.addEventListener('change',describe);
+  // The shared script switches Slow motion off after this listener runs, so the Ring's words follow a moment later
+  reduceMQ.addEventListener('change',()=>{describe();setTimeout(ringWords)});
   slowTog.addEventListener('change',ringWords);
 
   function choices(id,pick){
