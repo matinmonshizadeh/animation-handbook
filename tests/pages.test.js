@@ -291,7 +291,7 @@ for (const d of steps) {
   });
 
   test(`${d.slug}: the home page card uses the page's title, or the shorter name an owner ruling keeps`, () => {
-    // Four 3D & Advanced cards keep a shorter name than their page title (docs/superpowers/plans/2026-09-29-3d-content.md).
+    // Four 3D & Advanced cards keep a shorter name than their page title, by an owner ruling.
     const SHORTER = { 'fluid-simulation': 'Fluid Simulation', 'ray-marching-sdf': 'Ray Marching / SDF', 'cloth-simulation': 'Cloth Simulation', 'volumetric-smoke': 'Volumetric Smoke' };
     const h1 = decode(pageOf(d).match(/<h1>([^<]*)<\/h1>/)[1]);
     const entry = HOME.match(new RegExp(`\\['${d.slug}','((?:[^'\\\\]|\\\\.)*)',`));
