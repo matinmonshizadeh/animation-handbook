@@ -258,8 +258,8 @@ test('the two preview blocks are what tools/make-famous.mjs writes from the home
 // The cards of the home page whose previews this page cannot show: drawn by a script engine, or animated in SVG. Every other
 // card builds, so a change to the home page that the tool cannot read (a card, a preview, its rules) fails here at once,
 // before a card on this page needs it.
-const REFUSED = ['counter-animation', 'scramble-text', 'text-on-path', 'canvas-particle-effect', 'gpgpu-particle-system', 'starfield', 'particle-constellation', 'flow-field'];
-test('make-famous: on the real home page every card builds, but the eight whose previews need a script or animate in SVG', async () => {
+const REFUSED = ['counter-animation', 'scramble-text', 'text-on-path', 'canvas-particle-effect', 'gpgpu-particle-system', 'starfield', 'flow-field'];
+test('make-famous: on the real home page every card builds, but the seven whose previews need a script or animate in SVG', async () => {
   const { previewBlocks, homeConst } = await tool();
   const slugs = homeConst(HOME, 'CATS').flatMap(cat => cat.entries.map(([slug]) => slug));
   for (const slug of REFUSED) {
