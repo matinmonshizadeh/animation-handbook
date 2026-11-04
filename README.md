@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Synthwave Grid, Liquid Glass, Shatter Effect, Holographic Card, and Dynamic Island, six of its 176 web animation techniques" width="820"></picture></a>
+<a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/hero-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/hero-still.webp"><source media="(max-width: 600px)" srcset="docs/hero-phone.webp"><img src="docs/hero.webp" alt="Six animations from the handbook playing at once: Text Particles, Water Ripple, Synthwave Grid, Liquid Glass, Fire Effect, and Before/After Slider, six of its 176 web animation techniques" width="820"></picture></a>
 
 # Animation Handbook
 
@@ -28,15 +28,17 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 
 ## How to use it
 
-1. **Find it.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), pick where the animation goes — Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes — or describe it in your own words, like "a button that bounces when clicked", or, if you saw it somewhere and don't know its name, answer three questions in the [finder](https://matinmonshizadeh.github.io/animation-handbook/?view=find).
-2. **Watch it and try it.** Each page plays the animation, and most offer a few plain settings, such as speed or direction, so you see exactly what you will get. Some pages also have a See inside view, which shows the parts that make the effect (guides, hidden layers, the numbers made visible), and a Compare view, which shows the effect beside a version without its key idea; switch between them above the stage.
-3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. The cards on the home page have a Copy prompt button too.
-
-**Seen it on a famous site?** [Famous effects](https://matinmonshizadeh.github.io/animation-handbook/famous/) shows effects people admire on well-known websites, the handbook animations that make something similar, and a prompt to build your own.
+1. **Pick an animation.** On the [home page](https://matinmonshizadeh.github.io/animation-handbook/), describe it in your own words, like "a button that bounces when clicked", or pick the part of your page it goes on: Buttons, Text, Images & cards, Backgrounds, Menus & forms, Loading & messages, Page intros, Scrolling, or Page changes. Saw one on a website and don't know its name? Answer three short questions in the [finder](https://matinmonshizadeh.github.io/animation-handbook/?view=find): what moved, when, and how.
+2. **See it move.** Every animation plays live. Open its page to watch it big and try a few simple settings, such as speed or direction, so you see exactly what you will get. Above the demo, **See inside** shows the parts that make the effect (guides, hidden layers, the numbers made visible), and **Compare** shows it beside a version without its key idea.
+3. **Copy the prompt.** Paste it into your AI assistant. It describes the animation in plain words, with your settings. Every card on the home page has a Copy prompt button too.
 
 <div align="center">
 <a href="https://matinmonshizadeh.github.io/animation-handbook/"><picture><source media="(prefers-reduced-motion: reduce) and (max-width: 600px)" srcset="docs/demo-phone-still.webp"><source media="(prefers-reduced-motion: reduce)" srcset="docs/demo-still.webp"><source media="(max-width: 600px)" srcset="docs/demo-phone.webp"><img src="docs/demo.webp" alt="Screen recording of the handbook: on the home page, pressing Buttons brings up cards with live previews, Success Confetti opens and plays its demo, and Copy prompt shows Copied" width="820"></picture></a>
 </div>
+
+## Famous effects
+
+Liked an effect on a well-known website? [Famous effects](https://matinmonshizadeh.github.io/animation-handbook/famous/) gathers effects people admire on such sites. Each one opens with our own working version, says in plain words what you see, names the handbook animations that make something similar, and gives you a prompt to build your own. The handbook is not connected to any of these sites or their owners.
 
 ## Use it from your AI assistant
 
