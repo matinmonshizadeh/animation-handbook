@@ -1104,17 +1104,22 @@ test('the home page head gives search engines and social sites one title, one de
   assert.match(head, /<link rel="canonical" href="[^"]*">\r?\n<link rel="sitemap" type="application\/xml" title="Sitemap" href="sitemap\.xml">\r?\n/, 'the sitemap link, right after the canonical link');
 });
 
-test('every place has one tile, one phone-bar chip and one count, and the markup names no other place', () => {
+test('every place has one tile, one phone-bar chip, one chip under the results heading and one count, and the markup names no other place', () => {
   // The opening tags of the page's markup: scripts, styles and comments left out.
   const tags = HOME.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/g);
   const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
   const hasClass = (tag, name) => (attr(tag, 'class') || '').split(/\s+/).includes(name);
   const placed = tags.filter(tag => attr(tag, 'data-place') !== undefined), counted = tags.filter(tag => attr(tag, 'data-count') !== undefined);
-  for (const tag of placed) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-place')), `unknown place: ${tag}`);
+  // All, the first chip under the results heading, names no place: it goes back to Start.
+  const all = placed.filter(tag => attr(tag, 'data-place') === '');
+  assert.equal(all.length, 1, 'one button names no place: All');
+  assert.ok(hasClass(all[0], 'spot'), 'All is a chip under the results heading');
+  for (const tag of placed) if (tag !== all[0]) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-place')), `unknown place: ${tag}`);
   for (const tag of counted) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-count')), `unknown place: ${tag}`);
   for (const key of PLACE_KEYS) {
     assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'place')).length, 1, `one ${key} tile`);
     assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'pchip')).length, 1, `one ${key} chip in the phone bar`);
+    assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'spot')).length, 1, `one ${key} chip under the results heading`);
     assert.equal(counted.filter(tag => attr(tag, 'data-count') === key).length, 1, `one ${key} count`);
   }
 });
