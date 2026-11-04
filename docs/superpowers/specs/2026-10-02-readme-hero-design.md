@@ -64,3 +64,14 @@ This is a one-off, made with scratch scripts that are not committed.
   - A palette built from the moving parts only turned the suns pink.
   - Error-diffusion dithering made still areas flicker.
   - Result: 2.86 MB, with no flicker in still areas.
+
+## Remake, 2026-11-04
+The wall was made again for the README refresh, in the same layout and files (`docs/hero.webp`, `hero-phone.webp` and
+their two stills).
+- **The tiles,** in reading order: Text Particles (05), Water Ripple (06), Synthwave Grid (07), Liquid Glass (06), Fire
+  Effect (07), Before/After Slider (02). Three of them are new since the first wall.
+- **Recording:** a virtual clock in 60 Hz steps instead of the screencast, so every frame is exact.
+- **The loop:** 90 frames, 6 s. The four do tiles start their Show me runs 1.5 s apart in reading order. Synthwave Grid
+  plays at 0.972× speed so seven repeats fill 6 s. Fire Effect never repeats, so its first 0.5 s fades into its last
+  frames. Water Ripple needs about 6.4 s to go still, so its last 0.5 s fades into its rest frame.
+- **Encoding:** Pillow, lossy WebP. Desktop 2.97 MB, phone 1.46 MB.

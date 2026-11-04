@@ -35,6 +35,14 @@ The main steps of Animation Handbook, newest first, with the number of animation
   from the start.
 - A new animation, Lightning (176 in all): jagged bolts strike from the clouds and light up the sky, with See inside and
   Compare from the start.
+- See inside and Compare on every animation page: See inside shows the parts that make the effect (guides, hidden layers,
+  the numbers made visible), and Compare shows it beside a version without its key idea.
+- Famous effects becomes a gallery: each effect opens in a pop-up with our own working version of it, and its address
+  opens it directly. The page is linked from the home page's top bar too.
+- Every card preview on the home page is drawn again in one bright, consistent style, with one color for each category.
+- The home page: a row of place chips under Good places to start, a Famous effects band, and How it works in new words
+  (Pick an animation, See it move, Copy the prompt).
+- New README pictures: a wall of six animations, three of them new, and a recording of today's home page.
 
 ## 1.0.0 — 2026-10-10
 
