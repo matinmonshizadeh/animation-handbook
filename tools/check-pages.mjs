@@ -172,7 +172,7 @@ const homeCheck = firstScreen => `(() => {
   if (!document.getElementById('places')) problems.push('not the new home page');
   if (document.documentElement.scrollWidth > document.documentElement.clientWidth + 1) problems.push('horizontal overflow');
   if (phone) {
-    const small = [...document.querySelectorAll('.top a, .top button, .search button, #q, #q2, .pop button, .place, .card .copy, .pillbtn, .bigbtn, .pinbar button, .foot a')]
+    const small = [...document.querySelectorAll('.top a, .top button, .search button, #q, #q2, .pop button, .place, .card .copy, .pillbtn, .bigbtn, .pinbar button, .spots button, .fam a, .foot a')]
       .filter(el => el.getClientRects().length)
       .filter(el => { const b = r(el); return b.width < 44 || b.height < 44; })
       .map(el => el.tagName.toLowerCase() + (el.getAttribute('class') ? '.' + el.getAttribute('class').split(' ')[0] : '') + ' ' + Math.round(r(el).width) + 'x' + Math.round(r(el).height));
