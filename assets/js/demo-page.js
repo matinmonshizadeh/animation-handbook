@@ -1,5 +1,6 @@
 /* Animation Handbook — shared behaviour for the guided-steps demo pages.
- * Fills in "Your settings", Copy prompt (its text built by pageCopyText, which the home page uses too), the README's
+ * Fills in "Your settings", Copy prompt (its text built by pageCopyText, which the home page uses too) and the star ask (the
+ * first copy that works marks the star row under the prompt card), the README's
  * "What it is" and "Similar animations", plays the demo on arrival, replays it when a setting changes, runs
  * Pause and CSS slow motion on loop pages, presses Show me on do-it pages (not on arrival
  * when the visitor has already acted in the stage) and tells the page when the visitor
@@ -229,6 +230,7 @@
     var chipsBox = page.querySelector('.hb-chips-box');
     var chips = chipsBox && chipsBox.querySelector('.hb-chips');
     var copyBtn = page.querySelector('.hb-copy');
+    var starRow = page.querySelector('.hb-star-row');
     var replayCtl = page.querySelector('[data-hb-replay]');
     var loopCtl = page.querySelector('[data-hb-loop]');
     var slowCtl = page.querySelector('[data-hb-slowmo]');
@@ -326,15 +328,21 @@
         selection.addRange(range);
         show(/Mac|iPhone|iPad/.test(win.navigator.platform || win.navigator.userAgent) ? 'Press ⌘C to copy' : 'Press Ctrl+C to copy', false);
       }
+      // The star ask: a copy that works marks the star row under the card, and the stylesheet lights its button (the mark
+      // stays, so the button lights once). The prompt in hand is the moment the page has helped; nothing scrolls or takes focus.
+      function copied() {
+        show('Copied', true);
+        if (starRow) starRow.classList.add('is-asked');
+      }
       function fallback(textToCopy) {
-        if (copyThroughTextBox(textToCopy)) show('Copied', true);
+        if (copyThroughTextBox(textToCopy)) copied();
         else selectInstead();
       }
       copyBtn.addEventListener('click', function () {
         var textToCopy = copyText();
         var clip = win.navigator.clipboard;
         if (clip && clip.writeText) {
-          clip.writeText(textToCopy).then(function () { show('Copied', true); }, function () { fallback(textToCopy); });
+          clip.writeText(textToCopy).then(copied, function () { fallback(textToCopy); });
         } else {
           fallback(textToCopy);
         }

@@ -1023,19 +1023,24 @@ test('a typed word loses its ending by the rule in the spec', () => {
   const stem = homeFunction('stem');
   // "ring", "string" and "spring" keep "ing" (what is left is too short or has no vowel) and "ss" keeps its s; after "ing" or
   // "ed" a doubled last letter goes too while three letters stay, but not l, s, f or z ("scrolling", and "added" keeps three).
+  // A short word in "eed" keeps its "ed" ("speed" cut to "spe" would find "spectrum"); a longer one loses it as before, so
+  // "succeed" still finds "success".
   const want = { ring: 'ring', string: 'string', spring: 'spring', uses: 'use', galleries: 'galler', press: 'press', glass: 'glass',
     snapping: 'snap', blurred: 'blur', dragging: 'drag', scrolling: 'scroll', added: 'add', flipping: 'flip', tapping: 'tap',
-    pinned: 'pin', clipping: 'clip', scrubbing: 'scrub', fades: 'fad', cards: 'card', boxes: 'box' };
+    pinned: 'pin', clipping: 'clip', scrubbing: 'scrub', fades: 'fad', cards: 'card', boxes: 'box',
+    speed: 'speed', need: 'need', agreed: 'agreed', speeds: 'speed', succeed: 'succe' };
   assert.deepEqual(Object.fromEntries(Object.keys(want).map(word => [word, stem(word)])), want);
 });
 
 // The home page's search as the page runs it: the cards and their word lists built by the page's own code (from PLACE_LIST
-// up to BY_SLUG), then its search functions, in one context with the page's CATS, PLACES and SAME.
+// up to BY_SLUG), then its search functions, in one context with the page's CATS, PLACES, WORDS and SAME. `cards` is the page's
+// own list of cards (ALL), each with its word lists.
 function homeSearch() {
   const at = marker => { const i = HOME.indexOf(marker); assert.ok(i >= 0, `${marker} in index.html`); return i; };
-  const context = vm.createContext({ CATS: homeConst('CATS'), PLACES: homeConst('PLACES'), SAME: homeConst('SAME') });
+  const context = vm.createContext({ CATS: homeConst('CATS'), PLACES: homeConst('PLACES'), WORDS: homeConst('WORDS'), SAME: homeConst('SAME') });
   vm.runInContext(HOME.slice(at('const PLACE_LIST=['), at('const BY_SLUG=')), context);
-  for (const name of ['stem', 'queryWords', 'score', 'search']) {
+  context.cards = vm.runInContext('ALL', context);
+  for (const name of ['stem', 'queryWords', 'score', 'search', 'askURL']) {
     const start = at(`function ${name}(`);
     vm.runInContext(HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1), context);
   }
@@ -1077,13 +1082,120 @@ test('a typed word also finds the cards that use another word of its group, afte
   }
   // Each word of every group, typed alone: the cards with the typed word itself come first, then the ones found through the group.
   for (const text of homeConst('SAME').flat()) {
-    const [word] = page.queryWords(text), has = e => [...e.nameW, ...e.placeW, ...e.descW].some(x => x.startsWith(word));
+    const [word] = page.queryWords(text), has = e => [...e.nameW, ...e.placeW, ...e.moreW, ...e.descW].some(x => x.startsWith(word));
     const found = page.search(text), others = found.findIndex(e => !has(e));
     assert.ok(others < 0 || found.slice(others).every(e => !has(e)), `"${text}": ${found.map(e => e.name + (has(e) ? '' : ' (group)')).join(', ')}`);
   }
   for (const [text, name] of [['tap', 'Click / Tap Ripple'], ['click', 'Click / Tap Ripple'], ['elastic', 'Elastic Transition'], ['springy', 'Bounce In']]) {
     assert.equal(names(text)[0], name, `"${text}": ${names(text).join(', ')}`);
   }
+});
+
+// WORDS: everyday words a visitor may type for a card that the card's own texts do not say (another name for the effect, the
+// part of a page it is, a common misspelling). They count 2, between a place name and the description.
+test('every extra search word belongs to a card, in home order, and says something the card does not say already', () => {
+  const words = homeConst('WORDS'), page = homeSearch();
+  const slugs = homeConst('CATS').flatMap(cat => cat.entries.map(entry => entry[0]));
+  for (const slug of Object.keys(words)) assert.ok(slugs.includes(slug), `${slug} is not a card`);
+  assert.deepEqual(Object.keys(words), slugs.filter(slug => slug in words), 'WORDS is in the same order as CATS');
+  const stop = new Set(vm.runInContext('[...STOP]', page));
+  for (const e of page.cards) {
+    const list = (words[e.slug] || '').split(' ').filter(Boolean);
+    assert.deepEqual([...e.moreW], list, `${e.slug}: the card's extra words are the ones in WORDS`);
+    if (e.slug in words) assert.ok(list.length, `${e.slug} has no words: leave it out`);
+    assert.equal(new Set(list).size, list.length, `${e.slug} names a word twice`);
+    for (const word of list) {
+      assert.match(word, /^[a-z0-9]+$/, `${e.slug}: "${word}" is one lowercase word`);
+      assert.ok(!stop.has(word), `${e.slug}: "${word}" is a word the search leaves out`);
+      const typed = page.stem(word);
+      assert.ok(![...e.nameW, ...e.placeW, ...e.descW].some(x => x.startsWith(typed)), `${e.slug}: "${word}" already finds this card`);
+    }
+  }
+});
+
+test('everyday words that no card says find the card a visitor means', () => {
+  const page = homeSearch(), names = text => page.search(text).map(e => e.name);
+  const first = { shine: 'Shimmer Effect', aos: 'Reveal on Scroll', sidebar: 'Drawer / Panel Slide', lightbox: 'Modal Expand',
+    snackbar: 'Toast Notification', alert: 'Toast Notification', mask: 'Clip-Path Reveal', thinking: 'Typing Indicator',
+    stepper: 'Progress Animation', filter: 'FLIP Technique', tabs: 'Segmented Control', accordian: 'Accordion Open/Close',
+    skelton: 'Skeleton Loader', countup: 'Counter Animation', kenburns: 'Ken Burns Effect', darkmode: 'Theme Toggle Morph',
+    offcanvas: 'Drawer / Panel Slide', colour: 'Scroll-Driven Background Color', 'shiny card': 'Holographic Card', hint: 'Tooltip Reveal' };
+  for (const [text, name] of Object.entries(first)) assert.equal(names(text)[0], name, `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+  const among = { sparkle: ['Shimmer Effect', 'Holographic Card'], navbar: ['Hide-on-Scroll Header', 'Hamburger Menu Toggle', 'Scrollspy Navigation'],
+    carousel: ['3D Carousel', 'Snap Scrolling', 'Rotate Word Carousel'], gallery: ['3D Carousel', 'Horizontal Scroll'], grey: ['Skeleton Loader'] };
+  for (const [text, wanted] of Object.entries(among)) for (const name of wanted) assert.ok(names(text).includes(name), `"${text}" finds ${name}: ${names(text).join(', ')}`);
+  // A misspelled "parallax" finds the Parallax cards.
+  for (const text of ['paralax', 'parallex']) assert.match(names(text)[0] || '', /Parallax/, `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+  // "speed" keeps its ending, so it does not find the Audio Visualizer's "spectrum".
+  assert.ok(!names('speed').includes('Audio Visualizer'), `"speed": ${names('speed').slice(0, 5).join(', ')}`);
+});
+
+// The handbook has no card for these yet, and an honest empty result offers Ask for it. When one of them gets its card, take it
+// out of this list.
+test('a word for something the handbook does not have finds nothing', () => {
+  const page = homeSearch();
+  for (const text of ['dock', 'chart', 'checkbox']) assert.equal(page.search(text).map(e => e.name).join(', '), '', `"${text}"`);
+});
+
+// A typed word finds a card's own words by their start ("scroll" finds "scrolling"). An extra word is another name, so it counts
+// only when all of it is typed, or all but its ending: otherwise "page" would find Page Curl's "pageturn" in every search for a
+// page transition, and "bar" the View Transitions API's "barba".
+test('an extra word counts only when all of it, or all but its ending, is typed', () => {
+  const page = homeSearch(), names = text => page.search(text).map(e => e.name);
+  for (const text of ['page transition', 'page transitions', 'transition between pages']) {
+    assert.equal(names(text)[0], 'View Transitions API', `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+  }
+  for (const text of ['bar', 'progress bar', 'search bar', 'tab bar']) {
+    assert.ok(!names(text).includes('View Transitions API'), `"${text}" finds the View Transitions API: ${names(text).slice(0, 5).join(', ')}`);
+  }
+  assert.ok(!names('water').includes('Ink Spread Reveal'), `"water" is not "watercolor": ${names('water').slice(0, 5).join(', ')}`);
+  // The whole word, or the word without its ending, still finds its card.
+  for (const [text, name] of [['pageturn', 'Page Curl'], ['barba', 'View Transitions API'], ['tabs', 'Segmented Control'],
+    ['celebrating', 'Success Confetti'], ['snowflake', 'Snow / Rain'], ['watercolor', 'Ink Spread Reveal']]) {
+    assert.equal(names(text)[0], name, `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+  }
+});
+
+// First results that an extra word must not take away from the card that has the typed word in its own name.
+test('the extra words leave these first results as they were', () => {
+  const page = homeSearch(), names = text => page.search(text).map(e => e.name);
+  const first = { succeed: 'Success Confetti', 'text highlight': 'Highlighter Sweep', 'lava lamp': 'Morphing Blob', drop: 'Ink Spread Reveal',
+    'card flip': '3D Flip Card', 'image zoom': 'Zoom Into Image', 'button hover': 'Hover State Animation', stroke: 'Handwriting Draw' };
+  for (const [text, name] of Object.entries(first)) assert.equal(names(text)[0], name, `"${text}": ${names(text).slice(0, 5).join(', ')}`);
+});
+
+test('of two cards with the same score, the one that has more of the typed words comes first', () => {
+  const page = homeSearch(), names = text => page.search(text).map(e => e.name);
+  // Zoom Into Image has "zoom" and "scroll"; Parallax Scrolling says "scroll" three times and comes earlier on the home page.
+  assert.equal(names('zoom on scroll')[0], 'Zoom Into Image', names('zoom on scroll').slice(0, 5).join(', '));
+});
+
+test('Nothing matches offers Ask for it: a link to the GitHub form with the typed words filled in', () => {
+  const panel = between(HOME, '<div class="empty" id="empty" hidden>', '</div>');
+  assert.ok(panel.includes('<p class="empty-ask">Not in the handbook yet? <a class="pillbtn" id="empty-gh" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml" target="_blank" rel="noopener">Ask for it on GitHub</a></p>'), panel);
+  const url = new URL(homeSearch().askURL('dock that grows & shrinks #1'));
+  assert.equal(url.origin + url.pathname, 'https://github.com/matinmonshizadeh/animation-handbook/issues/new');
+  assert.deepEqual([...url.searchParams.keys()], ['template', 'title', 'answers']);
+  assert.equal(url.searchParams.get('template'), 'animation_not_here.yml');
+  assert.equal(url.searchParams.get('title'), '[not here] dock that grows & shrinks #1');
+  assert.equal(url.searchParams.get('answers'), 'Searched for “dock that grows & shrinks #1” — https://matinmonshizadeh.github.io/animation-handbook/?q=dock%20that%20grows%20%26%20shrinks%20%231');
+  // Only fields the form has are filled.
+  const form = read(path.join(ROOT, '.github', 'ISSUE_TEMPLATE', 'animation_not_here.yml'));
+  assert.match(form, /^\s+id: answers\r?$/m);
+});
+
+test('the star ask: a marked star row turns its button gold and pulses it once, with transform only and only where motion is welcome', () => {
+  const bare = read(path.join(ROOT, 'assets', 'css', 'demo-page.css')).replace(/\/\*[\s\S]*?\*\//g, '');
+  const body = selector => cssRules(bare).filter(r => r.selector === selector).map(r => r.body).join(';');
+  assert.match(body('.hb-star-row.is-asked .hb-star-btn'), /(^|;)\s*border-color:\s*#f2c14e/, 'a gold edge');
+  assert.match(body('.hb-star-row.is-asked .hb-star-btn .hb-ic'), /(^|;)\s*fill:\s*#f2c14e/, 'a gold star');
+  const welcome = cssRules(blockOf(bare, '@media(prefers-reduced-motion:no-preference){'));
+  const pulse = welcome.filter(r => r.selector === '.hb-star-row.is-asked .hb-star-btn' && /animation/.test(r.body));
+  assert.equal(pulse.length, 1, 'the pulse is declared where motion is welcome');
+  assert.match(pulse[0].body, /^\s*animation:\s*hb-ask\s+[\d.]+s\s+[\w-]+(\s+1)?\s*;?\s*$/, `it runs once: ${pulse[0].body}`);
+  assert.equal(cssRules(bare).filter(r => r.selector.includes('.is-asked') && /animation/.test(r.body)).length, 1, 'nothing else animates a marked row');
+  const frames = cssRules(blockOf(bare, '@keyframes hb-ask{'));
+  assert.ok(frames.length > 1 && frames.every(f => /^\s*transform:[^;]*;?\s*$/.test(f.body)), 'the pulse moves with transform only');
 });
 
 test('the home page head gives search engines and social sites one title, one description and the author', () => {

@@ -43,6 +43,10 @@ The main steps of Animation Handbook, newest first, with the number of animation
 - The home page: a row of place chips under Good places to start, a Famous effects band, and How it works in new words
   (Pick an animation, See it move, Copy the prompt).
 - New README pictures: a wall of six animations, three of them new, and a recording of today's home page.
+- The home page's search knows more everyday words: other names for an animation (lightbox, snackbar, navbar, tabs), common
+  misspellings (paralax, accordian) and British spellings (colour, grey). When nothing matches, Ask for it opens a short
+  GitHub form with your words filled in.
+- After you copy a prompt, the Star on GitHub button under it lights up once.
 
 ## 1.0.0 — 2026-10-10
 
