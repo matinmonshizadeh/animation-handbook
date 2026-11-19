@@ -47,6 +47,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
   misspellings (paralax, accordian) and British spellings (colour, grey). When nothing matches, Ask for it opens a short
   GitHub form with your words filled in.
 - After you copy a prompt, the Star on GitHub button under it lights up once.
+- Without JavaScript, the home page lists every animation as a plain link under its group, so visitors and search engines
+  that run no script can still reach every page.
 
 ## 1.0.0 — 2026-10-10
 

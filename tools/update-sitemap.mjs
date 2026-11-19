@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// Writes sitemap.xml from the home page's cards: a development tool, not part of the site. Run it from a git checkout
-// after adding or changing pages.
+// Writes sitemap.xml, and the home page's plain list of links, from the home page's cards: a development tool, not part of
+// the site. Run it from a git checkout after adding or changing pages.
 // Usage: node tools/update-sitemap.mjs [--out <file>]
 //   The home page comes first, then the Famous effects page (famous/), then every page in the order of the CATS array in
 //   index.html (the home page's order), at the home page's canonical address. A page's lastmod is the date of the last
@@ -56,6 +56,23 @@ if (missing.length) { console.error(`cards with no page: ${missing.join(', ')}`)
 const FAMOUS = 'famous/';
 if (!existsSync(join(ROOT, FAMOUS, 'index.html'))) { console.error('famous/ has no index.html'); process.exit(1); }
 
+// The home page's plain list of links: every card as a link under its group's name, with its line, inside the <noscript>
+// block, for visitors and crawlers that run no script (the cards themselves are drawn by the page's script). It is written
+// between its two comment lines before the dates are read, so a list that changed dates the home page today. Not with --out.
+const escape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const LIST_START = '<!-- plain-links: written by tools/update-sitemap.mjs from the cards; not by hand -->', LIST_END = '<!-- /plain-links -->';
+const listAt = HOME.indexOf(LIST_START), listEnd = HOME.indexOf(LIST_END, listAt);
+if (listAt < 0 || listEnd < 0) { console.error('index.html has no plain-links comment lines'); process.exit(1); }
+const HOME_EOL = HOME.includes('\r\n') ? '\r\n' : '\n';
+const list = CATS.map(cat => [`<h3>${escape(cat.name)}</h3>`, '<ul>',
+  ...cat.entries.map(([slug, name, desc]) => `<li><a href="${cat.folder.replace(/\/$/, '')}/${slug}/">${escape(name)}</a>: ${escape(desc)}</li>`),
+  '</ul>'].join(HOME_EOL)).join(HOME_EOL);
+const withList = HOME.slice(0, listAt + LIST_START.length) + HOME_EOL + list + HOME_EOL + HOME.slice(listEnd);
+if (outAt < 0) {
+  if (withList !== HOME) writeFileSync(join(ROOT, 'index.html'), withList);
+  console.log(`index.html: ${pages.length} plain links, ${withList === HOME ? 'as they were' : 'written again'}`);
+}
+
 const now = new Date();
 const TODAY = [now.getFullYear(), now.getMonth() + 1, now.getDate()].map(n => String(n).padStart(2, '0')).join('-');
 let changed;
@@ -89,7 +106,6 @@ const homeDate = (await datesOf(['index.html', 'assets/js/demo-page.js', 'assets
   'assets/fonts/schibsted-latin-ext.woff2'])).sort().pop();
 const famousDate = (await datesOf([FAMOUS]))[0];
 
-const escape = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const line = (loc, lastmod, changefreq, priority) =>
   `  <url><loc>${escape(loc)}</loc><lastmod>${lastmod}</lastmod><changefreq>${changefreq}</changefreq><priority>${priority}</priority></url>`;
 const lines = ['<?xml version="1.0" encoding="UTF-8"?>', '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',

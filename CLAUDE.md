@@ -222,7 +222,8 @@ inside an entry's "Production notes" section, never as their own entry.
    use the linked page's `<h1>`; copy the markup from a neighbor. Adding a page mid-category renumbers the
    `NN.MM` category line of every later page.
 6. Update the root `index.html` index page to link to it: add a card to the category's `entries` in the
-   `CATS` array (slug, name, the page's one-line description); `sitemap.xml` is written from `CATS` (step 8). Give it
+   `CATS` array (slug, name, the page's one-line description); `sitemap.xml` and the home page's plain list of links (in its
+   `<noscript>`, for visitors and crawlers without JavaScript) are written from `CATS` (step 8). Give it
    one or more places in `PLACES` (right after `PV` in the same script): `btn` Buttons, `text` Text,
    `imgcard` Images & cards, `bg` Backgrounds, `menu` Menus & forms, `load` Loading & messages,
    `intro` Page intros, `scroll` Scrolling, `page` Page changes; the first one labels its card. Keep
@@ -255,7 +256,8 @@ inside an entry's "Production notes" section, never as their own entry.
    pill: with the repo served, run `node tools/make-social-image.mjs --base http://127.0.0.1:<port>`, which draws it
    again from the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 8. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the last commit to its
-   folder (today for a folder with changes not yet committed). Run `node tools/make-skill.mjs` too: it writes every
+   folder (today for a folder with changes not yet committed), and into the home page's plain list of links (between the
+   two `plain-links` comment lines; a test compares the list with `CATS`). Run `node tools/make-skill.mjs` too: it writes every
    page's prompt and settings, with its README's Key parameters, into the AI skill (`skills/animation-handbook/`) and
    every card into `llms.txt`. Run the
    tests and the page check on the new folder and on every page you edited. Run the home page check (`home`) too: the

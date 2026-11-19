@@ -890,6 +890,18 @@ test('the counts written in the root README match the cards', () => {
   }
 });
 
+// Without JavaScript the home page draws no cards, so every animation is also there as a plain link, for visitors and for
+// crawlers that run no script. tools/update-sitemap.mjs writes the list from the cards, between two comment lines.
+test('the no-JavaScript list links every animation once, in home order, under its group and with its line', () => {
+  const START = '<!-- plain-links: written by tools/update-sitemap.mjs from the cards; not by hand -->', END = '<!-- /plain-links -->';
+  const noscript = between(HOME, '<noscript>', '</noscript>');
+  assert.ok(noscript.includes(START) && noscript.includes(END), 'the list sits inside the noscript block, between its two comment lines');
+  const esc = s => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const expected = homeConst('CATS').map(cat => `<h3>${esc(cat.name)}</h3>\n<ul>\n` +
+    cat.entries.map(([slug, name, desc]) => `<li><a href="${cat.folder}/${slug}/">${esc(name)}</a>: ${esc(desc)}</li>`).join('\n') + '\n</ul>').join('\n');
+  assert.equal(between(HOME, START, END).slice(START.length).replace(/\r\n/g, '\n').trim(), expected);
+});
+
 test('the counts written in the issue template, the 404 page and the sitemap match the cards', () => {
   const cards = totalCards();
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));
