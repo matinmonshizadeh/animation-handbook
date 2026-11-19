@@ -61,7 +61,9 @@ The home page links `demo-page.js` too (its cards' Copy prompt builds the text w
 4. **2 · Try it** (`section.hb-try`): one to three settings, the rest under **More options**
    (`details.hb-options`). No settings: leave it out and number the steps 1 and 2.
 5. **3 · Copy the prompt** (`section.hb-prompt-step`): prompt (`p.hb-prompt`), "Your settings" chips, **Copy prompt**;
-   under the card, the star row (`div.hb-star-row`: a sentence and a **Star on GitHub** button).
+   under the card, the star row (`div.hb-star-row`: a sentence and a **Star on GitHub** button). The star ask: after the
+   first copy that works, the shared script marks the row `is-asked` and the button's edge and star turn gold, with one small
+   pulse where motion is welcome; nothing scrolls or takes focus.
 6. **About** (`section.hb-about`): **What it is** (from the README) beside **Good for** (3–5 tags) and
    **Avoid on** (1–3 tags); then **Similar animations** (`section.hb-related`) and the footer, the same on every
    page (copy it from a neighbor):
@@ -235,6 +237,14 @@ inside an entry's "Production notes" section, never as their own entry.
    How 1–4 (the most visible movement first, then the ones a visitor might name instead). Tag what a visitor sees and would say,
    not how it is built; a page transition answers `newpage`, a loop page `loop`, a Scroll-Based or scroll page `scroll`.
    `tests/finder.test.js` checks the row and runs the finder's test set.
+   Give it extra search words in `WORDS` too, a row right after `FIND` in `CATS` order, when a visitor would type a word that
+   its name, places and description do not say: another everyday name for the effect (lightbox, snackbar), the part of a page
+   it is (navbar, tabs), a code library people name the technique by (aos) or a common misspelling: `'slug':'word word'`,
+   lowercase single words. Only words that truly mean the card, never the name of a company or of something it sells; a card
+   that needs none is left out. An extra word counts only when all of it is typed, or all but its ending, so it cannot take
+   over a search for a shorter word. A word used by many cards belongs in a `SAME` group instead (words that mean the same, as
+   word starts). `tests/pages.test.js` checks the rows; when the new card is one of the things that test lists as finding
+   nothing (dock, chart, checkbox), take it out there.
 7. Update `animations/<category>/README.md` (its list of pages, and any other table there that names pages, such
    as 07's Implementation summary) and the root `README.md` catalog (the card's name, linked to its live page
    `https://matinmonshizadeh.github.io/animation-handbook/animations/<category>/<slug>/`, and its one-line

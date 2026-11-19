@@ -55,7 +55,7 @@ function setTheme(t){document.documentElement.dataset.theme=t;document.querySele
 // has drawn the finder, so the start page is not painted first. Once the page is read the class goes in any case: if the script
 // failed, the start page still shows.
 (function(){var p=new URLSearchParams(location.search);if(p.get('view')!=='find'||(p.get('q')||'').trim()||p.get('place'))return;var h=document.documentElement;h.classList.add('fd-direct');addEventListener('DOMContentLoaded',function(){h.classList.remove('fd-direct');});})();</script>
-<script src="assets/js/demo-page.js?v=10" defer></script>
+<script src="assets/js/demo-page.js?v=11" defer></script>
 <style>
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin-ext.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF}
 @font-face{font-family:'Schibsted Grotesk';src:url('assets/fonts/schibsted-latin.woff2') format('woff2');font-weight:400 900;font-display:swap;unicode-range:U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD}
@@ -253,6 +253,8 @@ button,input{font:inherit;color:inherit}
 .empty-t{font-size:22px;font-weight:800}
 .empty-s{font-size:16px;color:var(--muted)}
 .empty .pop{margin-top:0}
+.empty-ask{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:10px 14px;margin-top:6px;font-size:15px;color:var(--muted)}
+.empty-ask .pillbtn{color:var(--ink);text-decoration:none}
 .noscript{max-width:60ch;margin-top:16px;line-height:1.7;color:var(--ink-2)}
 
 /* how it works, footer, message */
@@ -3208,6 +3210,7 @@ button,input{font:inherit;color:inherit}
       <p class="empty-t" id="empty-title">Nothing matches that yet</p>
       <p class="empty-s">Try a simpler word, or pick one of these:</p>
       <p class="pop"><button type="button" data-q="fade in">fade in</button><button type="button" data-q="typing text">typing text</button><button type="button" data-q="loading spinner">loading spinner</button><button type="button" data-q="parallax">parallax</button><button type="button" data-q="confetti">confetti</button></p>
+      <p class="empty-ask">Not in the handbook yet? <a class="pillbtn" id="empty-gh" href="https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml" target="_blank" rel="noopener">Ask for it on GitHub</a></p>
     </div>
     <div class="more" id="more"><button type="button" class="bigbtn" id="more-btn"><span id="more-label">Browse all 176 animations</span><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></button></div>
     <div class="fd-not" id="find-not" hidden>
@@ -3909,6 +3912,142 @@ const FIND={
   'fire-effect':['background','loop','glitch color drift'],
   'lightning':['background shape','loop click','glitch color']
 };
+// Everyday words a visitor may type for a card that its name, places and description do not say: another name for the effect
+// (lightbox, snackbar), the part of a page it is (navbar, tabs), a code library people name the technique by (aos, lenis) or a
+// common misspelling (accordian). Only words that truly mean the card, never the name of a company or of something it sells,
+// and none the card says already (a test checks that). A word for something the handbook does not have gets no card: the empty
+// result then offers Ask for it. An extra word counts only when (nearly) all of it is typed: see score().
+const WORDS={
+  // 01
+  'parallax-depth-of-field':'bokeh',
+  'cover-card-to-fixed-header':'sticky',
+  'snap-scrolling':'carousel',
+  'scrollytelling':'storytelling',
+  'reveal-on-scroll':'aos',
+  'stagger-reveal':'cascade',
+  'horizontal-scroll':'gallery',
+  'counter-animation':'countup',
+  'progress-bar':'progressbar indicator',
+  'scroll-image-sequence':'frames',
+  'smooth-scroll':'lenis',
+  'svg-line-draw':'path',
+  'scrollspy-nav':'navbar toc',
+  'hide-on-scroll-header':'navbar nav headroom',
+  // 02
+  'fade-in-out':'opacity fadein',
+  'scale-in':'scaleup',
+  'clip-path-reveal':'mask clippath',
+  'curtain-reveal':'shutter',
+  'split-text-reveal':'splittext',
+  'letter-by-letter-stagger':'character',
+  'blur-in':'unblur',
+  'bounce-in':'overshoot',
+  'shatter-effect':'explode explosion shards',
+  'ink-spread-reveal':'watercolor',
+  // 03
+  'view-transitions-api':'barba swup',
+  'flash-transition':'whiteout flare',
+  'elastic-transition':'overshoot',
+  'portal-zoom':'wormhole iris',
+  'dissolve':'disintegrate',
+  'flip-technique':'filter shuffle',
+  'circle-reveal':'iris mask radial',
+  'page-curl':'pageturn',
+  'pixelate-transition':'mosaic',
+  // 04
+  'hover-state':'rollover',
+  'focus-ring':'outline accessibility keyboard',
+  'button-press-scale':'squish',
+  'magnetic-button':'attract',
+  'heart-burst':'favorite love',
+  'success-confetti':'celebrate celebration party',
+  'skeleton-loader':'skelton',
+  'shimmer-effect':'shine sheen',
+  'loading-spinner':'throbber preloader',
+  'progress-animation':'stepper indicator progressbar',
+  'checkmark-draw':'success',
+  'form-field-morph':'floating input textfield',
+  'tooltip-reveal':'hint',
+  'drawer-slide':'sidebar offcanvas sheet',
+  'modal-expand':'lightbox',
+  'accordion':'accordian collapse',
+  'error-shake':'validation invalid',
+  'swipe-to-dismiss':'delete remove',
+  'hamburger-menu-toggle':'burger nav navbar',
+  'theme-toggle-morph':'darkmode',
+  'toast-notification':'snackbar alert',
+  'segmented-control':'tabs tabbar',
+  'pull-to-refresh':'reload',
+  'spotlight-hover':'flashlight',
+  'add-to-cart-fly':'basket ecommerce',
+  'drag-to-reorder':'sortable draggable rearrange',
+  'rolling-numbers':'odometer countup',
+  'typing-indicator':'thinking ellipsis',
+  'hold-to-confirm':'longpress',
+  'expanding-search':'searchbar',
+  'button-loading-states':'submit',
+  'gooey-menu':'fab metaball radial',
+  'before-after-slider':'beforeafter comparison',
+  'magnifier-lens':'magnify zoom loupe',
+  // 05
+  'scramble-text':'decode decrypt',
+  'variable-font-morph':'weight',
+  'text-clip-path-reveal':'mask',
+  'marquee-ticker':'infinite crawl',
+  'rotate-word-carousel':'rotator cycle',
+  'glitch-text':'glich rgb',
+  'text-on-path':'curve circular',
+  'split-flap-board':'departures',
+  'handwriting-draw':'cursive calligraphy',
+  'text-particles':'disperse',
+  // 06
+  '3d-model-orbit':'viewer',
+  'parallax-3d-tilt':'vanillatilt',
+  'canvas-particle-effect':'plexus',
+  'glassmorphism-animated':'glassmorphisim translucent',
+  'webgl-shader-animation':'glsl',
+  'noise-based-motion':'perlin simplex',
+  'svg-path-animation':'dashoffset lineart',
+  'chromatic-aberration':'rgb',
+  '2-5d-pseudo-3d':'fake',
+  'ray-marching-sdf':'raymarching',
+  'gpgpu-particle-system':'gpu',
+  'image-distortion-hover':'warp displacement',
+  'cloth-simulation':'fabric flag',
+  'volumetric-smoke':'fog mist steam',
+  'morphing-blob':'metaball lava gooey',
+  'carousel-3d':'carosel carousal slider gallery',
+  'flocking':'boids swarm murmuration',
+  'ascii-halftone':'dither',
+  'physics-2d':'gravity collision matterjs',
+  'liquid-glass':'refraction',
+  'holographic-card':'hologram iridescent',
+  'infinite-zoom':'droste recursive',
+  'audio-visualizer':'equalizer waveform sound spectrum',
+  // 07
+  'mesh-gradient':'orbs',
+  'aurora':'borealis',
+  'grain-overlay':'grainy vintage texture',
+  'scanline':'crt vhs',
+  'light-leak':'flare filmburn',
+  'starfield':'galaxy warp hyperspace',
+  'breathing-glow':'pulse heartbeat',
+  'ambient-ripple':'water droplets',
+  'abstract-geometric-motion':'geometry',
+  'particle-constellation':'plexus network',
+  'flow-field':'generative',
+  'synthwave-grid':'vaporwave outrun 80s',
+  'matrix-rain':'hacker',
+  'plasma':'psychedelic trippy demoscene',
+  'wave-layers':'ocean divider',
+  'snow-rain':'snowfall snowflakes weather christmas',
+  'topographic-lines':'contour terrain',
+  'light-rays':'godrays',
+  'game-of-life':'conway cellular automata',
+  'ken-burns':'kenburns gallery',
+  'fire-effect':'burn campfire',
+  'lightning':'thunder storm electric'
+};
 // The finder's three questions in order (spec, section 2): each answer's key (in the address and in FIND), its words (which name
 // it) and its picture: a still icon in the site's 24px line style for What and When, the class of a small moving picture for How
 // (drawn at the end of the stylesheet). weight is what a question counts for in findScore. Not sure, at the end of each
@@ -4353,7 +4492,7 @@ const ALL=[];
 CATS.forEach(cat=>cat.entries.forEach(([slug,name,desc])=>{
   const places=PLACES[slug]||[];
   ALL.push({slug,name,desc,cat,places,order:ALL.length,url:`${cat.folder}/${slug}/`,
-    nameW:keyWords(name),placeW:keyWords(places.map(k=>PLACE[k].name).join(' ')),descW:keyWords(desc+' '+cat.name)});
+    nameW:keyWords(name),placeW:keyWords(places.map(k=>PLACE[k].name).join(' ')),moreW:keyWords(WORDS[slug]||''),descW:keyWords(desc+' '+cat.name)});
 }));
 const BY_SLUG=Object.fromEntries(ALL.map(e=>[e.slug,e]));
 const ICON_COPY='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>';
@@ -4546,12 +4685,13 @@ const PAGE=8;
 const FIND_PAGE=12; // the finder shows twelve cards before Show all
 // A typed word drops the first of these endings that leaves at least three letters with a vowel ("ring" stays whole), never
 // the s of "ss"; after "ing" or "ed" a doubled last letter other than l, s, f or z goes too while at least three stay
-// (snapping → snap, added → add).
+// (snapping → snap, added → add). A short word in "eed" keeps its "ed" (speed, not "spe", which would find "spectrum"); a
+// longer one loses it (succeed → succe, which finds "success").
 function stem(w){
   if(w.endsWith('ss'))return w;
   for(const end of ['ies','ing','ed','es','s']){
     const rest=w.slice(0,-end.length);
-    if(!w.endsWith(end)||rest.length<3||!/[aeiouy]/.test(rest))continue;
+    if(!w.endsWith(end)||rest.length<3||!/[aeiouy]/.test(rest)||(end==='ed'&&rest.endsWith('e')&&rest.length<5))continue;
     return (end==='ing'||end==='ed')&&rest.length>3&&/([bcdghjkmnpqrtvwx])\1$/.test(rest)?rest.slice(0,-1):rest;
   }
   return w;
@@ -4560,27 +4700,41 @@ function queryWords(text){return [...new Set(keyWords(text).map(stem))];}
 // Everyday words that mean the same here, each written as the start of its words (bounc: bounce, bouncy, bouncing). A typed
 // word that starts with one of them also finds the cards that use another word of its group, so "a button that bounces when
 // clicked" finds Button Press Scale, which "springs back" as you "press" it.
-const SAME=[['bounc','spring','elastic'],['click','press','tap'],['parallax','depth'],['mouse','pointer'],
+const SAME=[['bounc','spring','elastic'],['click','press','tap'],['parallax','paralax','parallex','depth'],['mouse','pointer'],
+  ['shin','shimmer','spark','glitter','gleam','glint'],['color','colour'],['gray','grey'],
   ['shak','wobbl','wiggl','jiggl'],['loader','loading'],['popup','modal','dialog'],['scrolltrigger','trigger']];
-// A word counts 3 in the name, 2 in a place name, 1 in the description or category; each is matched by the start of a word.
+// A word counts 3 in the name, 2 in a place name or among the card's extra words (WORDS), 1 in the description or category; each
+// is matched by the start of a word. Of two cards with the same score, the one that has more of the typed words comes first (hit).
 // A card without the typed word but with another word of its group gets a third of that, once, where it counts most, so for
 // one word it never passes a card that has the word itself. The score is kept in thirds, so it stays a whole number; own is
 // the score of the typed words alone, and breaks ties.
 function score(e,words){
-  const lists=[[e.nameW,3],[e.placeW,2],[e.descW,1]];
-  let s=0,own=0;
+  const lists=[[e.nameW,3],[e.placeW,2],[e.moreW,2],[e.descW,1]];
+  // An extra word is another name for the card, so it counts only when all of it is typed, or all but its ending: the typed
+  // word may be one letter short of it, or two when it has four letters or more, and the extra word is tried with its own
+  // ending cut as well. "tab" finds "tabs", "think" finds "thinking" and "celebrat" finds "celebrate", but "page" does not
+  // find "pageturn" and "bar" does not find "barba".
+  const near=(x,w)=>x.startsWith(w)&&(x.length-w.length<2||(x.length-w.length===2&&w.length>3));
+  const has=(list,w)=>list.some(x=>list===e.moreW?near(x,w)||near(stem(x),w):x.startsWith(w));
+  let s=0,own=0,hit=0;
   for(const w of words){
-    const word=lists.reduce((n,[list,k])=>n+(list.some(x=>x.startsWith(w))?k:0),0);
+    const word=lists.reduce((n,[list,k])=>n+(has(list,w)?k:0),0);
     const group=SAME.filter(g=>g.some(start=>w.startsWith(start))).flat();
-    s+=word?3*word:Math.max(0,...lists.map(([list,k])=>list.some(x=>group.some(start=>x.startsWith(start)))?k:0));
-    own+=word;
+    const add=word?3*word:Math.max(0,...lists.map(([list,k])=>list.some(x=>group.some(start=>x.startsWith(start)))?k:0));
+    s+=add;own+=word;if(add)hit++;
   }
-  return {s,own};
+  return {s,own,hit};
 }
 function search(text){
   const words=queryWords(text);
   if(!words.length)return [];
-  return ALL.map(e=>({e,...score(e,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||b.own-a.own||a.e.order-b.e.order).map(x=>x.e);
+  return ALL.map(e=>({e,...score(e,words)})).filter(x=>x.s>0).sort((a,b)=>b.s-a.s||b.hit-a.hit||b.own-a.own||a.e.order-b.e.order).map(x=>x.e);
+}
+// Ask for it, under Nothing matches: GitHub's form animation_not_here.yml with its title and its answers field filled in (as the
+// finder's Not here? link does): the typed words, then the address that searches for them. Nothing personal.
+function askURL(text){
+  return 'https://github.com/matinmonshizadeh/animation-handbook/issues/new?template=animation_not_here.yml&title='+encodeURIComponent('[not here] '+text)+
+    '&answers='+encodeURIComponent('Searched for “'+text+'” — https://matinmonshizadeh.github.io/animation-handbook/?q='+encodeURIComponent(text));
 }
 // ---------- The finder's matching ----------
 // The finder's part of an address: ?view=find, then what, when and how for each question answered (nothing, Not sure or an
@@ -4642,7 +4796,7 @@ function showGroups(){
 const state={q:'',place:'',view:'',all:false,what:'',when:'',how:''};
 const isFiltered=()=>!!(state.q||state.place||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
-  emptyEl=$('empty'),emptyTitle=$('empty-title'),moreBox=$('more'),moreLabel=$('more-label');
+  emptyEl=$('empty'),emptyTitle=$('empty-title'),emptyGh=$('empty-gh'),moreBox=$('more'),moreLabel=$('more-label');
 let moreAction='all';
 const pinbar=$('pinbar'),spotsEl=$('spots');
 // The phone bar is there while a view other than Start or the finder is open and while its own search box has focus, so emptying the box does not take the box away; never in the finder.
@@ -4676,7 +4830,7 @@ function render(answered){
   if(found)showFound(found);else if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
   const empty=!!list&&!list.length,matched=found?found.best.length+found.close.length:0;
   emptyEl.hidden=!empty;
-  if(empty)emptyTitle.textContent='Nothing matches “'+state.q+'” yet';
+  if(empty){emptyTitle.textContent='Nothing matches “'+state.q+'” yet';emptyGh.href=askURL(state.q);}
   if(finding){moreAction='expand';moreLabel.textContent='Show all '+matched+' matches';moreBox.hidden=state.all||matched<=FIND_PAGE;}
   else if(!filtered||empty){moreAction='all';moreLabel.textContent='Browse all '+ALL.length+' animations';moreBox.hidden=false;}
   else if(list&&!state.all&&list.length>PAGE){moreAction='expand';moreLabel.textContent='Show all '+list.length;moreBox.hidden=false;}

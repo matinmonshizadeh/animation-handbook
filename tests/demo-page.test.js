@@ -128,8 +128,8 @@ test('motionNote says what reduced motion changes in the player bar', () => {
 // `copy` ({ prompt, controls, clipboard }) to add a Copy prompt button, text in the prompt, a Try it step holding `controls` (if
 // any) and the window's clipboard; no other test gets any of them. A link test passes `links` ({ protocol, hrefs }): the page is
 // served over that protocol (http: otherwise) and holds one link for each href.
-// `extra` ({ modes, noPrompt }): modes adds the mode switch (Normal, See inside, Compare) and one note for See inside and one
-// for Compare; noPrompt leaves the prompt out.
+// `extra` ({ modes, noPrompt, noStarRow }): modes adds the mode switch (Normal, See inside, Compare) and one note for See inside
+// and one for Compare; noPrompt leaves the prompt out; noStarRow leaves out the star row a page with Copy prompt has under it.
 // A plays-once page also has Replay and a loop has Pause; `log` keeps, in order, every hb:mode sent and every press of Replay
 // or Show me, and each hb:mode event carries `seen`: the stage's mark, the buttons' aria-pressed and the notes on show then.
 function standInPage(kind, reduced, bodyAttributes, copy, links, extra) {
@@ -144,7 +144,9 @@ function standInPage(kind, reduced, bodyAttributes, copy, links, extra) {
     hasAttribute(name) { return name in this.attrs; },
     removeAttribute(name) { delete this.attrs[name]; },
     appendChild(child) { this.children.push(child); return child; },
-    insertAdjacentElement() {}, contains(other) { return other === this; }, click() { this.clicks++; if (this.onClick) this.onClick(); }
+    insertAdjacentElement() {}, contains(other) { return other === this; }, click() { this.clicks++; if (this.onClick) this.onClick(); },
+    // What the copy fallbacks touch: the off-screen text box and the button that takes focus back
+    style: {}, value: '', focus() {}, select() {}, setSelectionRange() {}, removeChild() {}
   });
   const stage = node(), player = node(), prompt = node(), demo = node(), play = node(), top = node(), replay = node();
   // A loop's Pause button: the shared script looks for its label inside it
@@ -166,11 +168,14 @@ function standInPage(kind, reduced, bodyAttributes, copy, links, extra) {
   const modes = opts.modes && Object.assign(node(), { querySelectorAll: selector => (selector === '[data-hb-mode]' ? modeButtons : []) });
   // The button has no .hb-copy-label inside it, so its own text is the label.
   const button = copy && Object.assign(node(), { querySelector: () => null });
+  // The star row under the prompt card keeps the class names it is given, in order.
+  const starRow = copy && Object.assign(node(), { classList: { names: [], add(name) { this.names.push(name); }, remove() {}, toggle() {} } });
   if (copy) prompt.textContent = copy.prompt;
   const wanted = { '.hb-prompt': !opts.noPrompt && prompt, '.stage': stage, '.hb-player': player, '[data-hb-demo]': kind === 'do' && demo,
     '[data-hb-replay]': kind === 'once' && replay, '[data-hb-pause]': kind === 'loop' && pause,
     '[data-hb-autoscroll]': kind === 'scroll' && play, '[data-hb-top]': kind === 'scroll' && top, '.hb-copy': button,
     '.hb-try': copy && copy.controls && Object.assign(node(), { querySelectorAll: () => copy.controls }),
+    '.hb-star-row': !opts.noStarRow && starRow,
     '[data-hb-modes]': modes };
   const page = { querySelector: selector => wanted[selector] || null,
     querySelectorAll: selector => (selector === '[data-hb-for]' ? notes : []) };
@@ -195,9 +200,12 @@ function standInPage(kind, reduced, bodyAttributes, copy, links, extra) {
     clearTimeout() {}, location: { protocol: (links && links.protocol) || 'http:' }, console,
     CustomEvent: class { constructor(type, init) { this.type = type; this.detail = init && init.detail; } }
   };
-  if (copy) Object.assign(win, { navigator: { clipboard: copy.clipboard }, getComputedStyle: () => ({ display: '' }) });
+  if (copy) Object.assign(win, { navigator: { clipboard: copy.clipboard, platform: 'Win32', userAgent: '' }, getComputedStyle: () => ({ display: '' }),
+    getSelection: () => ({ removeAllRanges() {}, addRange() {} }) });
+  // copy.exec: what the old copy command answers (true: it copied; false or left out: it did not), for the pages' fallback
+  if (copy) Object.assign(doc, { execCommand: () => !!copy.exec, createRange: () => ({ selectNodeContents() {} }) });
   DP.boot(doc, win);
-  return { doc, win, stage, player, demo, play, replay, pause, button, anchors, sent, log, modeButtons, notes,
+  return { doc, win, stage, player, demo, play, replay, pause, button, starRow, anchors, sent, log, modeButtons, notes,
     runTimers: () => timers.forEach(t => t.fn()), timerDelays: () => timers.map(t => t.ms) };
 }
 const visitor = { isTrusted: true }, script = { isTrusted: false };
@@ -532,4 +540,39 @@ test("pressing a page's Copy prompt copies what pageCopyText gives", async () =>
     assert.equal(written[0], DP.pageCopyText(page.doc, page.win), name);
     assert.equal(page.button.textContent, 'Copied', name);
   }
+});
+
+// The star ask: the row under the prompt card is marked once the visitor has copied the prompt, the moment the page has helped.
+test('a copy that worked marks the star row, and nothing marks it before', async () => {
+  const accepted = Promise.resolve();
+  const page = standInPage('once', false, {}, { prompt: 'Add a fade to [the card].', controls: null, clipboard: { writeText: () => accepted } });
+  assert.deepEqual(page.starRow.classList.names, [], 'nothing is marked before a copy');
+  page.button.emit('click', visitor);
+  await accepted;
+  assert.ok(page.starRow.classList.names.length > 0 && page.starRow.classList.names.every(name => name === 'is-asked'), page.starRow.classList.names.join());
+});
+
+test('where the clipboard is missing, a copy through the text box marks the star row too', () => {
+  const page = standInPage('once', false, {}, { prompt: 'Add a fade to [the card].', controls: null, clipboard: undefined, exec: true });
+  page.button.emit('click', visitor);
+  assert.equal(page.button.textContent, 'Copied');
+  assert.ok(page.starRow.classList.names.includes('is-asked'));
+});
+
+test('a copy that did not work shows the keys to press and leaves the star row unmarked', async () => {
+  const refused = Promise.reject(new Error('not allowed'));
+  const page = standInPage('once', false, {}, { prompt: 'Add a fade to [the card].', controls: null, clipboard: { writeText: () => refused }, exec: false });
+  page.button.emit('click', visitor);
+  await refused.catch(() => {});
+  await Promise.resolve();
+  assert.equal(page.button.textContent, 'Press Ctrl+C to copy');
+  assert.deepEqual(page.starRow.classList.names, []);
+});
+
+test('a page with no star row still copies', async () => {
+  const accepted = Promise.resolve();
+  const page = standInPage('once', false, {}, { prompt: 'Add a fade to [the card].', controls: null, clipboard: { writeText: () => accepted } }, null, { noStarRow: true });
+  page.button.emit('click', visitor);
+  await accepted;
+  assert.equal(page.button.textContent, 'Copied');
 });

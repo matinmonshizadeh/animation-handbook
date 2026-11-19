@@ -48,7 +48,7 @@ const source = name => { const start = at(`function ${name}(`); return HOME.slic
 // search tests build them), with FIND_Q, FIND and the finder's functions in one context. `data` adds to the context or replaces
 // CATS, PLACES or FIND with test data.
 function finder(data = {}) {
-  const context = vm.createContext({ CATS: homeConst('CATS'), PLACES: homeConst('PLACES'), FIND_Q: homeConst('FIND_Q'), FIND: homeConst('FIND'), ...data });
+  const context = vm.createContext({ CATS: homeConst('CATS'), PLACES: homeConst('PLACES'), WORDS: homeConst('WORDS'), FIND_Q: homeConst('FIND_Q'), FIND: homeConst('FIND'), ...data });
   vm.runInContext(HOME.slice(at('const PLACE_LIST=['), at('const BY_SLUG=')), context);
   for (const name of ['findQuery', 'findWords', 'findScore', 'findMatches', 'findIssueURL']) vm.runInContext(source(name), context);
   return context;

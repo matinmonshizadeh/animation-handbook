@@ -1259,6 +1259,9 @@ async function homeViewProblems() {
   await sleep(300);
   const empty = await evaluate(`!document.getElementById('empty').hidden && document.getElementById('empty-title').textContent`);
   if (empty !== 'Nothing matches “zebra” yet') problems.push(`nothing found: ${empty}`);
+  // Ask for it: the link under the suggestions opens the GitHub form in a new tab with the typed words filled in.
+  const ask = await evaluate(`(() => { const a = document.getElementById('empty-gh'); return a && { href: a.href, want: askURL('zebra'), target: a.target, shown: a.getClientRects().length > 0 }; })()`);
+  if (!ask || !ask.shown || ask.href !== ask.want || ask.target !== '_blank') problems.push(`nothing found, Ask for it: ${JSON.stringify(ask)}`);
   await press('#empty [data-q]');
   await sleep(300);
   v = await view();
