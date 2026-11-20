@@ -183,7 +183,7 @@ convention. The page loads **What it is** and **See also** from the README; What
 contain no code. Each See also line is `- [Title](../slug/) — one plain phrase`, Title being the linked
 page's `<h1>`. Key parameters is a `| Parameter | Default | Effect |` table with one row per setting in Try it, named as
 on the page (a page without Try it lists the technique's own values), no empty cell, and each choice's demo value in
-plain words in Effect ("slow is 500ms, normal 300ms and fast 180ms"): the AI skill copies each Effect next to its setting. How it works matches the demo's code. Opened from disk (`file://`), the pages
+plain words in Effect ("slow is 500ms, normal 300ms and fast 180ms"). How it works matches the demo's code. Opened from disk (`file://`), the pages
 still link to each other (the shared script points folder links at `index.html`), but What it is and Similar
 animations need a server: a page shows a README link in place of What it is and hides Similar animations.
 
@@ -257,16 +257,14 @@ inside an entry's "Production notes" section, never as their own entry.
    again from the home page. The home check needs no edit: it reads its totals from `CATS` and `PLACES`.
 8. Run `node tools/update-sitemap.mjs`: it writes every card into `sitemap.xml`, dated by the last commit to its
    folder (today for a folder with changes not yet committed), and into the home page's plain list of links (between the
-   two `plain-links` comment lines; a test compares the list with `CATS`). Run `node tools/make-skill.mjs` too: it writes every
-   page's prompt and settings, with its README's Key parameters, into the AI skill (`skills/animation-handbook/`) and
-   every card into `llms.txt`. Run the
+   two `plain-links` comment lines; a test compares the list with `CATS`). It writes `llms.txt` too: every card under
+   its group, for AI tools that read the site without running its scripts. Run the
    tests and the page check on the new folder and on every page you edited. Run the home page check (`home`) too: the
    new card's Copy prompt is compared there.
 
-Changing anything the skill or `llms.txt` repeats (a page's title, one-line description, kind, prompt, settings or
-Good for and Avoid on tags, a README's Key parameters, a card's name, places or order in `CATS`, or the Famous effects
-page's description) also means running `node tools/make-skill.mjs` again: the skill test (`tests/skill.test.js`) fails
-until then. Changing a preview that the Famous effects page shows (its key in `PV`, its `case` in `pvMarkup()`, its
+Changing anything `llms.txt` or the home page's plain list repeats (a card's name, line or order in `CATS`, or the Famous
+effects page's description) also means running `node tools/update-sitemap.mjs` again: the tests fail until then.
+Changing a preview that the Famous effects page shows (its key in `PV`, its `case` in `pvMarkup()`, its
 rules or keyframes, its `STILL` point) or that page's cards means running `node tools/make-famous.mjs` again: the famous
 test (`tests/famous.test.js`) fails until then.
 
