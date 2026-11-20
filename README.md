@@ -8,12 +8,6 @@
 
 [**Open the live handbook →**](https://matinmonshizadeh.github.io/animation-handbook/)
 
-Add it to your AI coding assistant (run in your project folder; needs Node.js):
-
-```bash
-npx skills add matinmonshizadeh/animation-handbook
-```
-
 [![Live site](https://img.shields.io/website?url=https%3A%2F%2Fmatinmonshizadeh.github.io%2Fanimation-handbook%2F&label=live%20demo&up_message=online&color=91bdff)](https://matinmonshizadeh.github.io/animation-handbook/) [![Stars](https://img.shields.io/github/stars/matinmonshizadeh/animation-handbook?style=flat&color=79de9d)](https://github.com/matinmonshizadeh/animation-handbook) [![License](https://img.shields.io/github/license/matinmonshizadeh/animation-handbook?color=c6a1ff)](LICENSE) [![Techniques](https://img.shields.io/badge/techniques-176-ff9d5c)](#full-catalog) [![Dependencies](https://img.shields.io/badge/dependencies-0-ff94a9)](#design-principles) [![Build](https://img.shields.io/badge/build-none-62ddcf)](#design-principles)
 
 </div>
@@ -39,23 +33,6 @@ Everything is plain HTML, CSS, and JavaScript: no build step, no frameworks, no 
 ## Famous effects
 
 Liked an effect on a well-known website? [Famous effects](https://matinmonshizadeh.github.io/animation-handbook/famous/) gathers effects people admire on such sites. Each one opens with our own working version, says in plain words what you see, names the handbook animations that make something similar, and gives you a prompt to build your own. The handbook is not connected to any of these sites or their owners.
-
-## Use it from your AI assistant
-
-The handbook is also an Agent Skill, with every page's prompt and settings in it. Add it to Claude Code, Cursor, Codex, GitHub Copilot, Gemini CLI, or any other agent that reads Agent Skills:
-
-```bash
-npx skills add matinmonshizadeh/animation-handbook
-```
-
-In Claude Code you can install it as a plugin instead:
-
-```
-/plugin marketplace add matinmonshizadeh/animation-handbook
-/plugin install animation-handbook@animation-handbook
-```
-
-Then ask for an animation in plain words, like "make the cards fade in as they scroll into view": your assistant picks the technique from the handbook and builds it into your project with that page's prompt and settings.
 
 ## Categories
 

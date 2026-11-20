@@ -902,6 +902,30 @@ test('the no-JavaScript list links every animation once, in home order, under it
   assert.equal(between(HOME, START, END).slice(START.length).replace(/\r\n/g, '\n').trim(), expected);
 });
 
+// llms.txt: the handbook as one plain list, for AI tools that read a site without running its scripts.
+// tools/update-sitemap.mjs writes it from the cards and the Famous effects page.
+test('llms.txt lists every card once, in the order of CATS under its group, with its live address and its line, then the Famous effects page', () => {
+  const LIVE = 'https://matinmonshizadeh.github.io/animation-handbook/';
+  const text = read(path.join(ROOT, 'llms.txt')).replace(/\r\n/g, '\n');
+  const cats = homeConst('CATS'), cards = cats.flatMap(cat => cat.entries.map(([slug, name, desc]) => ({ name, address: `${LIVE}${cat.folder}/${slug}/`, desc })));
+  assert.ok(text.startsWith('# Animation Handbook\n'), 'llms.txt starts with the title');
+  assert.match(text, new RegExp(`^> .*\\b${cards.length}\\b`, 'm'), 'the summary under the title gives the count');
+  const lines = text.split('\n').filter(line => line.startsWith('- [') && line.includes(`](${LIVE}animations/`));
+  assert.equal(lines.length, cards.length, 'one line per card');
+  cards.forEach((card, i) => assert.equal(lines[i], `- [${card.name}](${card.address}): ${card.desc}`, `line ${i + 1}`));
+  const headings = text.split('\n').filter(line => line.startsWith('## '));
+  assert.deepEqual(headings, [...cats.map(cat => `## ${cat.name}`), '## Famous effects', '## Optional'], 'the groups in home order, then Famous effects and Optional');
+  // The Famous effects page with its own description (white space squeezed), after the last card.
+  const lede = decode(read(path.join(ROOT, 'famous', 'index.html')).match(/<meta name="description" content="([^"]+)">/)[1]).replace(/\s+/g, ' ').trim();
+  assert.ok(text.includes(`## Famous effects\n\n- [Famous effects](${LIVE}famous/): ${lede}\n`), 'the Famous effects line under its own heading');
+  assert.doesNotMatch(text, /skill/i, 'llms.txt says nothing of the AI skill, which is gone');
+});
+
+test('the AI skill is gone: no skill folder, plugin file, tool or install line is left', () => {
+  for (const gone of ['skills', '.claude-plugin', 'tools/make-skill.mjs', 'tests/skill.test.js']) assert.ok(!fs.existsSync(path.join(ROOT, gone)), `${gone} is removed`);
+  for (const file of ['README.md', 'CONTRIBUTING.md', 'CLAUDE.md']) assert.doesNotMatch(read(path.join(ROOT, file)), /npx skills add|make-skill|Agent Skill|AI skill/i, `${file} does not mention the skill`);
+});
+
 test('the counts written in the issue template, the 404 page and the sitemap match the cards', () => {
   const cards = totalCards();
   const template = read(path.join(ROOT, '.github/ISSUE_TEMPLATE/config.yml'));

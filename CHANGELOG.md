@@ -8,11 +8,6 @@ The main steps of Animation Handbook, newest first, with the number of animation
   (what moved, when and how) and the animations that match play, with their names. Not here? opens a short GitHub form.
 - A Star on GitHub button under every animation page's Copy prompt and, on screens 820px and wider, at the end of its
   top bar; a round star on the home page for phones.
-- An AI skill: `npx skills add matinmonshizadeh/animation-handbook` adds every page's prompt and settings to Claude
-  Code, Cursor, Codex and other assistants. Also a Claude Code plugin and `llms.txt`.
-- The AI skill builds what the user asks for on their own page: each setting comes with the demo's values as a starting
-  point, the catalog is searched rather than read whole, and the rules cover what a real page needs (nothing on the
-  first screen waits for a scroll, decorations stay out of the keyboard order, loops pause out of view).
 - A Famous effects page: eleven effects people admire on well-known websites, each described in plain words with the
   handbook animations that make something similar and a prompt to build your own. It is linked from the home page's footer.
 - A new animation, Ink Spread Reveal (167 in all): ink drops spread and merge until the picture shows, with See inside and
@@ -49,6 +44,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
 - After you copy a prompt, the Star on GitHub button under it lights up once.
 - Without JavaScript, the home page lists every animation as a plain link under its group, so visitors and search engines
   that run no script can still reach every page.
+- The AI skill (`npx skills add`) and the Claude Code plugin, both added after 1.0.0, are removed: every page's Copy prompt
+  does that job. `llms.txt` stays.
 
 ## 1.0.0 — 2026-10-10
 
