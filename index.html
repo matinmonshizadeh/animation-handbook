@@ -204,11 +204,11 @@ button,input{font:inherit;color:inherit}
 .rtitle{font-size:clamp(24px,2.6vw,32px);font-weight:800;letter-spacing:-.02em;line-height:1.1}
 .rsub{margin-top:6px;font-size:16px;color:var(--muted)}
 .pillbtn{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 18px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:15px;font-weight:600;cursor:pointer}
-/* the place chips under the heading, as in the place tiles: All (Start) and the nine places, each with its tile's color as a dot.
-   They show at Start and on a place; a search, the finder and All animations hide them. */
+/* the group chips under the heading: All (Start) and the seven groups, each with its group's color (the deep end of its cards' gradient) as a dot.
+   They show at Start and on a group; a search, a place, the finder and All animations hide them. */
 .spots{display:flex;flex-wrap:wrap;gap:6px;margin:-8px 0 24px}
 .spot{display:inline-flex;align-items:center;gap:5px;flex:none;min-height:40px;padding:0 11px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:13.5px;font-weight:600;color:var(--ink-2);white-space:nowrap;cursor:pointer}
-.spot i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--pa)}
+.spot i{width:8px;height:8px;flex:none;border-radius:50%;background:var(--g2)}
 .spot[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 @media(hover:hover){.spot:hover{border-color:var(--ink)}}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
@@ -339,7 +339,7 @@ button,input{font:inherit;color:inherit}
   .pchip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--surface)}
   .spots{flex-wrap:nowrap;margin:-4px calc(-1 * var(--gut)) 16px;padding:2px var(--gut) 4px;overflow-x:auto;scrollbar-width:none}
   .spot{min-width:44px;min-height:44px;justify-content:center}
-  .results.filtered .spots{display:none} /* the slim bar at the top holds the places then */
+  .results.filtered .spots{display:none} /* the slim bar at the top is the way around then */
   .group{scroll-margin-top:136px}
   .rhead{margin-bottom:16px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
@@ -3195,20 +3195,18 @@ button,input{font:inherit;color:inherit}
       </div>
     </div>
     <div class="rhead">
-      <div><h2 class="rtitle" id="results-title" tabindex="-1">Good places to start</h2><p class="rsub" id="results-sub" aria-live="polite">Eight favorites from different places. Type above, or pick a place.</p></div>
+      <div><h2 class="rtitle" id="results-title" tabindex="-1">Good places to start</h2><p class="rsub" id="results-sub" aria-live="polite">Eight favorites from different groups. Type above, or pick a group.</p></div>
       <button type="button" class="pillbtn" id="clear-view" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear</button>
     </div>
-    <div class="spots" id="spots" role="group" aria-label="Places">
-      <button type="button" class="spot" data-place="" aria-pressed="true">All</button>
-      <button type="button" class="spot" data-place="btn" aria-pressed="false"><i class="p-btn" aria-hidden="true"></i>Buttons</button>
-      <button type="button" class="spot" data-place="text" aria-pressed="false"><i class="p-text" aria-hidden="true"></i>Text</button>
-      <button type="button" class="spot" data-place="imgcard" aria-pressed="false"><i class="p-img" aria-hidden="true"></i>Images &amp; cards</button>
-      <button type="button" class="spot" data-place="bg" aria-pressed="false"><i class="p-bg" aria-hidden="true"></i>Backgrounds</button>
-      <button type="button" class="spot" data-place="menu" aria-pressed="false"><i class="p-menu" aria-hidden="true"></i>Menus &amp; forms</button>
-      <button type="button" class="spot" data-place="load" aria-pressed="false"><i class="p-load" aria-hidden="true"></i>Loading &amp; messages</button>
-      <button type="button" class="spot" data-place="intro" aria-pressed="false"><i class="p-intro" aria-hidden="true"></i>Page intros</button>
-      <button type="button" class="spot" data-place="scroll" aria-pressed="false"><i class="p-scroll" aria-hidden="true"></i>Scrolling</button>
-      <button type="button" class="spot" data-place="page" aria-pressed="false"><i class="p-page" aria-hidden="true"></i>Page changes</button>
+    <div class="spots" id="spots" role="group" aria-label="Groups">
+      <button type="button" class="spot" data-cat="" aria-pressed="true">All</button>
+      <button type="button" class="spot" data-cat="scroll-based" aria-pressed="false"><i class="c1" aria-hidden="true"></i>Scroll-Based</button>
+      <button type="button" class="spot" data-cat="entrance-exit" aria-pressed="false"><i class="c2" aria-hidden="true"></i>Entrance &amp; Exit</button>
+      <button type="button" class="spot" data-cat="page-transitions" aria-pressed="false"><i class="c3" aria-hidden="true"></i>Page Transitions</button>
+      <button type="button" class="spot" data-cat="micro-interactions" aria-pressed="false"><i class="c4" aria-hidden="true"></i>Micro-Interactions</button>
+      <button type="button" class="spot" data-cat="text-typography" aria-pressed="false"><i class="c5" aria-hidden="true"></i>Text &amp; Typography</button>
+      <button type="button" class="spot" data-cat="3d-advanced" aria-pressed="false"><i class="c6" aria-hidden="true"></i>3D &amp; Advanced</button>
+      <button type="button" class="spot" data-cat="ambient-background" aria-pressed="false"><i class="c7" aria-hidden="true"></i>Ambient &amp; Background</button>
     </div>
     <div id="cards"></div>
     <div class="empty" id="empty" hidden>
@@ -4688,6 +4686,7 @@ const PLACE_LIST=[
 const PLACE=Object.fromEntries(PLACE_LIST.map(p=>[p.key,p]));
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 const slugify=x=>x.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-|-$/g,'');
+const CAT=Object.fromEntries(CATS.map(c=>[slugify(c.name),c])); // the seven groups by the key their chip and the address (?cat=) use: the name as a slug
 const wordsOf=s=>s.toLowerCase().replace(/[^a-z0-9]+/g,' ').trim().split(' ').filter(Boolean);
 // Small words that say nothing about an animation, left out of what is typed and of the cards' own words. "best" is one: every
 // description ends "Best for …", so it (like "for") would match every card, and a first "b" or "f" would find them all.
@@ -4999,14 +4998,14 @@ function showGroups(){
   cardsBox.replaceChildren(...boxes);
   place(cards);
 }
-const state={q:'',place:'',view:'',all:false,what:'',when:'',how:''};
-const isFiltered=()=>!!(state.q||state.place||state.view);
+const state={q:'',place:'',cat:'',view:'',all:false,what:'',when:'',how:''};
+const isFiltered=()=>!!(state.q||state.place||state.cat||state.view);
 const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$('results-sub'),clearBtn=$('clear-view'),
   emptyEl=$('empty'),emptyTitle=$('empty-title'),emptyGh=$('empty-gh'),moreBox=$('more'),moreLabel=$('more-label');
 let moreAction='all';
 const pinbar=$('pinbar'),spotsEl=$('spots');
-// The phone bar is there while a view other than Start or the finder is open and while its own search box has focus, so emptying the box does not take the box away; never in the finder.
-const syncBar=()=>resultsEl.classList.toggle('filtered',state.view!=='find'&&(isFiltered()||document.activeElement===q2));
+// The phone bar is there while a search, a place or All animations is open and while its own search box has focus, so emptying the box does not take the box away; never in the finder, and not on a group, whose chips stay under the heading.
+const syncBar=()=>resultsEl.classList.toggle('filtered',state.view!=='find'&&(!!(state.q||state.place||state.view)||document.activeElement===q2));
 // A pressed button that goes away with the view hands keyboard focus to the results heading. No scrolling: the callers that move the page scroll it themselves.
 const toTitle=()=>titleEl.focus({preventScroll:true});
 const gone=el=>!el.getClientRects().length;
@@ -5019,12 +5018,14 @@ function render(answered){
     sub=list.length===1?'1 animation matches.':list.length+' animations match.';
   }else if(state.place){
     list=ALL.filter(e=>e.places.includes(state.place));title=PLACE[state.place].name;sub=list.length+' animations';tags=false;
+  }else if(state.cat){
+    list=ALL.filter(e=>e.cat===CAT[state.cat]);title=CAT[state.cat].name;sub=list.length+' animations';
   }else if(finding){
     found=findMatches(state);title='Your matches';sub=findLine(found);
   }else if(state.view==='all'){
     title='All animations';sub=ALL.length+' animations in '+CATS.length+' groups.';
   }else{
-    list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites from different places. Type above, or pick a place.';
+    list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites from different groups. Type above, or pick a group.';
   }
   titleEl.textContent=title;say(sub,finding&&answered);
   showFinder(finding,found);
@@ -5032,7 +5033,7 @@ function render(answered){
   syncBar();
   resultsEl.classList.toggle('no-tags',!tags);
   clearBtn.hidden=!filtered||finding;
-  spotsEl.hidden=!!(state.q||state.view);
+  spotsEl.hidden=!!(state.q||state.place||state.view);
   if(found)showFound(found);else if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
   const empty=!!list&&!list.length,matched=found?found.best.length+found.close.length:0;
   emptyEl.hidden=!empty;
@@ -5042,9 +5043,12 @@ function render(answered){
   else if(list&&!state.all&&list.length>PAGE){moreAction='expand';moreLabel.textContent='Show all '+list.length;moreBox.hidden=false;}
   else moreBox.hidden=true;
   document.querySelectorAll('[data-place]').forEach(b=>b.setAttribute('aria-pressed',String(!state.q&&b.dataset.place===state.place)));
-  // The picked chip is scrolled fully into the phone bar's row, clear of the row's edge margin; only the row moves, never the page.
-  const chip=pinbar.querySelector('.pchip[aria-pressed="true"]');
-  if(chip&&chip.getClientRects().length){
+  // A group's chip is pressed on its group, All at Start (the chips are hidden everywhere else).
+  document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',String(!spotsEl.hidden&&b.dataset.cat===state.cat)));
+  // The picked chip is scrolled fully into its row (a place in the phone bar, a group under the heading), clear of the row's
+  // edge margin; only the row moves, never the page.
+  for(const chip of [pinbar.querySelector('.pchip[aria-pressed="true"]'),spotsEl.querySelector('.spot[aria-pressed="true"]')]){
+    if(!chip||!chip.getClientRects().length)continue;
     const row=chip.parentElement,r=row.getBoundingClientRect(),b=chip.getBoundingClientRect(),edge=parseFloat(getComputedStyle(row).paddingLeft)||0;
     if(b.left<r.left+edge)row.scrollLeft-=r.left+edge-b.left;
     else if(b.right>r.right-edge)row.scrollLeft+=b.right-(r.right-edge);
@@ -5059,26 +5063,29 @@ function writeURL(push){
   const p=[];
   if(state.q)p.push('q='+encodeURIComponent(state.q));
   else if(state.place)p.push('place='+PLACE[state.place].url);
+  else if(state.cat)p.push('cat='+state.cat);
   else if(state.view==='find')p.push(findQuery(state).slice(1));
   else if(state.view)p.push('view=all');
-  if(state.all&&(state.q||state.place||state.view==='find'))p.push('all=1');
+  if(state.all&&(state.q||state.place||state.cat||state.view==='find'))p.push('all=1');
   const query=p.length?'?'+p.join('&'):'';
   const moved=String(new URLSearchParams(query))!==String(new URLSearchParams(location.search));
   try{history[push&&moved?'pushState':'replaceState'](null,'',query||location.pathname);}catch(e){}
 }
-// The view the address shows, and the category of an old ?cat= link (to scroll to).
+// The view the address shows. ?cat= names a group (its name as a slug) and opens that group; an old ?cat= link whose name is
+// no group opens All animations, as every ?cat= link once did.
 function fromURL(){
   const p=new URLSearchParams(location.search),found=PLACE_LIST.find(x=>x.url===p.get('place')),cat=p.get('cat')||'';
-  const next={q:(p.get('q')||'').trim(),place:'',view:'',all:p.get('all')==='1',what:'',when:'',how:''};
+  const next={q:(p.get('q')||'').trim(),place:'',cat:'',view:'',all:p.get('all')==='1',what:'',when:'',how:''};
   if(!next.q&&found)next.place=found.key;
   else if(!next.q&&p.get('view')==='find'){next.view='find';FIND_Q.forEach(qu=>{if(qu.answers.some(a=>a.key===p.get(qu.key)))next[qu.key]=p.get(qu.key);});}
+  else if(!next.q&&Object.prototype.hasOwnProperty.call(CAT,cat))next.cat=cat;
   else if(!next.q&&(p.get('view')==='all'||cat))next.view='all';
-  return {next,cat};
+  return next;
 }
-// Takes the view from the address. Returns the category of an old ?cat= link, to scroll to.
-function readURL(){const {next,cat}=fromURL();Object.assign(state,next);q.value=q2.value=state.q;return cat;}
+// Takes the view from the address.
+function readURL(){Object.assign(state,fromURL());q.value=q2.value=state.q;}
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
-function go(next,push){Object.assign(state,{q:'',place:'',view:'',all:false,what:'',when:'',how:''},next);q.value=q2.value=state.q;render();writeURL(push);}
+function go(next,push){Object.assign(state,{q:'',place:'',cat:'',view:'',all:false,what:'',when:'',how:''},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
 // A picked place or suggestion brings the results into view at every width, unless their heading already shows in the top 60%
 // of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on a
@@ -5096,12 +5103,19 @@ document.addEventListener('click',e=>{
     if(!(state.place&&showResults())&&gone(tile))toTitle();
     return;
   }
+  const chip=e.target.closest('[data-cat]');
+  if(chip){
+    const key=chip.dataset.cat;
+    go(state.cat===key?{}:{cat:key},true); // the picked group pressed again, and All, go back to Start, where the page is
+    if(state.cat)showResults();
+    return;
+  }
   const pick=e.target.closest('[data-q]');
   if(pick){go({q:pick.dataset.q},true);if(!showResults()&&gone(pick))toTitle();}
 });
 function typed(input){
   (input===q?q2:q).value=input.value;
-  Object.assign(state,{q:input.value.trim(),place:'',view:'',all:false,what:'',when:'',how:''});
+  Object.assign(state,{q:input.value.trim(),place:'',cat:'',view:'',all:false,what:'',when:'',how:''});
   render();writeURL(false);
 }
 q.addEventListener('input',()=>typed(q));
@@ -5128,7 +5142,7 @@ $('nav-all').addEventListener('click',e=>{if(e.button||e.ctrlKey||e.metaKey||e.s
 // A view they change can take away the control that had keyboard focus (the ninth card after Show all): the heading gets it,
 // the finder's heading in the finder.
 addEventListener('popstate',()=>{
-  const {next}=fromURL();
+  const next=fromURL();
   if(Object.keys(next).every(k=>next[k]===state[k]||next[k]===''&&state[k]==='unsure'))return;
   readURL();render();const a=document.activeElement;
   if(!a||a===document.body||gone(a)){if(state.view==='find')findTitle.focus({preventScroll:true});else toTitle();}
@@ -5218,10 +5232,9 @@ function showNotHere(finding,found){
   findGh.href=findIssueURL(state);
 }
 $('find-words').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavior:reduce?'auto':'smooth'});q.focus({preventScroll:true});});
-const startCat=readURL();
+readURL();
 render();
 document.documentElement.classList.remove('fd-direct'); // the view is drawn: the page under the top bar shows
-if(startCat){const g=$('cat-'+startCat);if(g)g.scrollIntoView();}
 
 (function(){const btn=$('theme-toggle');if(!btn)return;
   btn.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';

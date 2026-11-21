@@ -238,8 +238,8 @@ test('the address keeps the finder and its answers: ?view=find, then what, when 
   const page = finder({ URLSearchParams, location: { search: '', pathname: '/animation-handbook/' },
     history: { pushState: (s, t, url) => calls.push(['push', url]), replaceState: (s, t, url) => calls.push(['replace', url]) } });
   for (const name of ['fromURL', 'writeURL']) vm.runInContext(source(name), page);
-  const open = search => { page.location.search = search; return plain(page.fromURL().next); };
-  const none = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+  const open = search => { page.location.search = search; return plain(page.fromURL()); };
+  const none = { q: '', place: '', cat: '', view: '', all: false, what: '', when: '', how: '' };
   assert.deepEqual(open('?view=find&what=text&when=scroll&how=draw'), { ...none, view: 'find', what: 'text', when: 'scroll', how: 'draw' });
   assert.deepEqual(open('?view=find&what=zebra&how=fade&all=1'), { ...none, view: 'find', all: true, how: 'fade' });
   assert.deepEqual(open('?q=fade&view=find&what=text'), { ...none, q: 'fade' });
@@ -262,7 +262,7 @@ test("a step that changes only the fragment (How it works, Back to top, the skip
   for (const name of ['fromURL', 'readURL']) vm.runInContext(source(name), page);
   const start = at("addEventListener('popstate',");
   vm.runInContext(HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1) + ')', page);
-  const none = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+  const none = { q: '', place: '', cat: '', view: '', all: false, what: '', when: '', how: '' };
   page.state = { ...none, view: 'find', what: 'text', when: 'unsure' };
   page.location.search = '?view=find&what=text';
   page.popstate();
@@ -351,7 +351,7 @@ const listener = from => { const start = at(from); return HOME.slice(start, bloc
 const SLUGS = homeConst('CATS').flatMap(cat => cat.entries.map(e => e[0]));
 // Matches made of the first cards in home order: `best` of them, then `close` more.
 const someMatches = (best, close) => ({ best: SLUGS.slice(0, best).map(slug => ({ slug })), close: SLUGS.slice(best, best + close).map(slug => ({ slug })) });
-const NONE = { q: '', place: '', view: '', all: false, what: '', when: '', how: '' };
+const NONE = { q: '', place: '', cat: '', view: '', all: false, what: '', when: '', how: '' };
 function finderView() {
   const els = {}, calls = [], listeners = {};
   const $ = id => els[id] ??= fakeEl(id === 'places' ? { closest: () => els.placesSection ??= fakeEl() } : {});
@@ -491,7 +491,7 @@ test('an address that opens the finder shows only the top bar from the first pai
       document: { documentElement: { classList: { add: name => added.push(name), remove: name => removed.push(name) } } } });
     page.location.search = search;
     const where = search || 'the start page';
-    assert.deepEqual(added, page.fromURL().next.view === 'find' ? ['fd-direct'] : [], `${where}: as the page reads the address`);
+    assert.deepEqual(added, page.fromURL().view === 'find' ? ['fd-direct'] : [], `${where}: as the page reads the address`);
     read.forEach(fn => fn());
     assert.deepEqual(removed, added, `${where}: the class goes once the page is read, so a script that failed still leaves the page to see`);
   }
@@ -499,7 +499,7 @@ test('an address that opens the finder shows only the top bar from the first pai
   for (const part of ['<section class="wrap home-hero"', '<section class="wrap" aria-labelledby="places-title">', '<section class="wrap finder" id="finder"',
     '<section class="wrap results" id="results"', '<section class="how" id="how"']) assert.ok(main.includes(part), `${part}… sits in <main>`);
   assert.ok(STYLE.includes('.fd-direct main,.fd-direct .foot{visibility:hidden}'), 'the class hides everything under the top bar and keeps its room');
-  assert.match(HOME, /\nconst startCat=readURL\(\);\r?\nrender\(\);\r?\ndocument\.documentElement\.classList\.remove\('fd-direct'\);/, 'the first render takes the class away');
+  assert.match(HOME, /\nreadURL\(\);\r?\nrender\(\);\r?\ndocument\.documentElement\.classList\.remove\('fd-direct'\);/, 'the first render takes the class away');
 });
 
 test("the page check's patterns for See N matches and the results line take each number only with its own word, as the page writes it", () => {

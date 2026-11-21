@@ -1252,24 +1252,85 @@ test('the home page head gives search engines and social sites one title, one de
   assert.match(head, /<link rel="canonical" href="[^"]*">\r?\n<link rel="sitemap" type="application\/xml" title="Sitemap" href="sitemap\.xml">\r?\n/, 'the sitemap link, right after the canonical link');
 });
 
-test('every place has one tile, one phone-bar chip, one chip under the results heading and one count, and the markup names no other place', () => {
-  // The opening tags of the page's markup: scripts, styles and comments left out.
-  const tags = HOME.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/g);
-  const attr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
-  const hasClass = (tag, name) => (attr(tag, 'class') || '').split(/\s+/).includes(name);
-  const placed = tags.filter(tag => attr(tag, 'data-place') !== undefined), counted = tags.filter(tag => attr(tag, 'data-count') !== undefined);
-  // All, the first chip under the results heading, names no place: it goes back to Start.
-  const all = placed.filter(tag => attr(tag, 'data-place') === '');
-  assert.equal(all.length, 1, 'one button names no place: All');
-  assert.ok(hasClass(all[0], 'spot'), 'All is a chip under the results heading');
-  for (const tag of placed) if (tag !== all[0]) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-place')), `unknown place: ${tag}`);
-  for (const tag of counted) assert.ok(PLACE_KEYS.includes(attr(tag, 'data-count')), `unknown place: ${tag}`);
+// The opening tags of the home page's markup: scripts, styles and comments left out.
+const homeTags = () => HOME.replace(/<script\b[\s\S]*?<\/script>|<style\b[\s\S]*?<\/style>|<!--[\s\S]*?-->/g, '').match(/<[a-z][^>]*>/g);
+const tagAttr = (tag, name) => (tag.match(new RegExp(`\\s${name}="([^"]*)"`)) || [])[1];
+const tagHasClass = (tag, name) => (tagAttr(tag, 'class') || '').split(/\s+/).includes(name);
+
+test('every place has one tile, one phone-bar chip and one count, and the markup names no other place', () => {
+  const tags = homeTags();
+  const placed = tags.filter(tag => tagAttr(tag, 'data-place') !== undefined), counted = tags.filter(tag => tagAttr(tag, 'data-count') !== undefined);
+  for (const tag of placed) assert.ok(PLACE_KEYS.includes(tagAttr(tag, 'data-place')), `unknown place: ${tag}`);
+  for (const tag of counted) assert.ok(PLACE_KEYS.includes(tagAttr(tag, 'data-count')), `unknown place: ${tag}`);
   for (const key of PLACE_KEYS) {
-    assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'place')).length, 1, `one ${key} tile`);
-    assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'pchip')).length, 1, `one ${key} chip in the phone bar`);
-    assert.equal(placed.filter(tag => attr(tag, 'data-place') === key && hasClass(tag, 'spot')).length, 1, `one ${key} chip under the results heading`);
-    assert.equal(counted.filter(tag => attr(tag, 'data-count') === key).length, 1, `one ${key} count`);
+    assert.equal(placed.filter(tag => tagAttr(tag, 'data-place') === key && tagHasClass(tag, 'place')).length, 1, `one ${key} tile`);
+    assert.equal(placed.filter(tag => tagAttr(tag, 'data-place') === key && tagHasClass(tag, 'pchip')).length, 1, `one ${key} chip in the phone bar`);
+    assert.equal(placed.filter(tag => tagAttr(tag, 'data-place') === key).length, 2, `${key}: its tile and its phone-bar chip, nothing else`);
+    assert.equal(counted.filter(tag => tagAttr(tag, 'data-count') === key).length, 1, `one ${key} count`);
   }
+});
+
+// A group's key, in its chip and in the address (?cat=): its name in small letters, every run of other characters a hyphen.
+const groupKey = name => name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+
+test('the chips under the results heading are All and the seven groups in home order, each with its group color', () => {
+  const cats = homeConst('CATS');
+  const row = between(HOME, '<div class="spots" id="spots"', '</div>');
+  assert.match(row, /^<div class="spots" id="spots" role="group" aria-label="Groups">/, 'the row is a group named Groups');
+  assert.equal(count(row, '<button'), cats.length + 1, 'All and one chip for each group, nothing else');
+  const chips = [...row.matchAll(/<button type="button" class="spot" data-cat="([^"]*)" aria-pressed="(true|false)">(?:<i class="(c\d)" aria-hidden="true"><\/i>)?([^<]*)<\/button>/g)]
+    .map(m => ({ key: m[1], pressed: m[2], dot: m[3] || '', name: decode(m[4]) }));
+  // All, the first chip, names no group and starts pressed: it is Start.
+  assert.deepEqual(chips, [{ key: '', pressed: 'true', dot: '', name: 'All' },
+    ...cats.map(cat => ({ key: groupKey(cat.name), pressed: 'false', dot: cat.cat.replace('-cat', ''), name: cat.name }))]);
+  const tags = homeTags();
+  assert.equal(tags.filter(tag => tagAttr(tag, 'data-cat') !== undefined).length, cats.length + 1, 'no other button names a group');
+  assert.equal(tags.filter(tag => tagHasClass(tag, 'spot') && tagAttr(tag, 'data-place') !== undefined).length, 0, 'no chip under the results heading names a place');
+  // The dot takes the deep end of its group's gradient, the color of that group's cards.
+  const css = [...HOME.matchAll(/<style>([\s\S]*?)<\/style>/g)].map(m => m[1]).join('\n');
+  assert.ok(cssRules(css).some(rule => rule.selector === '.spot i' && /(^|;)\s*background:\s*var\(--g2\)/.test(rule.body)), 'the dot is drawn in the group color (--g2)');
+});
+
+// The address of a view, as the page reads it: the page's own slugify, CAT and fromURL() run with the page's CATS and places.
+function homeAddress(search) {
+  const line = marker => { const at = HOME.indexOf(marker); assert.ok(at >= 0, `${marker} in index.html`); return HOME.slice(at, HOME.indexOf('\n', at)); };
+  const start = HOME.indexOf('function fromURL(');
+  assert.ok(start >= 0, 'function fromURL in index.html');
+  const code = `${line('const slugify=')}\n${line('const CAT=')}\n${HOME.slice(start, blockEnd(HOME.indexOf('{', start)) + 1)}\nfromURL()`;
+  const next = vm.runInNewContext(code, { CATS: homeConst('CATS'), PLACE_LIST: homeConst('PLACE_LIST'), FIND_Q: [], URLSearchParams, location: { search } });
+  return JSON.parse(JSON.stringify(next));
+}
+
+test('an address with ?cat= opens that group; a search or a place wins over it, and a name that is no group opens All animations', () => {
+  const cats = homeConst('CATS');
+  for (const cat of cats) {
+    const key = groupKey(cat.name), next = homeAddress('?cat=' + key);
+    assert.deepEqual({ cat: next.cat, view: next.view, place: next.place, q: next.q, all: next.all }, { cat: key, view: '', place: '', q: '', all: false }, `?cat=${key}`);
+  }
+  assert.equal(homeAddress('?cat=micro-interactions&all=1').all, true, 'all=1 shows the whole group');
+  assert.equal(homeAddress('').cat, '', 'Start names no group');
+  let next = homeAddress('?q=fade&cat=micro-interactions');
+  assert.deepEqual([next.q, next.cat, next.view], ['fade', '', ''], 'a search wins');
+  next = homeAddress('?place=buttons&cat=micro-interactions');
+  assert.deepEqual([next.place, next.cat, next.view], ['btn', '', ''], 'a place wins');
+  // An old link with a name that is no group (and names every object has, such as constructor) opens All animations, as before.
+  for (const name of ['nothing', 'constructor', 'toString']) {
+    next = homeAddress('?cat=' + name);
+    assert.deepEqual([next.cat, next.view], ['', 'all'], `?cat=${name}`);
+  }
+});
+
+test('the home page shows a group by the same paging, heading and address rules as a place', () => {
+  const script = HOME.slice(HOME.indexOf('const state={'), HOME.indexOf('// ---------- The finder (?view=find) ----------'));
+  assert.ok(script.includes("const state={q:'',place:'',cat:'',view:'',all:false,what:'',when:'',how:''};"), 'the view names its group (cat)');
+  assert.ok(script.includes('const isFiltered=()=>!!(state.q||state.place||state.cat||state.view);'), 'a group counts as a picked view (Clear shows, the first eight cards)');
+  assert.ok(script.includes("list=ALL.filter(e=>e.cat===CAT[state.cat]);title=CAT[state.cat].name;sub=list.length+' animations';"), 'its cards, its name as the heading, its count');
+  assert.ok(script.includes('spotsEl.hidden=!!(state.q||state.place||state.view);'), 'the chips show at Start and on a group only');
+  assert.ok(script.includes("else if(state.cat)p.push('cat='+state.cat);"), 'the address names the group');
+  assert.ok(script.includes("if(state.all&&(state.q||state.place||state.cat||state.view==='find'))p.push('all=1');"), 'and Show all adds all=1');
+  // Every place that sets the whole view names cat, so a view never keeps the group of the one before it.
+  assert.equal(count(script, "place:'',cat:'',view:''"), 4, 'the view at boot, from the address, in go() and while typing');
+  assert.equal(count(script, "place:'',view:''"), 0, 'no view is written without its group');
 });
 
 test('the home page keeps its GitHub button on phones as a round star, and leaves it out only below 360px', () => {

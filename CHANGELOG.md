@@ -35,7 +35,8 @@ The main steps of Animation Handbook, newest first, with the number of animation
 - Famous effects becomes a gallery: each effect opens in a pop-up with our own working version of it, and its address
   opens it directly. The page is linked from the home page's top bar too.
 - Every card preview on the home page is drawn again in one bright, consistent style, with one color for each category.
-- The home page: a row of place chips under Good places to start, a Famous effects band, and How it works in new words
+- The home page: a row of chips under Good places to start for the seven groups (press one to see that group's
+  animations; its address is `?cat=` and the group's name), a Famous effects band, and How it works in new words
   (Pick an animation, See it move, Copy the prompt).
 - New README pictures: a wall of six animations, three of them new, and a recording of today's home page.
 - The home page's search knows more everyday words: other names for an animation (lightbox, snackbar, navbar, tabs), common
