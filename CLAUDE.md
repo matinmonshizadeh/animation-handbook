@@ -197,6 +197,10 @@ animations need a server: a page shows a README link in place of What it is and 
 6. 3D & Advanced — WebGL, shaders, particles, 3D transforms (folder: 06-3d-advanced)
 7. Ambient & Background — passive looping effects (folder: 07-ambient-background)
 
+The home page calls them groups and shows the seven as chips under Good places to start (All, then one chip a group, written
+in the page's markup in `CATS` order; a test compares them). A chip shows its group's cards, and the address is `?cat=` and
+the group's name as a slug (`?cat=micro-interactions`).
+
 ## Distinction: technique vs tool
 This handbook catalogs **techniques**, not libraries. GSAP, Framer Motion,
 Lottie, Three.js are tools that *implement* techniques. They get mentioned
@@ -355,8 +359,8 @@ Run both before calling a page done. They need Node 22 or later (the `--test` gl
   of the page's kind. It skips controls inside `.stage` when it measures touch targets, so check buttons and
   handles a demo draws there by hand.
 - **Home page:** `node tools/check-pages.mjs --base http://127.0.0.1:<port> home` checks the home page at the same
-  six setups (six `ok` lines). Its desktop run also tries the tiles, the search and Show all, and compares
-  Copy prompt on the home page with every page's own; its phone run tries a tile and the slim bar, and its
+  six setups (six `ok` lines). Its desktop run also tries the tiles, the group chips, the search and Show all, and compares
+  Copy prompt on the home page with every page's own; its phone run tries a tile, the slim bar and a group chip, and its
   reduced-motion run checks that nothing moves. Every setup also opens the finder (`?view=find`): its desktop run works the answers, See N matches,
   Start over, Show all, the Not here? link and the ways in, and its reduced-motion run checks that every How picture holds a still.
   Run it after changing any page's settings or prompt.

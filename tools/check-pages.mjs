@@ -1143,11 +1143,13 @@ async function homeCopyProblems() {
 // animations lists every card under its group headings with the card titles a level below them, Browse all pressed there
 // adds no history step, an address opened directly shows its view, "/" puts keyboard focus in the search box and Escape on
 // the empty box keeps the picked place, a tile or Popular suggestion press brings the results heading into view with
-// keyboard focus (the picked tile pressed again does not scroll), and the old ?q= and ?cat= links still work. Keyboard
+// keyboard focus (the picked tile pressed again does not scroll), and the old ?q= and ?cat= links still work. A group chip
+// under the heading shows its group with the chip pressed, its first eight cards, Show all and its own address (?cat=); the
+// picked chip pressed again and All go back to Start; a place hides the chips and Clear brings them back. Keyboard
 // focus is not dropped or left behind when a pressed button hides or the page scrolls away: Show all puts it on the first
 // new card; Clear, a suggestion in the Nothing-found panel, Browse all (the button and the link) and Back after Show all
 // put it on the results heading. A tile pressed while a search box keeps focus (a tap on iOS leaves it there) empties both
-// boxes. Leaves the home page on ?cat=micro-interactions.
+// boxes. Leaves the home page in All animations (?cat=nothing).
 async function homeViewProblems() {
   const problems = [];
   const view = () => evaluate(`({ title: document.getElementById('results-title').textContent, cards: document.querySelectorAll('#cards .card').length,
@@ -1204,6 +1206,50 @@ async function homeViewProblems() {
   v = await view();
   on = await focused();
   if (v.title !== 'Good places to start' || v.cards !== 8 || on !== 'results-title') problems.push(`Clear: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
+  // The group chips under the heading. The group pressed is the biggest one (more than a page of cards, for Show all); the
+  // other is the first group that is not it. Both come from the page's data, as the totals do.
+  const chips = () => evaluate(`(() => { const row = document.getElementById('spots');
+    return { shown: !row.hidden && row.getClientRects().length > 0, pressed: [...row.querySelectorAll('.spot[aria-pressed="true"]')].map(b => b.dataset.cat || 'All').join() }; })()`);
+  const [group, other] = await evaluate(`(() => { const big = CATS.reduce((a, b) => b.entries.length > a.entries.length ? b : a), next = CATS.find(c => c !== big);
+    return [big, next].map(c => ({ key: slugify(c.name), name: c.name, cards: c.entries.length })); })()`);
+  if (group.cards <= 8) problems.push(`the page's own data: the biggest group has ${group.cards} cards (the group steps need more than one page of cards)`);
+  let c = await chips();
+  if (!c.shown || c.pressed !== 'All') problems.push(`group chips at Start: ${JSON.stringify(c)}`);
+  await press(`.spot[data-cat="${group.key}"]`);
+  await sleep(300);
+  v = await view(); c = await chips(); on = await focused();
+  if (v.title !== group.name || v.cards !== 8 || v.more !== `Show all ${group.cards}` || v.search !== `?cat=${group.key}` || v.pressed || !c.shown || c.pressed !== group.key || on === 'body') {
+    problems.push(`${group.name} chip: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}, keyboard focus is on ${on}`);
+  }
+  const groupCards = await evaluate(`({ here: [...document.querySelectorAll('#cards .card')].map(card => card.dataset.slug).join(), want: CAT[${JSON.stringify(group.key)}].entries.slice(0, 8).map(e => e[0]).join(),
+    tags: [...document.querySelectorAll('#cards .card .tag')].filter(t => t.getClientRects().length).length })`);
+  if (groupCards.here !== groupCards.want || groupCards.tags !== 8) problems.push(`${group.name} chip: the cards are ${groupCards.here}, not ${groupCards.want}; ${groupCards.tags} of 8 place labels show`);
+  await press('#more-btn');
+  await sleep(300);
+  v = await view(); on = await focused();
+  if (v.cards !== group.cards || v.more !== '' || v.search !== `?cat=${group.key}&all=1` || on !== 'card link 9') problems.push(`${group.name} chip, Show all: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
+  await press(`.spot[data-cat="${group.key}"]`);
+  await sleep(300);
+  v = await view(); c = await chips();
+  if (v.title !== 'Good places to start' || v.cards !== 8 || v.search !== '' || c.pressed !== 'All') problems.push(`the picked group chip pressed again: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
+  await press(`.spot[data-cat="${other.key}"]`);
+  await sleep(300);
+  v = await view(); c = await chips();
+  if (v.title !== other.name || v.search !== `?cat=${other.key}` || c.pressed !== other.key) problems.push(`${other.name} chip: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
+  await press('.spot[data-cat=""]');
+  await sleep(300);
+  v = await view(); c = await chips();
+  if (v.title !== 'Good places to start' || v.search !== '' || c.pressed !== 'All') problems.push(`All chip: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
+  await press(`.spot[data-cat="${group.key}"]`);
+  await sleep(300);
+  await evaluate(`document.querySelector('.place[data-place="btn"]').click()`);
+  await sleep(300);
+  v = await view(); c = await chips();
+  if (v.title !== 'Buttons' || v.pressed !== 'btn' || c.shown || c.pressed) problems.push(`a place picked on a group: ${JSON.stringify(v)}, chips ${JSON.stringify(c)} (the chips hide on a place)`);
+  await press('#clear-view');
+  await sleep(300);
+  v = await view(); c = await chips();
+  if (v.title !== 'Good places to start' || !c.shown || c.pressed !== 'All') problems.push(`Clear after a place: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
   await evaluate(`document.getElementById('q').focus()`);
   await type('fade');
   await sleep(300);
@@ -1304,11 +1350,32 @@ async function homeViewProblems() {
   on = await focused();
   if (v.title !== 'Buttons' || v.search !== '?place=buttons' || v.pressed !== 'btn' || on === 'q') problems.push(`Escape in the empty search box: ${JSON.stringify(v)}, keyboard focus is on ${on}`);
   for (const [query, want] of [['?view=all', { title: 'All animations', groups: total.groups, cards: total.cards, pressed: '' }],
-    ['?place=buttons&all=1', { title: 'Buttons', cards: total.buttons, more: '', pressed: 'btn' }]]) {
+    ['?place=buttons&all=1', { title: 'Buttons', cards: total.buttons, more: '', pressed: 'btn' }],
+    [`?cat=${group.key}`, { title: group.name, cards: 8, more: `Show all ${group.cards}`, pressed: '' }],
+    [`?cat=${group.key}&all=1`, { title: group.name, cards: group.cards, more: '', pressed: '' }]]) {
     await load(query);
     v = await view();
     if (Object.keys(want).some(k => v[k] !== want[k])) problems.push(`${query}: ${JSON.stringify(v)}`);
+    if (query.startsWith('?cat=') && (c = await chips()).pressed !== group.key) problems.push(`${query}: chips ${JSON.stringify(c)}`);
   }
+  // Back and Forward walk the views: Start, a group, another group, and back again.
+  await load('');
+  await press(`.spot[data-cat="${group.key}"]`);
+  await sleep(300);
+  await press(`.spot[data-cat="${other.key}"]`);
+  await sleep(300);
+  await evaluate(`history.back()`);
+  await sleep(500);
+  v = await view(); c = await chips();
+  if (v.title !== group.name || v.search !== `?cat=${group.key}` || c.pressed !== group.key) problems.push(`Back from ${other.name} to ${group.name}: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
+  await evaluate(`history.back()`);
+  await sleep(500);
+  v = await view(); c = await chips();
+  if (v.title !== 'Good places to start' || v.search !== '' || c.pressed !== 'All') problems.push(`Back from ${group.name} to Start: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
+  await evaluate(`history.forward()`);
+  await sleep(500);
+  v = await view(); c = await chips();
+  if (v.title !== group.name || c.pressed !== group.key) problems.push(`Forward to ${group.name}: ${JSON.stringify(v)}, chips ${JSON.stringify(c)}`);
   // The results come into view at every width: a tile press that picks a place and a Popular suggestion press bring the
   // results heading into the top 60% of the window and give it keyboard focus, so focus is not left on a control that
   // scrolled away. The picked tile pressed again goes back to Start where the page is, without scrolling. Each reading
@@ -1331,13 +1398,12 @@ async function homeViewProblems() {
       if (again.title !== 'Good places to start' || Math.abs(again.scrolled - seen.scrolled) > 1) problems.push(`the picked tile pressed again: heading "${again.title}", the page scrolled from ${seen.scrolled}px to ${again.scrolled}px`);
     }
   }
-  // Old links keep working: ?q= opens the search, ?cat= opens All animations at that category's heading.
-  for (const [query, want] of [['?q=fade', 'Results for “fade”'], ['?cat=micro-interactions', 'All animations']]) {
+  // Old links keep working: ?q= opens the search; ?cat= with a group's name opens that group (above), and with a name that is
+  // no group All animations, as every ?cat= link once did.
+  for (const [query, want] of [['?q=fade', 'Results for “fade”'], ['?cat=nothing', 'All animations']]) {
     await load(query);
-    const got = await evaluate(`({ title: document.getElementById('results-title').textContent,
-      top: (() => { const g = document.getElementById('cat-micro-interactions'); return g ? Math.round(g.getBoundingClientRect().top) : null; })() })`);
-    if (got.title !== want) problems.push(`${query}: heading "${got.title}"`);
-    if (query.startsWith('?cat=') && (got.top === null || Math.abs(got.top - 12) > 24)) problems.push(`${query}: the category heading is at ${got.top}px, not at the top`);
+    const got = await evaluate(`document.getElementById('results-title').textContent`);
+    if (got !== want) problems.push(`${query}: heading "${got}"`);
   }
   return problems;
 }
@@ -1348,8 +1414,9 @@ async function homeViewProblems() {
 // page does not move. Emptying the bar's own search box keeps the bar, and the focus in the box, until the box is left. A
 // chip pressed again goes away with the bar, so keyboard focus moves to the results heading. The back arrow goes away too
 // and scrolls to the top, so keyboard focus moves to the first place tile, which is on screen there. The keyboard's Search
-// key in the bar's box takes keyboard focus out of the box (the keyboard closes) and keeps the bar. A 45-letter word in ?q=
-// does not make the page wider than the window.
+// key in the bar's box takes keyboard focus out of the box (the keyboard closes) and keeps the bar. The group chips scroll
+// sideways in their row: the last one, pressed, shows its group without the slim bar and is scrolled fully into the row, also
+// when its address (?cat=) is opened. A 45-letter word in ?q= does not make the page wider than the window.
 async function homePhoneProblems() {
   const now = () => evaluate(`(() => { const a = document.activeElement;
     return { title: document.getElementById('results-title').textContent, focus: a.id || (a.matches('.place') ? 'tile ' + a.dataset.place : a.tagName.toLowerCase()),
@@ -1437,13 +1504,45 @@ async function homePhoneProblems() {
   } finally {
     await send('Emulation.setFocusEmulationEnabled', { enabled: false });
   }
-  // A 45-letter word in the address: the headings that repeat it break inside the word, so the page is no wider than the window.
-  let onLoad;
-  const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
-  await send('Page.navigate', { url: `${BASE}/?q=pneumonoultramicroscopicsilicovolcanoconiosis` });
-  try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push('phone, ?q= with a 45-letter word did not load'); }
-  listeners.delete(onLoad);
+  // Opens an address as a new visit would.
+  const open = async (query, what) => {
+    let onLoad;
+    const loaded = new Promise(resolve => { onLoad = msg => { if (msg.method === 'Page.loadEventFired') resolve(); }; listeners.add(onLoad); });
+    await send('Page.navigate', { url: `${BASE}/${query}` });
+    try { await withTimeout(loaded, LOAD_TIMEOUT); } catch { problems.push(`phone, ${what} did not load`); }
+    listeners.delete(onLoad);
+    await sleep(300);
+  };
+  // The group chips: at Start their row scrolls sideways under the heading. The last chip lies past the right edge of the row:
+  // pressed, its group shows without the slim bar, the chips stay with that chip pressed and scrolled fully into the row, and
+  // the page is no wider than the window. Pressed again it goes back to Start. Opened by its address (?cat=), the pressed chip
+  // is scrolled into the row as well.
+  const groupChip = () => evaluate(`(() => { const chips = [...document.querySelectorAll('#spots .spot')], c = chips[chips.length - 1], row = c.parentElement;
+    const b = c.getBoundingClientRect(), r = row.getBoundingClientRect();
+    return { key: c.dataset.cat, name: c.textContent, title: document.getElementById('results-title').textContent, pressed: c.getAttribute('aria-pressed'),
+      chips: !row.hidden && row.getClientRects().length > 0, bar: getComputedStyle(document.getElementById('pinbar')).display !== 'none',
+      inside: b.left >= r.left - .5 && b.right <= r.right + .5, wide: document.documentElement.scrollWidth > document.documentElement.clientWidth + 1, search: location.search }; })()`);
+  await open('', 'the start page');
+  let g = await groupChip();
+  if (g.title !== 'Good places to start' || !g.chips || g.pressed !== 'false' || g.inside || g.wide) {
+    problems.push(`phone, group chips at Start: ${JSON.stringify(g)}${g.inside ? ' (the last chip is expected past the edge of its row, which scrolls)' : ''}`);
+  }
+  await press(`.spot[data-cat="${g.key}"]`);
+  await sleep(700);
+  g = await groupChip();
+  if (g.title !== g.name || g.pressed !== 'true' || !g.chips || g.bar || !g.inside || g.wide || g.search !== `?cat=${g.key}`) {
+    problems.push(`phone, ${g.name} chip: ${JSON.stringify(g)}${g.bar ? ' (the slim bar shows)' : ''}${g.inside ? '' : ' (the pressed chip is not fully inside its row)'}`);
+  }
+  problems.push(...await fit(g.name));
+  await press(`.spot[data-cat="${g.key}"]`);
   await sleep(300);
+  g = await groupChip();
+  if (g.title !== 'Good places to start' || g.pressed !== 'false' || g.search !== '') problems.push(`phone, the picked group chip pressed again: ${JSON.stringify(g)}`);
+  await open(`?cat=${g.key}`, `?cat=${g.key}`);
+  g = await groupChip();
+  if (g.title !== g.name || g.pressed !== 'true' || !g.inside || g.bar) problems.push(`phone, ?cat=${g.key}: ${JSON.stringify(g)}${g.inside ? '' : ' (the pressed chip is not fully inside its row)'}`);
+  // A 45-letter word in the address: the headings that repeat it break inside the word, so the page is no wider than the window.
+  await open('?q=pneumonoultramicroscopicsilicovolcanoconiosis', '?q= with a 45-letter word');
   const wide = await evaluate(`({ page: document.documentElement.scrollWidth, window: document.documentElement.clientWidth })`);
   if (wide.page > wide.window + 1) problems.push(`phone, ?q= with a 45-letter word: the page is ${wide.page}px wide in a ${wide.window}px window`);
   return problems;

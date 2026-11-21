@@ -305,9 +305,10 @@ control with no label or value is left out and the console warns). It skips cont
 
 The home page has a check of its own:
 `node tools/check-pages.mjs --base http://127.0.0.1:<port> home`. It checks the layout at the
-six setups. Its desktop run also tries the tiles, the search and Show all, and compares Copy
-prompt on the home page with every page's own prompt and default settings; its phone run tries
-a tile and the slim bar, and its reduced-motion run checks that nothing moves.
+six setups. Its desktop run also tries the tiles, the group chips, the search and Show all, and
+compares Copy prompt on the home page with every page's own prompt and default settings; its
+phone run tries a tile, the slim bar and a group chip, and its reduced-motion run checks that
+nothing moves.
 Every setup also opens the finder (`?view=find`): its desktop run works the answers, See N
 matches, Start over, Show all, the Not here? link and the ways in, and its reduced-motion run
 checks that every How picture holds a still.
