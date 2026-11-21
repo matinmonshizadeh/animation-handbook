@@ -80,7 +80,8 @@ The view lives in the address, so a view can be shared and **Back** from a demo 
 `?place=buttons`, `?q=fade%20in`, `?view=all`, with `&all=1` once Show all is pressed. Pressing a tile, Browse all,
 Clear or a suggestion adds a history step when it changes the address; typing only replaces the address. Old links
 keep working: `?q=` as today, and `?cat=micro-interactions` (the category's name in the form today's chips write it)
-opens All animations at that category's heading.
+opens All animations at that category's heading. (Changed on 2026-11-21: `?cat=` with a group's name now opens that group's
+own view, the one its chip under Good places to start shows; with any other name it still opens All animations.)
 
 ## Search
 

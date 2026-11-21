@@ -530,6 +530,45 @@ test('the phone bar never shows in the finder, even while its own search box has
     vm.runInContext('syncBar()', page);
     assert.equal(bar.on, want, `${view || 'the start'}, ${focused ? 'its box focused' : 'its box not focused'}`);
   }
+  // A group keeps its chips under the heading and shows no bar, not even when Back lands on it while the bar's box has focus;
+  // a place and a search show the bar as before.
+  for (const [next, focused, want] of [[{ cat: 'micro-interactions' }, null, false], [{ cat: 'micro-interactions' }, q2, false],
+    [{ place: 'btn' }, null, true], [{ q: 'fade' }, q2, true]]) {
+    page.state = { ...NONE, ...next };
+    page.document.activeElement = focused;
+    vm.runInContext('syncBar()', page);
+    assert.equal(bar.on, want, `${JSON.stringify(next)}, ${focused ? 'its box focused' : 'its box not focused'}`);
+  }
+});
+
+test('a group chip opens its group and leaves keyboard focus on the chip; the picked chip pressed again, and All, go back to Start', () => {
+  const calls = [];
+  const page = vm.createContext({ document: { addEventListener: (type, fn) => { if (type === 'click') page.click = fn; } },
+    go: (next, push) => { calls.push(['go', JSON.stringify(next), push]); Object.assign(page.state, NONE, next); },
+    showResults: stay => { calls.push(['showResults', stay]); return true; }, gone: () => false, toTitle: () => calls.push(['toTitle']) });
+  vm.runInContext(listener("document.addEventListener('click',e=>{"), page);
+  // A press on a control that carries the attribute named (and no other)
+  const press = (attr, value) => { calls.length = 0; page.click({ target: { closest: sel => (sel === `[${attr}]` ? { dataset: { [attr.replace('data-', '')]: value } } : null) } }); return calls.map(c => c.join(' ')); };
+  page.state = { ...NONE };
+  assert.deepEqual(press('data-cat', 'text-typography'), ['go {"cat":"text-typography"} true', 'showResults true'], 'a chip at Start: its group, the results in view, focus stays (stay = true)');
+  assert.deepEqual(press('data-cat', 'text-typography'), ['go {} true'], 'the picked chip again: Start, and the page stays where it is');
+  page.state = { ...NONE, cat: 'text-typography' };
+  assert.deepEqual(press('data-cat', '3d-advanced'), ['go {"cat":"3d-advanced"} true', 'showResults true'], 'another chip: that group');
+  assert.deepEqual(press('data-cat', ''), ['go {"cat":""} true'], 'All: Start');
+  assert.deepEqual(press('data-cat', ''), ['go {} true'], 'All at Start: still Start');
+  // The place tiles work as before: a press opens the place and brings the results into view with keyboard focus on the heading.
+  page.state = { ...NONE, cat: '3d-advanced' };
+  assert.deepEqual(press('data-place', 'btn'), ['go {"place":"btn"} true', 'showResults '], 'a tile on a group: the place');
+});
+
+test('a group has room above its heading on phones, opens at its results when its address is opened, and its chip is put in its row again once the font is in', () => {
+  const phone = STYLE.slice(STYLE.indexOf('@media(max-width:600px){'));
+  assert.ok(phone.includes('.results{scroll-margin-top:0}\n  .results.grouped{scroll-margin-top:12px}') || phone.includes('.results{scroll-margin-top:0}\r\n  .results.grouped{scroll-margin-top:12px}'),
+    'on phones the results stop 12px below the top on a group (no slim bar there), 0 elsewhere');
+  assert.ok(HOME.includes("resultsEl.classList.toggle('grouped',!!state.cat);"), 'the results carry the class grouped on a group');
+  assert.match(HOME, /\nreadURL\(\);\r?\nrender\(\);\r?\ndocument\.documentElement\.classList\.remove\('fd-direct'\);[^\n]*\r?\nif\(state\.cat\)resultsEl\.scrollIntoView\(\);[^\n]*\r?\nif\(document\.fonts&&document\.fonts\.ready\)document\.fonts\.ready\.then\(showChips\);/,
+    'after the first render: a group address scrolls to its results, and the picked chip is placed again when the font has loaded');
+  assert.ok(HOME.includes("function showResults(stay){") && HOME.includes('toResults();if(!stay)toTitle();return true;'), 'showResults(stay) scrolls without moving keyboard focus');
 });
 
 test('the questions are native radios in fieldsets with legends, each named by its words, its picture or icon hidden from screen readers, Not sure last', () => {

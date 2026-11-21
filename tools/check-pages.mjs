@@ -1398,6 +1398,22 @@ async function homeViewProblems() {
       if (again.title !== 'Good places to start' || Math.abs(again.scrolled - seen.scrolled) > 1) problems.push(`the picked tile pressed again: heading "${again.title}", the page scrolled from ${seen.scrolled}px to ${again.scrolled}px`);
     }
   }
+  // A group chip pressed while the heading is just above the window: the results come into view (the heading in the top 60%)
+  // and keyboard focus stays on the chip, which is still there, right under the heading. An address that names a group opens
+  // with its heading in the first screen.
+  await load('');
+  await evaluate(`(() => { const t = document.getElementById('results-title'); scrollTo(0, scrollY + t.getBoundingClientRect().bottom + 6); })()`);
+  await sleep(200);
+  await evaluate(`(() => { const el = document.querySelector('.spot[data-cat="${group.key}"]'); el.focus({ preventScroll: true }); el.click(); })()`);
+  await still();
+  let seenGroup = await evaluate(`(() => { const t = document.getElementById('results-title'), top = Math.round(t.getBoundingClientRect().top), a = document.activeElement;
+    return { title: t.textContent, top, shown: top >= 0 && top <= innerHeight * .6, focus: a && a.dataset && a.dataset.cat !== undefined ? 'chip ' + a.dataset.cat : (a && (a.id || a.tagName.toLowerCase())) || '' }; })()`);
+  if (seenGroup.title !== group.name || !seenGroup.shown || seenGroup.focus !== 'chip ' + group.key) {
+    problems.push(`a group chip pressed with the heading above the window: ${JSON.stringify(seenGroup)}${seenGroup.shown ? '' : ' (the heading is not in the top 60% of the window)'}${seenGroup.focus === 'chip ' + group.key ? '' : ' (keyboard focus left the chip)'}`);
+  }
+  await load(`?cat=${group.key}`);
+  seenGroup = await heading();
+  if (seenGroup.title !== group.name || !seenGroup.shown) problems.push(`?cat=${group.key}: the heading is at ${seenGroup.top}px, not in the top 60% of the first screen`);
   // Old links keep working: ?q= opens the search; ?cat= with a group's name opens that group (above), and with a name that is
   // no group All animations, as every ?cat= link once did.
   for (const [query, want] of [['?q=fade', 'Results for “fade”'], ['?cat=nothing', 'All animations']]) {
@@ -1527,7 +1543,8 @@ async function homePhoneProblems() {
   if (g.title !== 'Good places to start' || !g.chips || g.pressed !== 'false' || g.inside || g.wide) {
     problems.push(`phone, group chips at Start: ${JSON.stringify(g)}${g.inside ? ' (the last chip is expected past the edge of its row, which scrolls)' : ''}`);
   }
-  await press(`.spot[data-cat="${g.key}"]`);
+  // A bare click, with no focus() before it: focus alone would scroll the chip into its row, and this step checks the page's own scroll.
+  await evaluate(`document.querySelector('.spot[data-cat="${g.key}"]').click()`);
   await sleep(700);
   g = await groupChip();
   if (g.title !== g.name || g.pressed !== 'true' || !g.chips || g.bar || !g.inside || g.wide || g.search !== `?cat=${g.key}`) {
@@ -1538,9 +1555,20 @@ async function homePhoneProblems() {
   await sleep(300);
   g = await groupChip();
   if (g.title !== 'Good places to start' || g.pressed !== 'false' || g.search !== '') problems.push(`phone, the picked group chip pressed again: ${JSON.stringify(g)}`);
+  // Pressed while the heading is low in the window (70% down), a chip brings the results up: the heading stops a little below
+  // the top (a group has no slim bar to sit under), not flush against it.
+  await evaluate(`(() => { const t = document.getElementById('results-title'); scrollTo(0, scrollY + t.getBoundingClientRect().top - Math.round(innerHeight * .7)); })()`);
+  await sleep(200);
+  await evaluate(`document.querySelector('#spots .spot[data-cat]:not([data-cat=""])').click()`);
+  await sleep(1300);
+  const up = await evaluate(`({ top: Math.round(document.getElementById('results-title').getBoundingClientRect().top), bar: getComputedStyle(document.getElementById('pinbar')).display !== 'none' })`);
+  if (up.top < 8 || up.top > 40 || up.bar) problems.push(`phone, a group chip pressed with the heading low in the window: the heading stops at ${up.top}px (about 12px below the top is expected)${up.bar ? ', and the slim bar shows' : ''}`);
   await open(`?cat=${g.key}`, `?cat=${g.key}`);
   g = await groupChip();
   if (g.title !== g.name || g.pressed !== 'true' || !g.inside || g.bar) problems.push(`phone, ?cat=${g.key}: ${JSON.stringify(g)}${g.inside ? '' : ' (the pressed chip is not fully inside its row)'}`);
+  // An address that names a group opens at the group: its heading is in the first screen, a little below the top.
+  const first = await evaluate(`Math.round(document.getElementById('results-title').getBoundingClientRect().top)`);
+  if (first < 8 || first > 40) problems.push(`phone, ?cat=${g.key}: the heading is at ${first}px, not near the top of the first screen`);
   // A 45-letter word in the address: the headings that repeat it break inside the word, so the page is no wider than the window.
   await open('?q=pneumonoultramicroscopicsilicovolcanoconiosis', '?q= with a 45-letter word');
   const wide = await evaluate(`({ page: document.documentElement.scrollWidth, window: document.documentElement.clientWidth })`);

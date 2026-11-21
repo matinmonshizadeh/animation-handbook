@@ -4,6 +4,12 @@ The owner's choice of 2026-11-04, after the study of ten home page designs (`.su
 repository): keep the first part of the home page as it is, and take the next sections from two of the designs, Spotlight
 and Moments. Where this spec and `2026-09-30-home-page-redesign-design.md` differ, this one wins.
 
+**Changed on 2026-11-21 (the owner's word):** the chips under Good places to start are no longer the nine places. They are
+All and the seven groups (the entries of `CATS`), each opening its group at `?cat=` and the group's name as a slug; they show
+at Start and on a group, and a place hides them. The line under the heading reads "Eight favorites to try first. Type above,
+or pick a group." Everything this spec says about place chips under the heading describes the page before that day;
+`CLAUDE.md` (Taxonomy) and the tests have the rule now.
+
 ## The page, top to bottom
 
 1. **As before:** the top bar, the hero (pill, heading, line, search, Popular, "Don't know the name? Find it") and the nine

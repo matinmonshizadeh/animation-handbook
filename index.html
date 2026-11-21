@@ -212,7 +212,6 @@ button,input{font:inherit;color:inherit}
 .spot[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--bg)}
 @media(hover:hover){.spot:hover{border-color:var(--ink)}}
 .grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:24px}
-.group{scroll-margin-top:12px}
 .group+.group{margin-top:56px}
 .ghead{display:flex;align-items:baseline;flex-wrap:wrap;gap:6px 12px;margin-bottom:20px;font-weight:800}
 .gnum{font-size:26px;color:var(--muted);font-variant-numeric:tabular-nums}
@@ -327,6 +326,7 @@ button,input{font:inherit;color:inherit}
   .pl-name{margin-top:8px;font-size:14px}
   .pl-count{margin-top:2px;font-size:12px}
   .results{scroll-margin-top:0}
+  .results.grouped{scroll-margin-top:12px} /* a group has no slim bar: its heading stops 12px below the top, as on larger screens */
   .results.filtered .pinbar{position:sticky;top:0;z-index:20;display:flex;flex-direction:column;gap:10px;margin:0 calc(-1 * var(--gut)) 16px;padding:10px var(--gut) 12px;background:var(--surface);border-bottom:1px solid var(--line);box-shadow:0 4px 16px rgba(22,22,27,.06)}
   .pinrow{display:flex;align-items:center;gap:8px}
   .pin-back{display:grid;place-items:center;width:44px;height:44px;flex:none;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
@@ -340,7 +340,6 @@ button,input{font:inherit;color:inherit}
   .spots{flex-wrap:nowrap;margin:-4px calc(-1 * var(--gut)) 16px;padding:2px var(--gut) 4px;overflow-x:auto;scrollbar-width:none}
   .spot{min-width:44px;min-height:44px;justify-content:center}
   .results.filtered .spots{display:none} /* the slim bar at the top is the way around then */
-  .group{scroll-margin-top:136px}
   .rhead{margin-bottom:16px}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
   .card{padding:6px;border-radius:16px}
@@ -3195,7 +3194,7 @@ button,input{font:inherit;color:inherit}
       </div>
     </div>
     <div class="rhead">
-      <div><h2 class="rtitle" id="results-title" tabindex="-1">Good places to start</h2><p class="rsub" id="results-sub" aria-live="polite">Eight favorites from different groups. Type above, or pick a group.</p></div>
+      <div><h2 class="rtitle" id="results-title" tabindex="-1">Good places to start</h2><p class="rsub" id="results-sub" aria-live="polite">Eight favorites to try first. Type above, or pick a group.</p></div>
       <button type="button" class="pillbtn" id="clear-view" hidden><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Clear</button>
     </div>
     <div class="spots" id="spots" role="group" aria-label="Groups">
@@ -4989,7 +4988,7 @@ function showGroups(){
   const boxes=[],cards=[];
   CATS.forEach(cat=>{
     const list=ALL.filter(e=>e.cat===cat),box=document.createElement('section');
-    box.className='group';box.id='cat-'+slugify(cat.name);
+    box.className='group';
     box.innerHTML=`<h3 class="ghead"><span class="gnum">${cat.n}</span><span class="gname">${esc(cat.name)}</span><span class="gcount">${list.length} animations</span></h3>`;
     const grid=document.createElement('div');grid.className='grid';
     list.forEach(e=>{const c=CARD[e.slug];c.querySelector('.title').setAttribute('aria-level','4');grid.appendChild(c);cards.push(c);});
@@ -5005,7 +5004,7 @@ const q=$('q'),q2=$('q2'),qClear=$('q-clear'),titleEl=$('results-title'),subEl=$
 let moreAction='all';
 const pinbar=$('pinbar'),spotsEl=$('spots');
 // The phone bar is there while a search, a place or All animations is open and while its own search box has focus, so emptying the box does not take the box away; never in the finder, and not on a group, whose chips stay under the heading.
-const syncBar=()=>resultsEl.classList.toggle('filtered',state.view!=='find'&&(!!(state.q||state.place||state.view)||document.activeElement===q2));
+const syncBar=()=>resultsEl.classList.toggle('filtered',state.view!=='find'&&(!!(state.q||state.place||state.view)||!state.cat&&document.activeElement===q2));
 // A pressed button that goes away with the view hands keyboard focus to the results heading. No scrolling: the callers that move the page scroll it themselves.
 const toTitle=()=>titleEl.focus({preventScroll:true});
 const gone=el=>!el.getClientRects().length;
@@ -5025,13 +5024,14 @@ function render(answered){
   }else if(state.view==='all'){
     title='All animations';sub=ALL.length+' animations in '+CATS.length+' groups.';
   }else{
-    list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites from different groups. Type above, or pick a group.';
+    list=PICKS.map(s=>BY_SLUG[s]);title='Good places to start';sub='Eight favorites to try first. Type above, or pick a group.';
   }
   titleEl.textContent=title;say(sub,finding&&answered);
   showFinder(finding,found);
   showNotHere(finding,found);
   syncBar();
   resultsEl.classList.toggle('no-tags',!tags);
+  resultsEl.classList.toggle('grouped',!!state.cat);
   clearBtn.hidden=!filtered||finding;
   spotsEl.hidden=!!(state.q||state.place||state.view);
   if(found)showFound(found);else if(list)showCards(state.all||!filtered?list:list.slice(0,PAGE));else showGroups();
@@ -5045,16 +5045,19 @@ function render(answered){
   document.querySelectorAll('[data-place]').forEach(b=>b.setAttribute('aria-pressed',String(!state.q&&b.dataset.place===state.place)));
   // A group's chip is pressed on its group, All at Start (the chips are hidden everywhere else).
   document.querySelectorAll('[data-cat]').forEach(b=>b.setAttribute('aria-pressed',String(!spotsEl.hidden&&b.dataset.cat===state.cat)));
-  // The picked chip is scrolled fully into its row (a place in the phone bar, a group under the heading), clear of the row's
-  // edge margin; only the row moves, never the page.
+  showChips();
+  [q,q2].forEach(input=>{if(input!==document.activeElement&&input.value!==state.q)input.value=state.q;});
+  qClear.hidden=!q.value;
+}
+// The picked chip is scrolled fully into its row (a place in the phone bar, a group under the heading), clear of the row's
+// edge margin; only the row moves, never the page. Run again once the site font is in: its wider letters move the chips.
+function showChips(){
   for(const chip of [pinbar.querySelector('.pchip[aria-pressed="true"]'),spotsEl.querySelector('.spot[aria-pressed="true"]')]){
     if(!chip||!chip.getClientRects().length)continue;
     const row=chip.parentElement,r=row.getBoundingClientRect(),b=chip.getBoundingClientRect(),edge=parseFloat(getComputedStyle(row).paddingLeft)||0;
     if(b.left<r.left+edge)row.scrollLeft-=r.left+edge-b.left;
     else if(b.right>r.right-edge)row.scrollLeft+=b.right-(r.right-edge);
   }
-  [q,q2].forEach(input=>{if(input!==document.activeElement&&input.value!==state.q)input.value=state.q;});
-  qClear.hidden=!q.value;
 }
 // Spaces go in as %20, not +, as the spec shows; readURL() reads both. A press adds a history step only when the address
 // changes (the same view written with + counts as the same), and a history call the browser refuses (Safari allows 100 in
@@ -5087,13 +5090,14 @@ function readURL(){Object.assign(state,fromURL());q.value=q2.value=state.q;}
 // go() never runs while typing, so both boxes take the new view's words even when one keeps focus (a tap on iOS leaves it there).
 function go(next,push){Object.assign(state,{q:'',place:'',cat:'',view:'',all:false,what:'',when:'',how:''},next);q.value=q2.value=state.q;render();writeURL(push);}
 const toResults=()=>resultsEl.scrollIntoView({behavior:reduce?'auto':'smooth',block:'start'});
-// A picked place or suggestion brings the results into view at every width, unless their heading already shows in the top 60%
-// of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on a
-// control that scrolled away. Returns whether it scrolled.
-function showResults(){
+// A picked place, group or suggestion brings the results into view at every width, unless their heading already shows in the
+// top 60% of the window (below the phone bar). When the page scrolls, the heading takes keyboard focus, so focus never stays on
+// a control that scrolled away; with stay, focus is left where it is (a group's chip, which sits right under the heading and
+// comes into view with it). Returns whether it scrolled.
+function showResults(stay){
   const top=titleEl.getBoundingClientRect().top;
   if(top>=Math.max(0,pinbar.getBoundingClientRect().bottom)&&top<=innerHeight*.6)return false;
-  toResults();toTitle();return true;
+  toResults();if(!stay)toTitle();return true;
 }
 document.addEventListener('click',e=>{
   const tile=e.target.closest('[data-place]');
@@ -5107,7 +5111,7 @@ document.addEventListener('click',e=>{
   if(chip){
     const key=chip.dataset.cat;
     go(state.cat===key?{}:{cat:key},true); // the picked group pressed again, and All, go back to Start, where the page is
-    if(state.cat)showResults();
+    if(state.cat)showResults(true);
     return;
   }
   const pick=e.target.closest('[data-q]');
@@ -5235,6 +5239,8 @@ $('find-words').addEventListener('click',()=>{go({},true);scrollTo({top:0,behavi
 readURL();
 render();
 document.documentElement.classList.remove('fd-direct'); // the view is drawn: the page under the top bar shows
+if(state.cat)resultsEl.scrollIntoView(); // an address that names a group opens at that group: nothing above the results shows which one it is
+if(document.fonts&&document.fonts.ready)document.fonts.ready.then(showChips);
 
 (function(){const btn=$('theme-toggle');if(!btn)return;
   btn.addEventListener('click',()=>{const next=document.documentElement.dataset.theme==='dark'?'light':'dark';
